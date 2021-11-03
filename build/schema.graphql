@@ -1,0 +1,58 @@
+type User @entity {
+  id: ID! #User Address
+  address: Bytes! #User Address
+  tokens: [TokenUser!]! @derivedFrom(field: "user")
+  outTransactions: [Transaction]! @derivedFrom(field: "fromAddr")
+  inTransactions: [Transaction]! @derivedFrom(field: "toAddr")
+}
+
+type Token @entity {
+  id: ID! #Token Symbol
+  symbol: String! #Token Symbol
+  name: String #Token Name
+  address: String #token eth address
+  transfersCount: BigInt! #Number of transfers
+  holdersCount: BigInt! #Number of holders
+  users: [TokenUser!]! @derivedFrom(field: "token")
+  supply: Supply! @derivedFrom(field: "token")
+  transactions: [Transaction]! @derivedFrom(field: "token")
+}
+
+type TokenUser @entity {
+  id: ID! #<Token Symbol> - <User Address>
+  token: Token! #Token
+  user: User! #User
+  lastTransferTimestamp: BigInt #Timestamp of the last transaction made by user
+  transferCount: BigInt! #Number of transactions
+  inTransferCount: BigInt! #Number of income transactions
+  outTransferCount: BigInt! #Number of outcome transactions
+  balance: BigInt! #User Token Balance
+  totalIncome: BigInt! #User Token Income
+  totalOutcome: BigInt! #User Token Outcome
+}
+
+type Supply @entity {
+  id: ID! #Token Symbol
+  token: Token! #Token
+  changedTimestamp: BigInt #Timestamp of the last supply change (minted/burned)
+  minted: BigInt! #Minted Tokens Amount
+  burned: BigInt! #Burned Tokens Amount
+  total: BigInt! #Total Supply
+}
+
+type Transaction @entity {
+  id: ID! #Transaction Hash
+  block: BigInt! #Transaction Block
+  timestamp: BigInt! #Transaction Timestamp
+  transactionType: TransactionType! #Type - Mint, Burn, Transfer
+  fromAddr: User! #From User
+  toAddr: User! #To User
+  token: Token! #Transaction Token
+  amount: BigInt! #Transaction Token Amount
+}
+
+enum TransactionType {
+  Mint
+  Burn
+  Transfer
+}
