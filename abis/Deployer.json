@@ -1,0 +1,199 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "main",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "rToken",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "RTokenCreated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "symbol",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IVault",
+        "name": "vault",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IERC20",
+        "name": "rsr",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "rewardStart",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rewardPeriod",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "auctionPeriod",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "stRSRWithdrawalDelay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "defaultDelay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "Fix",
+            "name": "maxTradeSlippage",
+            "type": "int192"
+          },
+          {
+            "internalType": "Fix",
+            "name": "auctionClearingTolerance",
+            "type": "int192"
+          },
+          {
+            "internalType": "Fix",
+            "name": "maxAuctionSize",
+            "type": "int192"
+          },
+          {
+            "internalType": "Fix",
+            "name": "minRecapitalizationAuctionSize",
+            "type": "int192"
+          },
+          {
+            "internalType": "Fix",
+            "name": "minRevenueAuctionSize",
+            "type": "int192"
+          },
+          {
+            "internalType": "Fix",
+            "name": "migrationChunk",
+            "type": "int192"
+          },
+          {
+            "internalType": "Fix",
+            "name": "issuanceRate",
+            "type": "int192"
+          },
+          {
+            "internalType": "Fix",
+            "name": "defaultThreshold",
+            "type": "int192"
+          },
+          {
+            "internalType": "Fix",
+            "name": "f",
+            "type": "int192"
+          }
+        ],
+        "internalType": "struct Config",
+        "name": "config",
+        "type": "tuple"
+      },
+      {
+        "internalType": "contract IComptroller",
+        "name": "compound",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IAaveLendingPool",
+        "name": "aave",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "contract RSRAssetP0",
+            "name": "rsrAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "contract COMPAssetP0",
+            "name": "compAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "contract AAVEAssetP0",
+            "name": "aaveAsset",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct IDeployer.ParamsAssets",
+        "name": "nonCollateral",
+        "type": "tuple"
+      },
+      {
+        "internalType": "contract ICollateral[]",
+        "name": "collateral",
+        "type": "address[]"
+      }
+    ],
+    "name": "deploy",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "deployments",
+    "outputs": [
+      {
+        "internalType": "contract IMain",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

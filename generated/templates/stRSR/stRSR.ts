@@ -36,6 +36,72 @@ export class Approval__Params {
   }
 }
 
+export class RSRAdded extends ethereum.Event {
+  get params(): RSRAdded__Params {
+    return new RSRAdded__Params(this);
+  }
+}
+
+export class RSRAdded__Params {
+  _event: RSRAdded;
+
+  constructor(event: RSRAdded) {
+    this._event = event;
+  }
+
+  get from(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class RSRSeized extends ethereum.Event {
+  get params(): RSRSeized__Params {
+    return new RSRSeized__Params(this);
+  }
+}
+
+export class RSRSeized__Params {
+  _event: RSRSeized;
+
+  constructor(event: RSRSeized) {
+    this._event = event;
+  }
+
+  get from(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class Staked extends ethereum.Event {
+  get params(): Staked__Params {
+    return new Staked__Params(this);
+  }
+}
+
+export class Staked__Params {
+  _event: Staked;
+
+  constructor(event: Staked) {
+    this._event = event;
+  }
+
+  get staker(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
 export class Transfer extends ethereum.Event {
   get params(): Transfer__Params {
     return new Transfer__Params(this);
@@ -62,26 +128,105 @@ export class Transfer__Params {
   }
 }
 
-export class RToken extends ethereum.SmartContract {
-  static bind(address: Address): RToken {
-    return new RToken("RToken", address);
+export class UnstakingCompleted extends ethereum.Event {
+  get params(): UnstakingCompleted__Params {
+    return new UnstakingCompleted__Params(this);
+  }
+}
+
+export class UnstakingCompleted__Params {
+  _event: UnstakingCompleted;
+
+  constructor(event: UnstakingCompleted) {
+    this._event = event;
   }
 
-  allowance(owner: Address, spender: Address): BigInt {
+  get withdrawalId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get staker(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+}
+
+export class UnstakingStarted extends ethereum.Event {
+  get params(): UnstakingStarted__Params {
+    return new UnstakingStarted__Params(this);
+  }
+}
+
+export class UnstakingStarted__Params {
+  _event: UnstakingStarted;
+
+  constructor(event: UnstakingStarted) {
+    this._event = event;
+  }
+
+  get withdrawalId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get staker(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get availableAt(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+}
+
+export class stRSR__withdrawalsResult {
+  value0: Address;
+  value1: BigInt;
+  value2: BigInt;
+
+  constructor(value0: Address, value1: BigInt, value2: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromAddress(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    return map;
+  }
+}
+
+export class stRSR extends ethereum.SmartContract {
+  static bind(address: Address): stRSR {
+    return new stRSR("stRSR", address);
+  }
+
+  allowance(owner_: Address, spender: Address): BigInt {
     let result = super.call(
       "allowance",
       "allowance(address,address):(uint256)",
-      [ethereum.Value.fromAddress(owner), ethereum.Value.fromAddress(spender)]
+      [ethereum.Value.fromAddress(owner_), ethereum.Value.fromAddress(spender)]
     );
 
     return result[0].toBigInt();
   }
 
-  try_allowance(owner: Address, spender: Address): ethereum.CallResult<BigInt> {
+  try_allowance(
+    owner_: Address,
+    spender: Address
+  ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
       "allowance",
       "allowance(address,address):(uint256)",
-      [ethereum.Value.fromAddress(owner), ethereum.Value.fromAddress(spender)]
+      [ethereum.Value.fromAddress(owner_), ethereum.Value.fromAddress(spender)]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -145,68 +290,19 @@ export class RToken extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toI32());
   }
 
-  decreaseAllowance(spender: Address, subtractedValue: BigInt): boolean {
-    let result = super.call(
-      "decreaseAllowance",
-      "decreaseAllowance(address,uint256):(bool)",
-      [
-        ethereum.Value.fromAddress(spender),
-        ethereum.Value.fromUnsignedBigInt(subtractedValue)
-      ]
-    );
+  main(): Address {
+    let result = super.call("main", "main():(address)", []);
 
-    return result[0].toBoolean();
+    return result[0].toAddress();
   }
 
-  try_decreaseAllowance(
-    spender: Address,
-    subtractedValue: BigInt
-  ): ethereum.CallResult<boolean> {
-    let result = super.tryCall(
-      "decreaseAllowance",
-      "decreaseAllowance(address,uint256):(bool)",
-      [
-        ethereum.Value.fromAddress(spender),
-        ethereum.Value.fromUnsignedBigInt(subtractedValue)
-      ]
-    );
+  try_main(): ethereum.CallResult<Address> {
+    let result = super.tryCall("main", "main():(address)", []);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBoolean());
-  }
-
-  increaseAllowance(spender: Address, addedValue: BigInt): boolean {
-    let result = super.call(
-      "increaseAllowance",
-      "increaseAllowance(address,uint256):(bool)",
-      [
-        ethereum.Value.fromAddress(spender),
-        ethereum.Value.fromUnsignedBigInt(addedValue)
-      ]
-    );
-
-    return result[0].toBoolean();
-  }
-
-  try_increaseAllowance(
-    spender: Address,
-    addedValue: BigInt
-  ): ethereum.CallResult<boolean> {
-    let result = super.tryCall(
-      "increaseAllowance",
-      "increaseAllowance(address,uint256):(bool)",
-      [
-        ethereum.Value.fromAddress(spender),
-        ethereum.Value.fromUnsignedBigInt(addedValue)
-      ]
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBoolean());
+    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   name(): string {
@@ -312,6 +408,64 @@ export class RToken extends ethereum.SmartContract {
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
+
+  withdrawalIndex(): BigInt {
+    let result = super.call(
+      "withdrawalIndex",
+      "withdrawalIndex():(uint256)",
+      []
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_withdrawalIndex(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "withdrawalIndex",
+      "withdrawalIndex():(uint256)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  withdrawals(param0: BigInt): stRSR__withdrawalsResult {
+    let result = super.call(
+      "withdrawals",
+      "withdrawals(uint256):(address,uint256,uint256)",
+      [ethereum.Value.fromUnsignedBigInt(param0)]
+    );
+
+    return new stRSR__withdrawalsResult(
+      result[0].toAddress(),
+      result[1].toBigInt(),
+      result[2].toBigInt()
+    );
+  }
+
+  try_withdrawals(
+    param0: BigInt
+  ): ethereum.CallResult<stRSR__withdrawalsResult> {
+    let result = super.tryCall(
+      "withdrawals",
+      "withdrawals(uint256):(address,uint256,uint256)",
+      [ethereum.Value.fromUnsignedBigInt(param0)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new stRSR__withdrawalsResult(
+        value[0].toAddress(),
+        value[1].toBigInt(),
+        value[2].toBigInt()
+      )
+    );
+  }
 }
 
 export class ConstructorCall extends ethereum.Call {
@@ -331,12 +485,16 @@ export class ConstructorCall__Inputs {
     this._call = call;
   }
 
-  get name(): string {
-    return this._call.inputValues[0].value.toString();
+  get main_(): Address {
+    return this._call.inputValues[0].value.toAddress();
   }
 
-  get symbol(): string {
+  get name_(): string {
     return this._call.inputValues[1].value.toString();
+  }
+
+  get symbol_(): string {
+    return this._call.inputValues[2].value.toString();
   }
 }
 
@@ -344,6 +502,36 @@ export class ConstructorCall__Outputs {
   _call: ConstructorCall;
 
   constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+}
+
+export class AddRSRCall extends ethereum.Call {
+  get inputs(): AddRSRCall__Inputs {
+    return new AddRSRCall__Inputs(this);
+  }
+
+  get outputs(): AddRSRCall__Outputs {
+    return new AddRSRCall__Outputs(this);
+  }
+}
+
+export class AddRSRCall__Inputs {
+  _call: AddRSRCall;
+
+  constructor(call: AddRSRCall) {
+    this._call = call;
+  }
+
+  get amount(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class AddRSRCall__Outputs {
+  _call: AddRSRCall;
+
+  constructor(call: AddRSRCall) {
     this._call = call;
   }
 }
@@ -386,146 +574,88 @@ export class ApproveCall__Outputs {
   }
 }
 
-export class BurnCall extends ethereum.Call {
-  get inputs(): BurnCall__Inputs {
-    return new BurnCall__Inputs(this);
+export class ProcessWithdrawalsCall extends ethereum.Call {
+  get inputs(): ProcessWithdrawalsCall__Inputs {
+    return new ProcessWithdrawalsCall__Inputs(this);
   }
 
-  get outputs(): BurnCall__Outputs {
-    return new BurnCall__Outputs(this);
+  get outputs(): ProcessWithdrawalsCall__Outputs {
+    return new ProcessWithdrawalsCall__Outputs(this);
   }
 }
 
-export class BurnCall__Inputs {
-  _call: BurnCall;
+export class ProcessWithdrawalsCall__Inputs {
+  _call: ProcessWithdrawalsCall;
 
-  constructor(call: BurnCall) {
+  constructor(call: ProcessWithdrawalsCall) {
     this._call = call;
   }
+}
 
-  get sender(): Address {
-    return this._call.inputValues[0].value.toAddress();
+export class ProcessWithdrawalsCall__Outputs {
+  _call: ProcessWithdrawalsCall;
+
+  constructor(call: ProcessWithdrawalsCall) {
+    this._call = call;
+  }
+}
+
+export class SeizeRSRCall extends ethereum.Call {
+  get inputs(): SeizeRSRCall__Inputs {
+    return new SeizeRSRCall__Inputs(this);
+  }
+
+  get outputs(): SeizeRSRCall__Outputs {
+    return new SeizeRSRCall__Outputs(this);
+  }
+}
+
+export class SeizeRSRCall__Inputs {
+  _call: SeizeRSRCall;
+
+  constructor(call: SeizeRSRCall) {
+    this._call = call;
   }
 
   get amount(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
+    return this._call.inputValues[0].value.toBigInt();
   }
 }
 
-export class BurnCall__Outputs {
-  _call: BurnCall;
+export class SeizeRSRCall__Outputs {
+  _call: SeizeRSRCall;
 
-  constructor(call: BurnCall) {
+  constructor(call: SeizeRSRCall) {
     this._call = call;
   }
 }
 
-export class DecreaseAllowanceCall extends ethereum.Call {
-  get inputs(): DecreaseAllowanceCall__Inputs {
-    return new DecreaseAllowanceCall__Inputs(this);
+export class StakeCall extends ethereum.Call {
+  get inputs(): StakeCall__Inputs {
+    return new StakeCall__Inputs(this);
   }
 
-  get outputs(): DecreaseAllowanceCall__Outputs {
-    return new DecreaseAllowanceCall__Outputs(this);
+  get outputs(): StakeCall__Outputs {
+    return new StakeCall__Outputs(this);
   }
 }
 
-export class DecreaseAllowanceCall__Inputs {
-  _call: DecreaseAllowanceCall;
+export class StakeCall__Inputs {
+  _call: StakeCall;
 
-  constructor(call: DecreaseAllowanceCall) {
+  constructor(call: StakeCall) {
     this._call = call;
-  }
-
-  get spender(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-
-  get subtractedValue(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
-  }
-}
-
-export class DecreaseAllowanceCall__Outputs {
-  _call: DecreaseAllowanceCall;
-
-  constructor(call: DecreaseAllowanceCall) {
-    this._call = call;
-  }
-
-  get value0(): boolean {
-    return this._call.outputValues[0].value.toBoolean();
-  }
-}
-
-export class IncreaseAllowanceCall extends ethereum.Call {
-  get inputs(): IncreaseAllowanceCall__Inputs {
-    return new IncreaseAllowanceCall__Inputs(this);
-  }
-
-  get outputs(): IncreaseAllowanceCall__Outputs {
-    return new IncreaseAllowanceCall__Outputs(this);
-  }
-}
-
-export class IncreaseAllowanceCall__Inputs {
-  _call: IncreaseAllowanceCall;
-
-  constructor(call: IncreaseAllowanceCall) {
-    this._call = call;
-  }
-
-  get spender(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-
-  get addedValue(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
-  }
-}
-
-export class IncreaseAllowanceCall__Outputs {
-  _call: IncreaseAllowanceCall;
-
-  constructor(call: IncreaseAllowanceCall) {
-    this._call = call;
-  }
-
-  get value0(): boolean {
-    return this._call.outputValues[0].value.toBoolean();
-  }
-}
-
-export class MintCall extends ethereum.Call {
-  get inputs(): MintCall__Inputs {
-    return new MintCall__Inputs(this);
-  }
-
-  get outputs(): MintCall__Outputs {
-    return new MintCall__Outputs(this);
-  }
-}
-
-export class MintCall__Inputs {
-  _call: MintCall;
-
-  constructor(call: MintCall) {
-    this._call = call;
-  }
-
-  get recipient(): Address {
-    return this._call.inputValues[0].value.toAddress();
   }
 
   get amount(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
+    return this._call.inputValues[0].value.toBigInt();
   }
 }
 
-export class MintCall__Outputs {
-  _call: MintCall;
+export class StakeCall__Outputs {
+  _call: StakeCall;
 
-  constructor(call: MintCall) {
+  constructor(call: StakeCall) {
     this._call = call;
   }
 }
@@ -607,5 +737,35 @@ export class TransferFromCall__Outputs {
 
   get value0(): boolean {
     return this._call.outputValues[0].value.toBoolean();
+  }
+}
+
+export class UnstakeCall extends ethereum.Call {
+  get inputs(): UnstakeCall__Inputs {
+    return new UnstakeCall__Inputs(this);
+  }
+
+  get outputs(): UnstakeCall__Outputs {
+    return new UnstakeCall__Outputs(this);
+  }
+}
+
+export class UnstakeCall__Inputs {
+  _call: UnstakeCall;
+
+  constructor(call: UnstakeCall) {
+    this._call = call;
+  }
+
+  get amount(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class UnstakeCall__Outputs {
+  _call: UnstakeCall;
+
+  constructor(call: UnstakeCall) {
+    this._call = call;
   }
 }

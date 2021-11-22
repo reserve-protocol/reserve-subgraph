@@ -6,16 +6,35 @@ type User @entity {
   inTransactions: [Transaction]! @derivedFrom(field: "toAddr")
 }
 
+type Main @entity {
+  id: ID! #token contract address
+  stToken: stToken! # backing token
+  rsrAddress: String! # RSR Address for the Token
+  owner: String! # token owner
+  address: String! # address of Main contract
+  token: Token # rtoken relationship
+  # TODO: Add the rest of the addresses?
+}
+
 type Token @entity {
-  id: ID! #Token Symbol
+  id: ID! #Token contract address
   symbol: String! #Token Symbol
   name: String #Token Name
   address: String #token eth address
+  main: Main # main for the Token
   transfersCount: BigInt! #Number of transfers
   holdersCount: BigInt! #Number of holders
   users: [TokenUser!]! @derivedFrom(field: "token")
   supply: Supply! @derivedFrom(field: "token")
   transactions: [Transaction]! @derivedFrom(field: "token")
+}
+
+type stToken @entity {
+  id: ID! # SToken contract address
+  symbol: String!
+  name: String!
+  address: String!
+  main: Main!
 }
 
 type TokenUser @entity {

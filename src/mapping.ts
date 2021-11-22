@@ -1,12 +1,14 @@
-import { TokenCreated } from "./../generated/Factory/Factory";
+import { Main as MainContract, IssuanceStarted } from './../generated/templates/Main/Main';
+import { RTokenCreated } from "./../generated/Deployer/Deployer";
 import {
   Supply,
   Token,
   TokenUser,
   Transaction,
   User,
+  Main,
 } from "../generated/schema";
-import { RToken as RTokenTemplate } from "../generated/templates";
+import { RToken as RTokenTemplate, Main as MainTemplate } from "../generated/templates";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
   ADDRESS_ZERO,
@@ -21,9 +23,6 @@ import {
   Transfer as TransferEvent,
 } from "../generated/templates/RToken/RToken";
 
-let contract: RToken;
-let tokenInfo: TokenInfo;
-
 export function getUser(address: Address): User {
   let user = User.load(address.toHexString());
   if (user == null) {
@@ -34,20 +33,48 @@ export function getUser(address: Address): User {
   return user as User;
 }
 
-export function handleCreateToken(event: TokenCreated): void {
-  init(event.params.tokenAddress);
-  getTokenInitial(tokenInfo.symbol);
-  RTokenTemplate.create(event.params.tokenAddress);
+export function getMain(address: Address, owner: Address): Main {
+  let main = Main.load(address.toHexString());
+  if (main == null) {
+    main = new Main(address.toHexString())
+    main.address = address.toHexString();
+    main.rsr = getTokenInitial(contract.rsr())
+    main.stToken = contract.stRSR().toHexString()
+    main.owner = owner.toHexString()
+  } 
+  return main as Main;
+}
+
+export function handleCreateToken(event: RTokenCreated): void {
+  let contract = MainContract.bind(event.params.main)
+  let main = getMain(event.params.main, event.params.owner);
+  let rToken = getTokenInitial(event.params.rToken);
+  let rsr = getTokenInitial(contract.rsr());
+  let stToken = getTokenInitial(contract.stRSR());
+
+  // update rToken and stToken main
+  rToken.main = main.id;
+  rToken.save();
+  stToken.main = main.id;
+  stToken.save();
+
+  main.rToken = rToken.id;
+  main.stToken = stToken.id;
+  main.rsr = rsr.id;
+  
+  main.save();
+
+  RTokenTemplate.create(event.params.rToken);
+  MainTemplate.create(event.params.main);
 }
 
 export function handleTransfer(event: TransferEvent): void {
-  init(event.address);
   // Get User Addresses
   let fromUser = getUser(event.params.from);
   let toUser = getUser(event.params.to);
 
   // Get Token
-  let token = getToken(tokenInfo.symbol, event);
+  let token = getToken(event.address, event);
 
   // Update TokenUser records
   getTokenUser(token, fromUser, AddressType.From, event);
@@ -58,6 +85,10 @@ export function handleTransfer(event: TransferEvent): void {
 
   // Create or update Supply
   getSupply(trx, token);
+}
+
+export function handleIssuance(event: IssuanceStarted): void {
+
 }
 
 function getTransaction(
@@ -167,8 +198,8 @@ function getTokenUserInitial(token: Token, user: User): TokenUser {
   return tokenUser as TokenUser;
 }
 
-function getToken(tokenSymbol: string, event: TransferEvent): Token {
-  let token = getTokenInitial(tokenSymbol);
+function getToken(address: Address, event: TransferEvent): Token {
+  let token = getTokenInitial(address);
   token.transfersCount = token.transfersCount.plus(BI_ONE);
 
   if (event.params.from != ADDRESS_ZERO) {
@@ -186,17 +217,18 @@ function getToken(tokenSymbol: string, event: TransferEvent): Token {
   return token as Token;
 }
 
-function getTokenInitial(tokenSymbol: string): Token {
-  let token = Token.load(tokenSymbol);
+function getTokenInitial(address: Address): Token {
+  let token = Token.load(address.toHexString());
   if (token == null) {
-    token = new Token(tokenSymbol);
-    token.symbol = tokenSymbol;
+    let tokenInfo = TokenInfo.build(address)
+    token = new Token(address.toHexString());
+    token.name = tokenInfo.name;
+    token.symbol = tokenInfo.symbol;
     token.address = tokenInfo.address;
     token.transfersCount = BI_ZERO;
     token.holdersCount = BI_ZERO;
+    token.save();
   }
-  token.name = tokenInfo.name;
-  token.save();
 
   return token as Token;
 }
@@ -227,9 +259,4 @@ function getTokenUserId(tokenSymbol: string, userAddr: Bytes): string {
 
 function isTokenUserExist(tokenUser: TokenUser | null): boolean {
   return tokenUser != null;
-}
-
-function init(address: Address): void {
-  contract = RToken.bind(address);
-  tokenInfo = TokenInfo.build(contract);
 }

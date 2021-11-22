@@ -1,4 +1,4 @@
-import { RToken } from "../generated/templates/RToken/RToken";
+import { ERC20 } from "../generated/Deployer/ERC20";
 import { Address, ByteArray, BigInt, crypto } from "@graphprotocol/graph-ts";
 export let ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
@@ -19,9 +19,10 @@ export class TokenInfo {
   symbol: string;
   address: string;
 
-  static build(contract: RToken): TokenInfo {
+  static build(address: Address): TokenInfo {
     let tokenInfo = new TokenInfo();
-    tokenInfo.address = contract._address.toHex();
+    let contract = ERC20.bind(address)
+    tokenInfo.address = address.toHexString();
 
     let tokenName = contract.try_name();
     tokenInfo.name = !tokenName.reverted
