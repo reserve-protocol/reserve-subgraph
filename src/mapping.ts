@@ -55,6 +55,9 @@ export function handleCreateToken(event: RTokenCreated): void {
   stToken.main = main.id;
   stToken.save();
 
+  getSupplyInitial(rToken.id);
+  getSupplyInitial(stToken.id);
+
   // Create vault entity
   let assetManagerContract = AssetManager.bind(mainContract.manager());
   let vaultAddress = assetManagerContract.vault();
@@ -62,10 +65,11 @@ export function handleCreateToken(event: RTokenCreated): void {
   let vaultContract = VaultContract.bind(vaultAddress);
   let tokenAmounts = vaultContract.tokenAmounts(BI_ONE);
   let backingTokens = mainContract.backingTokens()
+  let test = mainContract.try_quote(BI_ONE);
 
   for (let i = 0; i < backingTokens.length; i++) {
     let token = getTokenInitial(backingTokens[i])
-    let collateral = new Collateral(`${vault.id}-${token.id}`)
+    let collateral = new Collateral(vault.id + '-' + token.id)
     collateral.vault = vault.id;
     collateral.token = token.id;
     collateral.ratio = tokenAmounts[i];
@@ -179,7 +183,7 @@ function getTransaction(
 }
 
 function getSupply(trx: Transaction, token: Token): Supply {
-  let supply = getSupplyInitial(token.id);
+  let supply = getSupplyInitial(token.address);
 
   if (trx.transactionType == TransactionType.Mint) {
     supply.minted = supply.minted.plus(trx.amount);
@@ -199,11 +203,11 @@ function getSupply(trx: Transaction, token: Token): Supply {
   return supply as Supply;
 }
 
-function getSupplyInitial(tokenSymbol: string): Supply {
-  let supply = Supply.load(tokenSymbol);
+function getSupplyInitial(tokenAddress: string): Supply {
+  let supply = Supply.load(tokenAddress);
   if (supply == null) {
-    supply = new Supply(tokenSymbol);
-    supply.token = tokenSymbol;
+    supply = new Supply(tokenAddress);
+    supply.token = tokenAddress;
     supply.total = BI_ZERO;
     supply.minted = BI_ZERO;
     supply.burned = BI_ZERO;
@@ -285,6 +289,7 @@ function getTokenInitial(address: Address): Token {
     token.name = tokenInfo.name;
     token.symbol = tokenInfo.symbol;
     token.address = tokenInfo.address;
+    token.decimals = tokenInfo.decimals;
     token.transfersCount = BI_ZERO;
     token.holdersCount = BI_ZERO;
     token.save();

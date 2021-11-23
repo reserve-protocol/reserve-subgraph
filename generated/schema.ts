@@ -136,58 +136,106 @@ export class Main extends Entity {
     this.set("address", Value.fromString(value));
   }
 
-  get stToken(): string {
+  get stToken(): string | null {
     let value = this.get("stToken");
-    return value.toString();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set stToken(value: string) {
-    this.set("stToken", Value.fromString(value));
+  set stToken(value: string | null) {
+    if (value === null) {
+      this.unset("stToken");
+    } else {
+      this.set("stToken", Value.fromString(value as string));
+    }
   }
 
-  get rsr(): string {
+  get rsr(): string | null {
     let value = this.get("rsr");
-    return value.toString();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set rsr(value: string) {
-    this.set("rsr", Value.fromString(value));
+  set rsr(value: string | null) {
+    if (value === null) {
+      this.unset("rsr");
+    } else {
+      this.set("rsr", Value.fromString(value as string));
+    }
   }
 
-  get rToken(): string {
+  get rToken(): string | null {
     let value = this.get("rToken");
-    return value.toString();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set rToken(value: string) {
-    this.set("rToken", Value.fromString(value));
+  set rToken(value: string | null) {
+    if (value === null) {
+      this.unset("rToken");
+    } else {
+      this.set("rToken", Value.fromString(value as string));
+    }
   }
 
-  get vault(): string {
+  get vault(): string | null {
     let value = this.get("vault");
-    return value.toString();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set vault(value: string) {
-    this.set("vault", Value.fromString(value));
+  set vault(value: string | null) {
+    if (value === null) {
+      this.unset("vault");
+    } else {
+      this.set("vault", Value.fromString(value as string));
+    }
   }
 
-  get mood(): string {
+  get mood(): string | null {
     let value = this.get("mood");
-    return value.toString();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set mood(value: string) {
-    this.set("mood", Value.fromString(value));
+  set mood(value: string | null) {
+    if (value === null) {
+      this.unset("mood");
+    } else {
+      this.set("mood", Value.fromString(value as string));
+    }
   }
 
-  get staked(): BigInt {
+  get staked(): BigInt | null {
     let value = this.get("staked");
-    return value.toBigInt();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
   }
 
-  set staked(value: BigInt) {
-    this.set("staked", Value.fromBigInt(value));
+  set staked(value: BigInt | null) {
+    if (value === null) {
+      this.unset("staked");
+    } else {
+      this.set("staked", Value.fromBigInt(value as BigInt));
+    }
   }
 }
 
@@ -354,6 +402,15 @@ export class Token extends Entity {
     this.set("name", Value.fromString(value));
   }
 
+  get decimals(): i32 {
+    let value = this.get("decimals");
+    return value.toI32();
+  }
+
+  set decimals(value: i32) {
+    this.set("decimals", Value.fromI32(value));
+  }
+
   get address(): string {
     let value = this.get("address");
     return value.toString();
@@ -407,13 +464,21 @@ export class Token extends Entity {
     this.set("users", Value.fromStringArray(value));
   }
 
-  get supply(): string {
+  get supply(): string | null {
     let value = this.get("supply");
-    return value.toString();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set supply(value: string) {
-    this.set("supply", Value.fromString(value));
+  set supply(value: string | null) {
+    if (value === null) {
+      this.unset("supply");
+    } else {
+      this.set("supply", Value.fromString(value as string));
+    }
   }
 
   get transactions(): Array<string | null> {

@@ -18,20 +18,15 @@ export class TokenInfo {
   name: string;
   symbol: string;
   address: string;
+  decimals: i32;
 
   static build(address: Address): TokenInfo {
     let tokenInfo = new TokenInfo();
     let contract = ERC20.bind(address)
     tokenInfo.address = address.toHexString();
-
-    let tokenName = contract.try_name();
-    tokenInfo.name = !tokenName.reverted
-      ? tokenName.value
-      : tokenInfoByContractAddress.get(contract._address).name;
-    let tokenSymbol = contract.try_symbol();
-    tokenInfo.symbol = !tokenSymbol.reverted
-      ? tokenSymbol.value
-      : tokenInfoByContractAddress.get(contract._address).symbol;
+    tokenInfo.name = contract.name();
+    tokenInfo.symbol = contract.symbol();
+    tokenInfo.decimals = contract.decimals();
 
     return tokenInfo;
   }
@@ -47,13 +42,3 @@ export class TransactionType {
   static Burn: string = "Burn";
   static Transfer: string = "Transfer";
 }
-
-let tokenInfoByContractAddress = new Map<Address, TokenInfo>();
-tokenInfoByContractAddress.set(
-  Address.fromString("0x8E870D67F660D95d5be530380D0eC0bd388289E1"),
-  {
-    name: "Reserve Dollar",
-    symbol: "RSD",
-    address: "0x8E870D67F660D95d5be530380D0eC0bd388289E1",
-  }
-);

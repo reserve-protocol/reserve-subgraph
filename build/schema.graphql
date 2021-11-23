@@ -14,12 +14,12 @@ type Main @entity {
   id: ID! #token contract address
   owner: String! # token owner
   address: String! # address of Main contract
-  stToken: Token! # backing token
-  rsr: Token! # RSR Address for the Token
-  rToken: Token! # rtoken relationship
-  vault: Vault! # current vault, could change***
-  mood: String! # TODO: System mood
-  staked: BigInt! # amount of stToken staked
+  stToken: Token # backing token
+  rsr: Token # RSR Address for the Token
+  rToken: Token # rtoken relationship
+  vault: Vault # current vault, could change***
+  mood: String # TODO: System mood
+  staked: BigInt # amount of stToken staked
 }
 
 # Collateral asset for a given Vault
@@ -42,12 +42,13 @@ type Token @entity {
   id: ID! #Token contract address
   symbol: String! # symbol of the token
   name: String! # name of the token
+  decimals: Int! # number of decimals
   address: String! # address of the token
   main: Main # main for the Token - Only set for stToken and RToken
   transfersCount: BigInt! #Number of transfers
   holdersCount: BigInt! #Number of holders
   users: [TokenUser!]! @derivedFrom(field: "token")
-  supply: Supply! @derivedFrom(field: "token")
+  supply: Supply @derivedFrom(field: "token")
   transactions: [Transaction]! @derivedFrom(field: "token")
 }
 
