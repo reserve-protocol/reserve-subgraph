@@ -1,27 +1,49 @@
+# Blockchain user
 type User @entity {
   id: ID! #User Address
   address: Bytes! #User Address
   tokens: [TokenUser!]! @derivedFrom(field: "user")
   outTransactions: [Transaction]! @derivedFrom(field: "fromAddr")
   inTransactions: [Transaction]! @derivedFrom(field: "toAddr")
+  systemTransactions: [SystemTransaction]! @derivedFrom(field: "user")
 }
 
+# Main control entity over the protocol, holds all related addresses
+# A list of "RTokens" is a list of "Mains"
 type Main @entity {
   id: ID! #token contract address
-  stToken: stToken! # backing token
-  rsrAddress: String! # RSR Address for the Token
   owner: String! # token owner
   address: String! # address of Main contract
-  token: Token # rtoken relationship
-  # TODO: Add the rest of the addresses?
+  stToken: Token! # backing token
+  rsr: Token! # RSR Address for the Token
+  rToken: Token! # rtoken relationship
+  vault: Vault! # current vault, could change***
+  mood: String! # TODO: System mood
+  staked: BigInt! # amount of stToken staked
 }
 
+# Collateral asset for a given Vault
+type Collateral @entity {
+  id: ID!
+  vault: Vault!
+  token: Token!
+  ratio: BigInt! # quantity to exchange for BU
+}
+
+# RToken Vault
+type Vault @entity {
+  id: ID! # vault contract address
+  main: Main!
+  collaterals: [Collateral!] @derivedFrom(field: "vault") # collateral assets
+}
+
+# ERC20 Reserve Token
 type Token @entity {
   id: ID! #Token contract address
-  symbol: String! #Token Symbol
-  name: String #Token Name
-  address: String #token eth address
-  main: Main # main for the Token
+  symbol: String! # symbol of the token
+  name: String! # name of the token
+  address: String! # address of the token
+  main: Main # main for the Token - Only set for stToken and RToken
   transfersCount: BigInt! #Number of transfers
   holdersCount: BigInt! #Number of holders
   users: [TokenUser!]! @derivedFrom(field: "token")
@@ -29,17 +51,23 @@ type Token @entity {
   transactions: [Transaction]! @derivedFrom(field: "token")
 }
 
-type stToken @entity {
-  id: ID! # SToken contract address
-  symbol: String!
-  name: String!
-  address: String!
+# System related transactions
+# This type of transactions has an special id related to them as they are a single operation over time
+# TODO: revisit later?
+type SystemTransaction @entity {
+  id: ID! #id of the system transaction
+  started: Transaction! # tx when started
+  completed: Transaction # tx when completed/canceled
+  availableAt: BigInt # estimated block when the transaction would be completed
+  type: SystemTransactionType!
+  user: User!
   main: Main!
+  status: TransactionStatus! #status of the transaction - Pending,Completed,Canceled
 }
 
 type TokenUser @entity {
   id: ID! #<Token Symbol> - <User Address>
-  token: Token! #Token
+  token: Token! # RToken
   user: User! #User
   lastTransferTimestamp: BigInt #Timestamp of the last transaction made by user
   transferCount: BigInt! #Number of transactions
@@ -63,7 +91,7 @@ type Transaction @entity {
   id: ID! #Transaction Hash
   block: BigInt! #Transaction Block
   timestamp: BigInt! #Transaction Timestamp
-  transactionType: TransactionType! #Type - Mint, Burn, Transfer
+  transactionType: TransactionType! #Transaction type
   fromAddr: User! #From User
   toAddr: User! #To User
   token: Token! #Transaction Token
@@ -74,4 +102,22 @@ enum TransactionType {
   Mint
   Burn
   Transfer
+  Stake
+  UnstakeStarted
+  UnstakeCompleted
+  IssuanceStarted
+  IssuanceCompleted
+  IssuanceCanceled
+  Redemption
+}
+
+enum SystemTransactionType {
+  Issue
+  Unstake
+}
+
+enum TransactionStatus {
+  Pending
+  Canceled
+  Completed
 }

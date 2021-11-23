@@ -120,16 +120,16 @@ export class Redemption__Params {
   }
 }
 
-export class StateChanged extends ethereum.Event {
-  get params(): StateChanged__Params {
-    return new StateChanged__Params(this);
+export class SystemStateChanged extends ethereum.Event {
+  get params(): SystemStateChanged__Params {
+    return new SystemStateChanged__Params(this);
   }
 }
 
-export class StateChanged__Params {
-  _event: StateChanged;
+export class SystemStateChanged__Params {
+  _event: SystemStateChanged;
 
-  constructor(event: StateChanged) {
+  constructor(event: SystemStateChanged) {
     this._event = event;
   }
 
@@ -167,36 +167,32 @@ export class Main__configResultValue0Struct extends ethereum.Tuple {
     return this[5].toBigInt();
   }
 
-  get auctionClearingTolerance(): BigInt {
+  get maxAuctionSize(): BigInt {
     return this[6].toBigInt();
   }
 
-  get maxAuctionSize(): BigInt {
+  get minRecapitalizationAuctionSize(): BigInt {
     return this[7].toBigInt();
   }
 
-  get minRecapitalizationAuctionSize(): BigInt {
+  get minRevenueAuctionSize(): BigInt {
     return this[8].toBigInt();
   }
 
-  get minRevenueAuctionSize(): BigInt {
+  get migrationChunk(): BigInt {
     return this[9].toBigInt();
   }
 
-  get migrationChunk(): BigInt {
+  get issuanceRate(): BigInt {
     return this[10].toBigInt();
   }
 
-  get issuanceRate(): BigInt {
+  get defaultThreshold(): BigInt {
     return this[11].toBigInt();
   }
 
-  get defaultThreshold(): BigInt {
-    return this[12].toBigInt();
-  }
-
   get f(): BigInt {
-    return this[13].toBigInt();
+    return this[12].toBigInt();
   }
 }
 
@@ -256,6 +252,29 @@ export class Main extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
+  aaveLendingPool(): Address {
+    let result = super.call(
+      "aaveLendingPool",
+      "aaveLendingPool():(address)",
+      []
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_aaveLendingPool(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "aaveLendingPool",
+      "aaveLendingPool():(address)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
   backingTokens(): Array<Address> {
     let result = super.call("backingTokens", "backingTokens():(address[])", []);
 
@@ -308,7 +327,7 @@ export class Main extends ethereum.SmartContract {
   config(): Main__configResultValue0Struct {
     let result = super.call(
       "config",
-      "config():((uint256,uint256,uint256,uint256,uint256,int192,int192,int192,int192,int192,int192,int192,int192,int192))",
+      "config():((uint256,uint256,uint256,uint256,uint256,int192,int192,int192,int192,int192,int192,int192,int192))",
       []
     );
 
@@ -318,7 +337,7 @@ export class Main extends ethereum.SmartContract {
   try_config(): ethereum.CallResult<Main__configResultValue0Struct> {
     let result = super.tryCall(
       "config",
-      "config():((uint256,uint256,uint256,uint256,uint256,int192,int192,int192,int192,int192,int192,int192,int192,int192))",
+      "config():((uint256,uint256,uint256,uint256,uint256,int192,int192,int192,int192,int192,int192,int192,int192))",
       []
     );
     if (result.reverted) {
@@ -501,6 +520,25 @@ export class Main extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  quote(amount: BigInt): Array<BigInt> {
+    let result = super.call("quote", "quote(uint256):(uint256[])", [
+      ethereum.Value.fromUnsignedBigInt(amount)
+    ]);
+
+    return result[0].toBigIntArray();
+  }
+
+  try_quote(amount: BigInt): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall("quote", "quote(uint256):(uint256[])", [
+      ethereum.Value.fromUnsignedBigInt(amount)
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
   }
 
   rToken(): Address {
@@ -686,36 +724,32 @@ export class ConstructorCallConfig_Struct extends ethereum.Tuple {
     return this[5].toBigInt();
   }
 
-  get auctionClearingTolerance(): BigInt {
+  get maxAuctionSize(): BigInt {
     return this[6].toBigInt();
   }
 
-  get maxAuctionSize(): BigInt {
+  get minRecapitalizationAuctionSize(): BigInt {
     return this[7].toBigInt();
   }
 
-  get minRecapitalizationAuctionSize(): BigInt {
+  get minRevenueAuctionSize(): BigInt {
     return this[8].toBigInt();
   }
 
-  get minRevenueAuctionSize(): BigInt {
+  get migrationChunk(): BigInt {
     return this[9].toBigInt();
   }
 
-  get migrationChunk(): BigInt {
+  get issuanceRate(): BigInt {
     return this[10].toBigInt();
   }
 
-  get issuanceRate(): BigInt {
+  get defaultThreshold(): BigInt {
     return this[11].toBigInt();
   }
 
-  get defaultThreshold(): BigInt {
-    return this[12].toBigInt();
-  }
-
   get f(): BigInt {
-    return this[13].toBigInt();
+    return this[12].toBigInt();
   }
 }
 
@@ -824,6 +858,40 @@ export class PokeCall__Outputs {
 
   constructor(call: PokeCall) {
     this._call = call;
+  }
+}
+
+export class QuoteCall extends ethereum.Call {
+  get inputs(): QuoteCall__Inputs {
+    return new QuoteCall__Inputs(this);
+  }
+
+  get outputs(): QuoteCall__Outputs {
+    return new QuoteCall__Outputs(this);
+  }
+}
+
+export class QuoteCall__Inputs {
+  _call: QuoteCall;
+
+  constructor(call: QuoteCall) {
+    this._call = call;
+  }
+
+  get amount(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class QuoteCall__Outputs {
+  _call: QuoteCall;
+
+  constructor(call: QuoteCall) {
+    this._call = call;
+  }
+
+  get value0(): Array<BigInt> {
+    return this._call.outputValues[0].value.toBigIntArray();
   }
 }
 
@@ -980,36 +1048,32 @@ export class SetConfigCallConfig_Struct extends ethereum.Tuple {
     return this[5].toBigInt();
   }
 
-  get auctionClearingTolerance(): BigInt {
+  get maxAuctionSize(): BigInt {
     return this[6].toBigInt();
   }
 
-  get maxAuctionSize(): BigInt {
+  get minRecapitalizationAuctionSize(): BigInt {
     return this[7].toBigInt();
   }
 
-  get minRecapitalizationAuctionSize(): BigInt {
+  get minRevenueAuctionSize(): BigInt {
     return this[8].toBigInt();
   }
 
-  get minRevenueAuctionSize(): BigInt {
+  get migrationChunk(): BigInt {
     return this[9].toBigInt();
   }
 
-  get migrationChunk(): BigInt {
+  get issuanceRate(): BigInt {
     return this[10].toBigInt();
   }
 
-  get issuanceRate(): BigInt {
+  get defaultThreshold(): BigInt {
     return this[11].toBigInt();
   }
 
-  get defaultThreshold(): BigInt {
-    return this[12].toBigInt();
-  }
-
   get f(): BigInt {
-    return this[13].toBigInt();
+    return this[12].toBigInt();
   }
 }
 

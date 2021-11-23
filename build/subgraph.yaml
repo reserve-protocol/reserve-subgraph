@@ -15,14 +15,21 @@ dataSources:
       entities:
         - Token
         - Main
-        - stToken
+        - Vault
+        - Collateral
       abis:
         - name: Deployer
           file: Deployer/abis/Deployer.json
         - name: RToken
           file: Deployer/abis/RToken.json
+        - name: ERC20
+          file: Deployer/abis/ERC20.json
         - name: Main
           file: Deployer/abis/Main.json
+        - name: AssetManager
+          file: Deployer/abis/AssetManager.json
+        - name: Vault
+          file: Deployer/abis/Vault.json
       eventHandlers:
         - event: RTokenCreated(indexed address,indexed address,indexed address)
           handler: handleCreateToken
@@ -61,10 +68,46 @@ templates:
       language: wasm/assemblyscript
       entities:
         - Main
+        - Transaction
+        - SystemTransaction
+        - User
+        - Token
       abis:
         - name: Main
           file: Main/abis/Main.json
       eventHandlers:
+        - event: SystemStateChanged(indexed uint8,indexed uint8)
+          handler: handleSystemStateChanged
         - event: IssuanceStarted(indexed uint256,indexed address,indexed uint256,uint256)
+          handler: handleIssuanceStart
+        - event: IssuanceCanceled(indexed uint256)
+          handler: handleIssuanceCancel
+        - event: IssuanceCompleted(indexed uint256)
           handler: handleIssuance
+      file: Deployer/Deployer.wasm
+  - name: stRSR
+    kind: ethereum/contract
+    network: localhost
+    source:
+      abi: stRSR
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Main
+        - Token
+        - User
+        - Transaction
+        - SystemTransaction
+      abis:
+        - name: stRSR
+          file: stRSR/abis/stRSR.json
+      eventHandlers:
+        - event: Staked(indexed address,indexed uint256)
+          handler: handleStake
+        - event: UnstakingStarted(indexed uint256,indexed address,indexed uint256,uint256)
+          handler: handleUnstakeStarted
+        - event: UnstakingCompleted(indexed uint256,indexed address,indexed uint256)
+          handler: handleUnstake
       file: Deployer/Deployer.wasm

@@ -52,11 +52,6 @@
           },
           {
             "internalType": "Fix",
-            "name": "auctionClearingTolerance",
-            "type": "int192"
-          },
-          {
-            "internalType": "Fix",
             "name": "maxAuctionSize",
             "type": "int192"
           },
@@ -103,6 +98,38 @@
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "int256",
+        "name": "value",
+        "type": "int256"
+      }
+    ],
+    "name": "IntOutOfBounds",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "PriceIsZero",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "UIntOutOfBounds",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UnsupportedProtocol",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -204,18 +231,18 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "enum State",
+        "internalType": "enum SystemState",
         "name": "oldState",
         "type": "uint8"
       },
       {
         "indexed": true,
-        "internalType": "enum State",
+        "internalType": "enum SystemState",
         "name": "newState",
         "type": "uint8"
       }
     ],
-    "name": "StateChanged",
+    "name": "SystemStateChanged",
     "type": "event"
   },
   {
@@ -224,6 +251,19 @@
     "outputs": [
       {
         "internalType": "contract IAsset",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "aaveLendingPool",
+    "outputs": [
+      {
+        "internalType": "contract IAaveLendingPool",
         "name": "",
         "type": "address"
       }
@@ -304,11 +344,6 @@
           {
             "internalType": "Fix",
             "name": "maxTradeSlippage",
-            "type": "int192"
-          },
-          {
-            "internalType": "Fix",
-            "name": "auctionClearingTolerance",
             "type": "int192"
           },
           {
@@ -549,6 +584,25 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "quote",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "rToken",
     "outputs": [
@@ -623,22 +677,22 @@
   {
     "inputs": [
       {
-        "internalType": "contract RTokenAssetP0",
+        "internalType": "contract IAsset",
         "name": "rToken_",
         "type": "address"
       },
       {
-        "internalType": "contract RSRAssetP0",
+        "internalType": "contract IAsset",
         "name": "rsr_",
         "type": "address"
       },
       {
-        "internalType": "contract COMPAssetP0",
+        "internalType": "contract IAsset",
         "name": "comp_",
         "type": "address"
       },
       {
-        "internalType": "contract AAVEAssetP0",
+        "internalType": "contract IAsset",
         "name": "aave_",
         "type": "address"
       }
@@ -680,11 +734,6 @@
           {
             "internalType": "Fix",
             "name": "maxTradeSlippage",
-            "type": "int192"
-          },
-          {
-            "internalType": "Fix",
-            "name": "auctionClearingTolerance",
             "type": "int192"
           },
           {
@@ -829,7 +878,7 @@
     "name": "state",
     "outputs": [
       {
-        "internalType": "enum State",
+        "internalType": "enum SystemState",
         "name": "",
         "type": "uint8"
       }

@@ -221,21 +221,13 @@ export class Collateral extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get vault(): string | null {
+  get vault(): string {
     let value = this.get("vault");
-    if (value === null || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toString();
-    }
+    return value.toString();
   }
 
-  set vault(value: string | null) {
-    if (value === null) {
-      this.unset("vault");
-    } else {
-      this.set("vault", Value.fromString(value as string));
-    }
+  set vault(value: string) {
+    this.set("vault", Value.fromString(value));
   }
 
   get token(): string {
@@ -507,6 +499,15 @@ export class SystemTransaction extends Entity {
     }
   }
 
+  get type(): string {
+    let value = this.get("type");
+    return value.toString();
+  }
+
+  set type(value: string) {
+    this.set("type", Value.fromString(value));
+  }
+
   get user(): string {
     let value = this.get("user");
     return value.toString();
@@ -514,6 +515,15 @@ export class SystemTransaction extends Entity {
 
   set user(value: string) {
     this.set("user", Value.fromString(value));
+  }
+
+  get main(): string {
+    let value = this.get("main");
+    return value.toString();
+  }
+
+  set main(value: string) {
+    this.set("main", Value.fromString(value));
   }
 
   get status(): string {

@@ -1,5 +1,3 @@
-import { Main as MainContract, IssuanceStarted } from './../generated/templates/Main/Main';
-import { RTokenCreated } from "./../generated/Deployer/Deployer";
 import {
   Supply,
   Token,
@@ -7,9 +5,11 @@ import {
   Transaction,
   User,
   Main,
+  Vault,
+  Collateral,
 } from "../generated/schema";
-import { RToken as RTokenTemplate, Main as MainTemplate } from "../generated/templates";
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { RToken as RTokenTemplate, Main as MainTemplate, stRSR as stRSRTemplate } from "../generated/templates";
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
   ADDRESS_ZERO,
   AddressType,
@@ -19,38 +19,35 @@ import {
   TransactionType,
 } from "./helper";
 import {
-  RToken,
   Transfer as TransferEvent,
 } from "../generated/templates/RToken/RToken";
+import {
+  Main as MainContract,
+  SystemStateChanged,
+  IssuanceCanceled,
+  IssuanceCompleted,
+  IssuanceStarted
+} from "../generated/templates/Main/Main";
+import { RTokenCreated } from "./../generated/Deployer/Deployer";
+import { AssetManager } from './../generated/Deployer/AssetManager';
+import { Vault as VaultContract } from './../generated/Deployer/Vault';
+import {
+  UnstakingStarted,
+  UnstakingCompleted,
+  Staked
+} from "../generated/templates/stRSR/stRSR";
 
-export function getUser(address: Address): User {
-  let user = User.load(address.toHexString());
-  if (user == null) {
-    user = new User(address.toHexString());
-    user.address = address;
-    user.save();
-  }
-  return user as User;
-}
-
-export function getMain(address: Address, owner: Address): Main {
-  let main = Main.load(address.toHexString());
-  if (main == null) {
-    main = new Main(address.toHexString())
-    main.address = address.toHexString();
-    main.rsr = getTokenInitial(contract.rsr())
-    main.stToken = contract.stRSR().toHexString()
-    main.owner = owner.toHexString()
-  } 
-  return main as Main;
-}
-
+/**
+ * Event handlers
+ */
 export function handleCreateToken(event: RTokenCreated): void {
-  let contract = MainContract.bind(event.params.main)
+  let mainContract = MainContract.bind(event.params.main)
+  // Create/load entities
   let main = getMain(event.params.main, event.params.owner);
   let rToken = getTokenInitial(event.params.rToken);
-  let rsr = getTokenInitial(contract.rsr());
-  let stToken = getTokenInitial(contract.stRSR());
+  let rsr = getTokenInitial(mainContract.rsr());
+  let stTokenAddress = mainContract.stRSR();
+  let stToken = getTokenInitial(stTokenAddress);
 
   // update rToken and stToken main
   rToken.main = main.id;
@@ -58,14 +55,36 @@ export function handleCreateToken(event: RTokenCreated): void {
   stToken.main = main.id;
   stToken.save();
 
+  // Create vault entity
+  let assetManagerContract = AssetManager.bind(mainContract.manager());
+  let vaultAddress = assetManagerContract.vault();
+  let vault = getVault(vaultAddress, main.id);
+  let vaultContract = VaultContract.bind(vaultAddress);
+  let tokenAmounts = vaultContract.tokenAmounts(BI_ONE);
+  let backingTokens = mainContract.backingTokens()
+
+  for (let i = 0; i < backingTokens.length; i++) {
+    let token = getTokenInitial(backingTokens[i])
+    let collateral = new Collateral(`${vault.id}-${token.id}`)
+    collateral.vault = vault.id;
+    collateral.token = token.id;
+    collateral.ratio = tokenAmounts[i];
+    collateral.save();
+  }
+
+  // Set main parameters
   main.rToken = rToken.id;
   main.stToken = stToken.id;
   main.rsr = rsr.id;
-  
+  main.vault = vault.id;
+  main.mood = "CALM";
+  main.staked = BI_ZERO;
   main.save();
 
+  // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   MainTemplate.create(event.params.main);
+  stRSRTemplate.create(stTokenAddress);
 }
 
 export function handleTransfer(event: TransferEvent): void {
@@ -87,8 +106,49 @@ export function handleTransfer(event: TransferEvent): void {
   getSupply(trx, token);
 }
 
-export function handleIssuance(event: IssuanceStarted): void {
+// TODO 
+export function handleIssuance(event: IssuanceCompleted): void {}
+export function handleIssuanceStart(event: IssuanceStarted): void {}
+export function handleIssuanceCancel(event: IssuanceCanceled): void {}
+export function handleSystemStateChanged(event: SystemStateChanged): void {}
 
+// TODO
+export function handleStake(event: Staked): void {}
+export function handleUnstakeStarted(event: UnstakingStarted): void {}
+export function handleUnstake(event: UnstakingCompleted): void {}
+
+/**
+ * Entity getters
+ */
+export function getUser(address: Address): User {
+  let user = User.load(address.toHexString());
+  if (user == null) {
+    user = new User(address.toHexString());
+    user.address = address;
+    user.save();
+  }
+  return user as User;
+}
+
+export function getMain(address: Address, owner: Address): Main {
+  let main = Main.load(address.toHexString());
+  if (main == null) {
+    main = new Main(address.toHexString())
+    main.address = address.toHexString();
+    main.owner = owner.toHexString();
+    main.save();
+  } 
+  return main as Main;
+}
+
+export function getVault(address: Address, main: string): Vault {
+  let vault = Vault.load(address.toHexString());
+  if (vault == null) {
+    vault = new Vault(address.toHexString())
+    vault.main = main;
+    vault.save();
+  }
+  return vault as Vault;
 }
 
 function getTransaction(

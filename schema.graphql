@@ -25,7 +25,7 @@ type Main @entity {
 # Collateral asset for a given Vault
 type Collateral @entity {
   id: ID!
-  vault: Vault
+  vault: Vault!
   token: Token!
   ratio: BigInt! # quantity to exchange for BU
 }
@@ -59,6 +59,7 @@ type SystemTransaction @entity {
   started: Transaction! # tx when started
   completed: Transaction # tx when completed/canceled
   availableAt: BigInt # estimated block when the transaction would be completed
+  type: SystemTransactionType!
   user: User!
   main: Main!
   status: TransactionStatus! #status of the transaction - Pending,Completed,Canceled

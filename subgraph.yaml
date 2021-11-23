@@ -78,8 +78,15 @@ templates:
       abis:
         - name: Main
           file: ./abis/Main.json
+      # TODO: Handle vault changed event in P1
       eventHandlers:
+        - event: SystemStateChanged(indexed uint8,indexed uint8)
+          handler: handleSystemStateChanged
         - event: IssuanceStarted(indexed uint256,indexed address,indexed uint256,uint256)
+          handler: handleIssuanceStart
+        - event: IssuanceCanceled(indexed uint256)
+          handler: handleIssuanceCancel
+        - event: IssuanceCompleted(indexed uint256)
           handler: handleIssuance
       file: ./src/mapping.ts
   - name: stRSR
