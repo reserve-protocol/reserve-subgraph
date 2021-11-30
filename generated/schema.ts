@@ -287,13 +287,13 @@ export class Collateral extends Entity {
     this.set("token", Value.fromString(value));
   }
 
-  get ratio(): BigInt {
-    let value = this.get("ratio");
-    return value.toBigInt();
+  get index(): i32 {
+    let value = this.get("index");
+    return value.toI32();
   }
 
-  set ratio(value: BigInt) {
-    this.set("ratio", Value.fromBigInt(value));
+  set index(value: i32) {
+    this.set("index", Value.fromI32(value));
   }
 }
 

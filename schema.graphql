@@ -25,15 +25,15 @@ type Main @entity {
 # Collateral asset for a given Vault
 type Collateral @entity {
   id: ID!
-  vault: Vault!
-  token: Token!
-  ratio: BigInt! # quantity to exchange for BU
+  vault: Vault! # Related vault id
+  token: Token! # Collateral token
+  index: Int! # Asset index
 }
 
 # RToken Vault
 type Vault @entity {
   id: ID! # vault contract address
-  main: Main!
+  main: Main! # Main module
   collaterals: [Collateral!] @derivedFrom(field: "vault") # collateral assets
 }
 

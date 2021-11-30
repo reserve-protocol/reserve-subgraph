@@ -89,11 +89,6 @@
         "internalType": "struct Config",
         "name": "config_",
         "type": "tuple"
-      },
-      {
-        "internalType": "contract IERC20",
-        "name": "rsr_",
-        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -417,7 +412,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "BUs",
+        "name": "amtBUs",
         "type": "uint256"
       },
       {
@@ -567,7 +562,7 @@
         "type": "uint256[]"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -792,12 +787,24 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "pauser_",
-        "type": "address"
+        "components": [
+          {
+            "internalType": "contract IComptroller",
+            "name": "compound",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IAaveLendingPool",
+            "name": "aave",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct Oracle.Info",
+        "name": "oracle",
+        "type": "tuple"
       }
     ],
-    "name": "setPauser",
+    "name": "setOracle",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -805,12 +812,12 @@
   {
     "inputs": [
       {
-        "internalType": "contract IRToken",
-        "name": "rToken_",
+        "internalType": "address",
+        "name": "pauser_",
         "type": "address"
       }
     ],
-    "name": "setRToken",
+    "name": "setPauser",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

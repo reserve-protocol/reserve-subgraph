@@ -675,10 +675,6 @@ export class ConstructorCall__Inputs {
   get config_(): ConstructorCallConfig_Struct {
     return this._call.inputValues[1].value.toTuple() as ConstructorCallConfig_Struct;
   }
-
-  get rsr_(): Address {
-    return this._call.inputValues[2].value.toAddress();
-  }
 }
 
 export class ConstructorCall__Outputs {
@@ -858,40 +854,6 @@ export class PokeCall__Outputs {
 
   constructor(call: PokeCall) {
     this._call = call;
-  }
-}
-
-export class QuoteCall extends ethereum.Call {
-  get inputs(): QuoteCall__Inputs {
-    return new QuoteCall__Inputs(this);
-  }
-
-  get outputs(): QuoteCall__Outputs {
-    return new QuoteCall__Outputs(this);
-  }
-}
-
-export class QuoteCall__Inputs {
-  _call: QuoteCall;
-
-  constructor(call: QuoteCall) {
-    this._call = call;
-  }
-
-  get amount(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-}
-
-export class QuoteCall__Outputs {
-  _call: QuoteCall;
-
-  constructor(call: QuoteCall) {
-    this._call = call;
-  }
-
-  get value0(): Array<BigInt> {
-    return this._call.outputValues[0].value.toBigIntArray();
   }
 }
 
@@ -1167,6 +1129,46 @@ export class SetMonitorCall__Outputs {
   }
 }
 
+export class SetOracleCall extends ethereum.Call {
+  get inputs(): SetOracleCall__Inputs {
+    return new SetOracleCall__Inputs(this);
+  }
+
+  get outputs(): SetOracleCall__Outputs {
+    return new SetOracleCall__Outputs(this);
+  }
+}
+
+export class SetOracleCall__Inputs {
+  _call: SetOracleCall;
+
+  constructor(call: SetOracleCall) {
+    this._call = call;
+  }
+
+  get oracle(): SetOracleCallOracleStruct {
+    return this._call.inputValues[0].value.toTuple() as SetOracleCallOracleStruct;
+  }
+}
+
+export class SetOracleCall__Outputs {
+  _call: SetOracleCall;
+
+  constructor(call: SetOracleCall) {
+    this._call = call;
+  }
+}
+
+export class SetOracleCallOracleStruct extends ethereum.Tuple {
+  get compound(): Address {
+    return this[0].toAddress();
+  }
+
+  get aave(): Address {
+    return this[1].toAddress();
+  }
+}
+
 export class SetPauserCall extends ethereum.Call {
   get inputs(): SetPauserCall__Inputs {
     return new SetPauserCall__Inputs(this);
@@ -1193,36 +1195,6 @@ export class SetPauserCall__Outputs {
   _call: SetPauserCall;
 
   constructor(call: SetPauserCall) {
-    this._call = call;
-  }
-}
-
-export class SetRTokenCall extends ethereum.Call {
-  get inputs(): SetRTokenCall__Inputs {
-    return new SetRTokenCall__Inputs(this);
-  }
-
-  get outputs(): SetRTokenCall__Outputs {
-    return new SetRTokenCall__Outputs(this);
-  }
-}
-
-export class SetRTokenCall__Inputs {
-  _call: SetRTokenCall;
-
-  constructor(call: SetRTokenCall) {
-    this._call = call;
-  }
-
-  get rToken_(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-}
-
-export class SetRTokenCall__Outputs {
-  _call: SetRTokenCall;
-
-  constructor(call: SetRTokenCall) {
     this._call = call;
   }
 }

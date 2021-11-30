@@ -6,7 +6,7 @@ dataSources:
     name: Deployer
     network: localhost
     source:
-      address: "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9"
+      address: "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8"
       abi: Deployer
     mapping:
       kind: ethereum/events
@@ -28,8 +28,6 @@ dataSources:
           file: Deployer/abis/Main.json
         - name: AssetManager
           file: Deployer/abis/AssetManager.json
-        - name: Vault
-          file: Deployer/abis/Vault.json
       eventHandlers:
         - event: RTokenCreated(indexed address,indexed address,indexed address)
           handler: handleCreateToken

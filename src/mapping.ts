@@ -30,7 +30,6 @@ import {
 } from "../generated/templates/Main/Main";
 import { RTokenCreated } from "./../generated/Deployer/Deployer";
 import { AssetManager } from './../generated/Deployer/AssetManager';
-import { Vault as VaultContract } from './../generated/Deployer/Vault';
 import {
   UnstakingStarted,
   UnstakingCompleted,
@@ -62,17 +61,14 @@ export function handleCreateToken(event: RTokenCreated): void {
   let assetManagerContract = AssetManager.bind(mainContract.manager());
   let vaultAddress = assetManagerContract.vault();
   let vault = getVault(vaultAddress, main.id);
-  let vaultContract = VaultContract.bind(vaultAddress);
-  let tokenAmounts = vaultContract.tokenAmounts(BI_ONE);
   let backingTokens = mainContract.backingTokens()
-  let test = mainContract.try_quote(BI_ONE);
 
   for (let i = 0; i < backingTokens.length; i++) {
     let token = getTokenInitial(backingTokens[i])
     let collateral = new Collateral(vault.id + '-' + token.id)
     collateral.vault = vault.id;
     collateral.token = token.id;
-    collateral.ratio = tokenAmounts[i];
+    collateral.index = i;
     collateral.save();
   }
 
