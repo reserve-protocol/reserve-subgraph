@@ -1,30 +1,43 @@
 # Blockchain user
 type User @entity {
   id: ID! #User Address
-  address: Bytes! #User Address
+  address: Bytes!
   tokens: [TokenUser!]! @derivedFrom(field: "user")
-  outTransactions: [Transaction]! @derivedFrom(field: "fromAddr")
-  inTransactions: [Transaction]! @derivedFrom(field: "toAddr")
-  systemTransactions: [SystemTransaction]! @derivedFrom(field: "user")
+  mains: [MainUser!]! @derivedFrom(field: "user")
+  entries: [Entry!]! @derivedFrom(field: "user")
 }
 
 # Main control entity over the protocol, holds all related addresses
 # A list of "RTokens" is a list of "Mains"
 type Main @entity {
-  id: ID! #token contract address
-  owner: String! # token owner
-  address: String! # address of Main contract
-  stToken: Token # backing token
-  rsr: Token # RSR Address for the Token
-  rToken: Token # rtoken relationship
-  vault: Vault # current vault, could change***
-  mood: String # TODO: System mood
-  staked: BigInt # amount of stToken staked
+  id: ID! # main contract address
+  address: Bytes!
+  owner: Bytes! # token owner
+  mood: SystemMood! # system mood
+  staked: BigInt! # amount of stToken staked
+  stToken: Token! # backing token
+  token: Token! # rtoken relationship
+  rsr: Token! # RSR Address for the Token
+  vault: Vault! # current vault, could change***
+  # TODO:
+  # Can we track total rewards?
+  # Should we track the total melted?
+}
+
+type MainUser @entity {
+  id: ID! # <Main Address>-<User Address>
+  main: Main!
+  user: User!
+  staked: BigInt!
+  rewarded: BigInt!
+  # TODO: Define these
+  # lastStakeTimestamp: BigInt
+  # lastWithdrawTimestamp: BigInt
 }
 
 # Collateral asset for a given Vault
 type Collateral @entity {
-  id: ID!
+  id: ID! # vaultAddress>-<tokenAddress>
   vault: Vault! # Related vault id
   token: Token! # Collateral token
   index: Int! # Asset index
@@ -33,45 +46,34 @@ type Collateral @entity {
 # RToken Vault
 type Vault @entity {
   id: ID! # vault contract address
-  main: Main! # Main module
+  address: Bytes!
+  main: Main # Main module
   collaterals: [Collateral!] @derivedFrom(field: "vault") # collateral assets
 }
 
-# ERC20 Reserve Token
+# Tokens
 type Token @entity {
   id: ID! #Token contract address
-  symbol: String! # symbol of the token
+  address: Bytes!
   name: String! # name of the token
+  symbol: String! # symbol of the token
   decimals: Int! # number of decimals
-  address: String! # address of the token
-  main: Main # main for the Token - Only set for stToken and RToken
   transfersCount: BigInt! #Number of transfers
   holdersCount: BigInt! #Number of holders
+  type: TokenType! # type of token ERC20 - RSR - RToken - StakingToken
+  main: Main # main for the Token - Only set for stToken and RToken
   users: [TokenUser!]! @derivedFrom(field: "token")
   supply: Supply @derivedFrom(field: "token")
-  transactions: [Transaction]! @derivedFrom(field: "token")
-}
-
-# System related transactions
-# This type of transactions has an special id related to them as they are a single operation over time
-# TODO: revisit later?
-type SystemTransaction @entity {
-  id: ID! #id of the system transaction
-  started: Transaction! # tx when started
-  completed: Transaction # tx when completed/canceled
-  availableAt: BigInt # estimated block when the transaction would be completed
-  type: SystemTransactionType!
-  user: User!
-  main: Main!
-  status: TransactionStatus! #status of the transaction - Pending,Completed,Canceled
+  entries: [Entry]! @derivedFrom(field: "token")
+  # mains: [Main]! @derivedFrom(field: "rsr") # Only RSR can have multiple associated mains
 }
 
 type TokenUser @entity {
-  id: ID! #<Token Symbol> - <User Address>
+  id: ID! #<Token Address>-<User Address>
   token: Token! # RToken
   user: User! #User
   lastTransferTimestamp: BigInt #Timestamp of the last transaction made by user
-  transferCount: BigInt! #Number of transactions
+  transferCount: BigInt! #Number of transfers
   inTransferCount: BigInt! #Number of income transactions
   outTransferCount: BigInt! #Number of outcome transactions
   balance: BigInt! #User Token Balance
@@ -79,6 +81,7 @@ type TokenUser @entity {
   totalOutcome: BigInt! #User Token Outcome
 }
 
+# TODO: Should we track melted?
 type Supply @entity {
   id: ID! #Token Symbol
   token: Token! #Token
@@ -88,37 +91,59 @@ type Supply @entity {
   total: BigInt! #Total Supply
 }
 
+# EVM transaction entity
 type Transaction @entity {
-  id: ID! #Transaction Hash
-  block: BigInt! #Transaction Block
-  timestamp: BigInt! #Transaction Timestamp
-  transactionType: TransactionType! #Transaction type
-  fromAddr: User! #From User
-  toAddr: User! #To User
-  token: Token! #Transaction Token
-  amount: BigInt! #Transaction Token Amount
+  id: ID! # tx hash
+  block: BigInt!
+  timestamp: BigInt!
+  from: Bytes!
+  to: Bytes
+  gasUsed: BigInt!
+  gasPrice: BigInt!
 }
 
-enum TransactionType {
+# System entry for a given token
+type Entry @entity {
+  id: ID! # id of the entry, it can be specified by the event
+  token: Token!
+  main: Main!
+  user: User! 
+  transaction: Transaction! # tx related to the entry
+  amount: BigInt! # amount of the operation
+  type: EntryType! # Type of entry
+  status: EntryStatus! # default: Completed
+  # transfer specific
+  toAddr: User
+  # Unstake / issuance specific
+  availableAt: BigInt
+  completionTxn: Transaction
+}
+
+enum EntryType {
   Mint
   Burn
   Transfer
   Stake
-  UnstakeStarted
-  UnstakeCompleted
-  IssuanceStarted
-  IssuanceCompleted
-  IssuanceCanceled
+  Unstake
+  Issuance
   Redemption
 }
 
-enum SystemTransactionType {
-  Issue
-  Unstake
-}
-
-enum TransactionStatus {
-  Pending
+enum EntryStatus {
+  Pending 
   Canceled
   Completed
+}
+
+enum TokenType {
+  RToken
+  RSR
+  StakingToken
+  ERC20
+}
+
+enum SystemMood {
+  CALM, # 100% capitalized + no auctions
+  DOUBT, # in this state for 24h before default, no auctions or unstaking
+  TRADING # auctions in progress, no unstaking
 }

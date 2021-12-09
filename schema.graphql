@@ -58,7 +58,6 @@ type Token @entity {
   name: String! # name of the token
   symbol: String! # symbol of the token
   decimals: Int! # number of decimals
-  address: String! # address of the token
   transfersCount: BigInt! #Number of transfers
   holdersCount: BigInt! #Number of holders
   type: TokenType! # type of token ERC20 - RSR - RToken - StakingToken
@@ -98,7 +97,7 @@ type Transaction @entity {
   block: BigInt!
   timestamp: BigInt!
   from: Bytes!
-  to: Bytes!
+  to: Bytes
   gasUsed: BigInt!
   gasPrice: BigInt!
 }
@@ -114,7 +113,7 @@ type Entry @entity {
   type: EntryType! # Type of entry
   status: EntryStatus! # default: Completed
   # transfer specific
-  toAddr: User!
+  toAddr: User
   # Unstake / issuance specific
   availableAt: BigInt
   completionTxn: Transaction

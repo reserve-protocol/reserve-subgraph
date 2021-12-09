@@ -447,15 +447,6 @@ export class Token extends Entity {
     this.set("decimals", Value.fromI32(value));
   }
 
-  get address(): string {
-    let value = this.get("address");
-    return value.toString();
-  }
-
-  set address(value: string) {
-    this.set("address", Value.fromString(value));
-  }
-
   get transfersCount(): BigInt {
     let value = this.get("transfersCount");
     return value.toBigInt();
@@ -797,13 +788,21 @@ export class Transaction extends Entity {
     this.set("from", Value.fromBytes(value));
   }
 
-  get to(): Bytes {
+  get to(): Bytes | null {
     let value = this.get("to");
-    return value.toBytes();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
   }
 
-  set to(value: Bytes) {
-    this.set("to", Value.fromBytes(value));
+  set to(value: Bytes | null) {
+    if (value === null) {
+      this.unset("to");
+    } else {
+      this.set("to", Value.fromBytes(value as Bytes));
+    }
   }
 
   get gasUsed(): BigInt {
@@ -918,13 +917,21 @@ export class Entry extends Entity {
     this.set("status", Value.fromString(value));
   }
 
-  get toAddr(): string {
+  get toAddr(): string | null {
     let value = this.get("toAddr");
-    return value.toString();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set toAddr(value: string) {
-    this.set("toAddr", Value.fromString(value));
+  set toAddr(value: string | null) {
+    if (value === null) {
+      this.unset("toAddr");
+    } else {
+      this.set("toAddr", Value.fromString(value as string));
+    }
   }
 
   get availableAt(): BigInt | null {
