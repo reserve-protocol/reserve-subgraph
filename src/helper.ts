@@ -20,7 +20,7 @@ export class TokenInfo {
   address: string;
   decimals: i32;
 
-  static build(address: Address): TokenInfo {
+static build(address: Address): TokenInfo {
     let tokenInfo = new TokenInfo();
     let contract = ERC20.bind(address)
     tokenInfo.address = address.toHexString();
@@ -37,8 +37,31 @@ export class AddressType {
   static To: string = "To";
 }
 
-export class TransactionType {
+export class TokenType {
+  static RSR: string = "RSR";
+  static RToken: string = "RToken";
+  static StakingToken: string = "StakingToken";
+  static ERC20: string = "ERC20";
+}
+
+export class EntryType {
   static Mint: string = "Mint";
   static Burn: string = "Burn";
   static Transfer: string = "Transfer";
+  static Stake: string = "Stake"
+  static Unstake: string = "Unstake"
+  static Issuance: string = "Issuance"
+  static Redemption: string = "Redemption"
+}
+
+export class EntryStatus {
+  static Pending: string = "Pending";
+  static Canceled: string = "Canceled";
+  static Completed: string = "Completed";
+}
+
+export class SystemMood {
+  static CALM: string = "CALM";
+  static DOUBT: string = "DOUBT";
+  static TRADING: string = "TRADING";
 }

@@ -1,3 +1,4 @@
+import { Entry } from './../generated/schema';
 import {
   Supply,
   Token,
@@ -8,83 +9,92 @@ import {
   Vault,
   Collateral,
 } from "../generated/schema";
-import { RToken as RTokenTemplate, Main as MainTemplate, stRSR as stRSRTemplate } from "../generated/templates";
-import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
+import {
+  RToken as RTokenTemplate,
+  Main as MainTemplate,
+  stRSR as stRSRTemplate,
+} from "../generated/templates";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
   ADDRESS_ZERO,
   AddressType,
   BI_ONE,
   BI_ZERO,
   TokenInfo,
-  TransactionType,
+  EntryType,
+  TokenType,
+  EntryStatus,
+  SystemMood,
 } from "./helper";
-import {
-  Transfer as TransferEvent,
-} from "../generated/templates/RToken/RToken";
+import { Transfer as TransferEvent } from "../generated/templates/RToken/RToken";
 import {
   Main as MainContract,
   SystemStateChanged,
   IssuanceCanceled,
   IssuanceCompleted,
-  IssuanceStarted
+  IssuanceStarted,
 } from "../generated/templates/Main/Main";
 import { RTokenCreated } from "./../generated/Deployer/Deployer";
-import { AssetManager } from './../generated/Deployer/AssetManager';
+import { AssetManager } from "./../generated/Deployer/AssetManager";
 import {
   UnstakingStarted,
   UnstakingCompleted,
-  Staked
+  Staked,
 } from "../generated/templates/stRSR/stRSR";
 
 /**
  * Event handlers
  */
-export function handleCreateToken(event: RTokenCreated): void {
-  let mainContract = MainContract.bind(event.params.main)
-  // Create/load entities
-  let main = getMain(event.params.main, event.params.owner);
-  let rToken = getTokenInitial(event.params.rToken);
-  let rsr = getTokenInitial(mainContract.rsr());
-  let stTokenAddress = mainContract.stRSR();
-  let stToken = getTokenInitial(stTokenAddress);
 
-  // update rToken and stToken main
-  rToken.main = main.id;
-  rToken.save();
-  stToken.main = main.id;
-  stToken.save();
+// Handle RToken deployment
+export function handleCreateToken(event: RTokenCreated): void {
+  let mainContract = MainContract.bind(event.params.main);
+  // Create related tokens
+  let rToken = getTokenInitial(event.params.rToken, TokenType.RToken);
+  let rsr = getTokenInitial(mainContract.rsr(), TokenType.RSR);
+  let stToken = getTokenInitial(mainContract.stRSR(), TokenType.StakingToken);
 
   getSupplyInitial(rToken.id);
   getSupplyInitial(stToken.id);
 
   // Create vault entity
-  let assetManagerContract = AssetManager.bind(mainContract.manager());
-  let vaultAddress = assetManagerContract.vault();
-  let vault = getVault(vaultAddress, main.id);
-  let backingTokens = mainContract.backingTokens()
+  let vaultAddress = AssetManager.bind(mainContract.manager()).vault();
+  let vault = getVault(vaultAddress);
+  let backingTokens = mainContract.backingTokens();
 
   for (let i = 0; i < backingTokens.length; i++) {
-    let token = getTokenInitial(backingTokens[i])
-    let collateral = new Collateral(vault.id + '-' + token.id)
+    let token = getTokenInitial(backingTokens[i]);
+    let collateral = new Collateral(getConcatenatedId(vault.id, token.id));
     collateral.vault = vault.id;
     collateral.token = token.id;
     collateral.index = i;
     collateral.save();
   }
 
-  // Set main parameters
-  main.rToken = rToken.id;
+  // Create Main entity
+  let main = new Main(event.params.main.toHexString());
+  main.address = event.params.main;
+  main.owner = event.params.owner;
+  main.token = rToken.id;
   main.stToken = stToken.id;
   main.rsr = rsr.id;
   main.vault = vault.id;
-  main.mood = "CALM";
+  main.mood = SystemMood.CALM;
   main.staked = BI_ZERO;
   main.save();
 
+  // Main relationships
+  vault.main = main.id;
+  rToken.main = main.id;
+  stToken.main = main.id;
+  rToken.save();
+  stToken.save();
+  vault.save();
+
   // Initialize dynamic mappings for the new RToken system
-  RTokenTemplate.create(event.params.rToken);
-  MainTemplate.create(event.params.main);
-  stRSRTemplate.create(stTokenAddress);
+  RTokenTemplate.create(rToken.address);
+  stRSRTemplate.create(stToken.address);
+  MainTemplate.create(main.address);
 }
 
 export function handleTransfer(event: TransferEvent): void {
@@ -99,23 +109,103 @@ export function handleTransfer(event: TransferEvent): void {
   getTokenUser(token, fromUser, AddressType.From, event);
   getTokenUser(token, toUser, AddressType.To, event);
 
-  // Create Transaction
-  let trx = getTransaction(event, token, fromUser, toUser);
+  let trx = getTransaction(event);
+
+  let entryType = EntryType.Transfer
+
+  if (ADDRESS_ZERO == event.params.to) {
+    entryType = EntryType.Burn;
+  } else if (ADDRESS_ZERO == event.params.from) {
+    entryType = EntryType.Mint;
+  }
+
+  // Create entry
+  let entry = new Entry(event.transaction.hash.toHexString())
+  entry.token = token.id
+  entry.main = token.main
+  entry.user = fromUser.id
+  entry.transaction = trx.id
+  entry.amount = event.params.value
+  entry.type = entryType
+  entry.status = EntryStatus.Completed
+  entry.toAddr = toUser.id
+  entry.save()
 
   // Create or update Supply
-  getSupply(trx, token);
+  getSupply(entry, token, event.block.timestamp);
 }
 
-// TODO 
-export function handleIssuance(event: IssuanceCompleted): void {}
-export function handleIssuanceStart(event: IssuanceStarted): void {}
-export function handleIssuanceCancel(event: IssuanceCanceled): void {}
+function getTransaction(event: ethereum.Event): Transaction {
+  let tx = Transaction.load(event.transaction.hash.toHexString())
+
+  if (tx == null) {
+    tx = new Transaction(event.transaction.hash.toHexString())
+    tx.block = event.block.number
+    tx.timestamp = event.block.timestamp
+    tx.from = event.transaction.from
+    tx.to = event.transaction.to
+    tx.gasUsed = event.transaction.gasUsed
+    tx.gasPrice = event.transaction.gasPrice
+    tx.save()
+  }
+
+  return tx as Transaction
+}
+
+export function handleIssuanceStart(event: IssuanceStarted): void {
+  let main = getMain(event.address);
+  let user = getUser(event.params.issuer);
+  let token = Token.load(main.token);
+
+  // Create entry
+  let trx = getTransaction(event);
+  let entry = new Entry(getIssuanceId(event.params.issuanceId))
+  entry.token = token.id
+  entry.main = token.main
+  entry.user = user.id
+  entry.transaction = trx.id
+  entry.amount = event.params.amount
+  entry.type = EntryType.Issuance
+  entry.status = EntryStatus.Pending
+  entry.availableAt = event.params.blockAvailableAt
+  entry.save()
+}
+
+export function handleIssuance(event: IssuanceCompleted): void {
+  updateEntryStatus(getIssuanceId(event.params.issuanceId), EntryStatus.Completed, event)
+}
+
+export function handleIssuanceCancel(event: IssuanceCanceled): void {
+  updateEntryStatus(getIssuanceId(event.params.issuanceId), EntryStatus.Canceled, event)
+}
+
+function getIssuanceId(id: BigInt): string {
+  return getConcatenatedId(EntryType.Issuance, id.toHexString())
+}
+
+function updateEntryStatus(id: string, status: string, event?: ethereum.Event) {
+  let entry = Entry.load(id)
+
+  if (event) {
+    let trx = getTransaction(event);
+    entry.completionTxn = trx.id
+  }
+
+  entry.status = status
+  entry.save()
+}
+
 export function handleSystemStateChanged(event: SystemStateChanged): void {}
 
 // TODO
 export function handleStake(event: Staked): void {}
 export function handleUnstakeStarted(event: UnstakingStarted): void {}
 export function handleUnstake(event: UnstakingCompleted): void {}
+
+/**
+ * Create issuance
+ */
+// export function createIssuance(id: BigInt, availableAt: BigInt)
 
 /**
  * Entity getters
@@ -130,68 +220,35 @@ export function getUser(address: Address): User {
   return user as User;
 }
 
-export function getMain(address: Address, owner: Address): Main {
+export function getMain(address: Address): Main {
   let main = Main.load(address.toHexString());
-  if (main == null) {
-    main = new Main(address.toHexString())
-    main.address = address.toHexString();
-    main.owner = owner.toHexString();
-    main.save();
-  } 
+
   return main as Main;
 }
 
-export function getVault(address: Address, main: string): Vault {
+export function getVault(address: Address): Vault {
   let vault = Vault.load(address.toHexString());
   if (vault == null) {
-    vault = new Vault(address.toHexString())
-    vault.main = main;
+    vault = new Vault(address.toHexString());
     vault.save();
   }
   return vault as Vault;
 }
 
-function getTransaction(
-  event: TransferEvent,
-  token: Token,
-  fromUser: User,
-  toUser: User
-): Transaction {
-  let trx = new Transaction(event.transaction.hash.toHex());
-  trx.block = event.block.number;
-  trx.timestamp = event.block.timestamp;
-  trx.amount = event.params.value;
-  trx.fromAddr = fromUser.id;
-  trx.toAddr = toUser.id;
-  trx.token = token.id;
+function getSupply(entry: Entry, token: Token, timestamp: BigInt): Supply {
+  let supply = getSupplyInitial(token.address.toHexString());
 
-  if (ADDRESS_ZERO == event.params.to) {
-    trx.transactionType = TransactionType.Burn;
-  } else if (ADDRESS_ZERO == event.params.from) {
-    trx.transactionType = TransactionType.Mint;
-  } else {
-    trx.transactionType = TransactionType.Transfer;
-  }
-
-  trx.save();
-
-  return trx as Transaction;
-}
-
-function getSupply(trx: Transaction, token: Token): Supply {
-  let supply = getSupplyInitial(token.address);
-
-  if (trx.transactionType == TransactionType.Mint) {
-    supply.minted = supply.minted.plus(trx.amount);
-    supply.total = supply.total.plus(trx.amount);
-  } else if (trx.transactionType == TransactionType.Burn) {
-    supply.burned = supply.burned.plus(trx.amount);
-    supply.total = supply.total.minus(trx.amount);
+  if (entry.type == EntryType.Mint) {
+    supply.minted = supply.minted.plus(entry.amount);
+    supply.total = supply.total.plus(entry.amount);
+  } else if (entry.type == EntryType.Burn) {
+    supply.burned = supply.burned.plus(entry.amount);
+    supply.total = supply.total.minus(entry.amount);
   }
   supply.changedTimestamp =
-    trx.transactionType == TransactionType.Mint ||
-    trx.transactionType == TransactionType.Burn
-      ? trx.timestamp
+    entry.type == EntryType.Mint ||
+    entry.type == EntryType.Burn
+      ? timestamp
       : null;
 
   supply.save();
@@ -277,17 +334,21 @@ function getToken(address: Address, event: TransferEvent): Token {
   return token as Token;
 }
 
-function getTokenInitial(address: Address): Token {
+function getTokenInitial(
+  address: Address,
+  type: string = TokenType.ERC20
+): Token {
   let token = Token.load(address.toHexString());
   if (token == null) {
-    let tokenInfo = TokenInfo.build(address)
+    let tokenInfo = TokenInfo.build(address);
     token = new Token(address.toHexString());
+    token.address = address;
     token.name = tokenInfo.name;
     token.symbol = tokenInfo.symbol;
-    token.address = tokenInfo.address;
     token.decimals = tokenInfo.decimals;
     token.transfersCount = BI_ZERO;
     token.holdersCount = BI_ZERO;
+    token.type = type;
     token.save();
   }
 
@@ -314,8 +375,12 @@ function getNewHolderNumber(
   return newHoldersNumber as BigInt;
 }
 
-function getTokenUserId(tokenSymbol: string, userAddr: Bytes): string {
-  return tokenSymbol.concat("-").concat(userAddr.toHexString());
+function getTokenUserId(tokenAddress: string, userAddr: Bytes): string {
+  return tokenAddress.concat("-").concat(userAddr.toHexString());
+}
+
+function getConcatenatedId(a: string, b: string): string {
+  return a.concat("-").concat(b);
 }
 
 function isTokenUserExist(tokenUser: TokenUser | null): boolean {

@@ -50,6 +50,7 @@ templates:
         - Supply
         - TokenUser
         - Transaction
+        - Entry
       abis:
         - name: RToken
           file: ./abis/RToken.json
@@ -69,8 +70,9 @@ templates:
       language: wasm/assemblyscript
       entities:
         - Main
+        - MainUser
         - Transaction
-        - SystemTransaction
+        - Entry
         - User
         - Token
       abis:
@@ -98,14 +100,17 @@ templates:
       language: wasm/assemblyscript
       entities:
         - Main
+        - MainUser
         - Token
         - User
+        - Entry
         - Transaction
-        - SystemTransaction
       abis:
         - name: stRSR
           file: ./abis/stRSR.json
       eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
         - event: Staked(indexed address,indexed uint256)
           handler: handleStake
         - event: UnstakingStarted(indexed uint256,indexed address,indexed uint256,uint256)
