@@ -14,7 +14,7 @@ import {
   Main as MainTemplate,
   stRSR as stRSRTemplate,
 } from "../generated/templates";
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 import {
   ADDRESS_ZERO,
   AddressType,
@@ -214,8 +214,8 @@ export function handleSystemStateChanged(event: SystemStateChanged): void {}
 export function handleStake(event: Staked): void {
   let user = getUser(event.params.staker);
   let token = Token.load(event.address.toHexString());
-  let main = getMain(event.address);
-  let mainUser = getMainUser(event.params.staker.toHexString(), main.id);
+  let main = Main.load(token.main);
+  let mainUser = getMainUser(user.id, main.id);
 
   main.staked = main.staked.plus(event.params.amount);
   mainUser.staked = mainUser.staked.plus(event.params.amount);
@@ -285,6 +285,7 @@ export function getUser(address: Address): User {
 }
 
 export function getMain(address: Address): Main {
+  log.info(address.toHexString(), [])
   let main = Main.load(address.toHexString());
 
   return main as Main;
@@ -339,6 +340,7 @@ function getMainUser(user: string, main: string): MainUser {
   let mainUser = MainUser.load(getConcatenatedId(main, user));
 
   if (mainUser == null) {
+    let fromUser = 
     mainUser = new MainUser(getConcatenatedId(main, user));
     mainUser.main = main;
     mainUser.user = user;
