@@ -34,9 +34,9 @@ export function isTokenUserExist(tokenUser: TokenUser | null): boolean {
 }
 
 export class TokenInfo {
-  name: string;
-  symbol: string;
-  address: string;
+  name!: string;
+  symbol!: string;
+  address!: string;
   decimals: i32;
 
   static build(address: Address): TokenInfo {
@@ -89,12 +89,10 @@ export class RSVInfo {
   static main: string = "0x5BA9d812f5533F7Cf2854963f7A9d212f8f28673";
   static address: string = "0x196f4727526eA7FB1e17b2071B3d8eAA38486988";
   static owner: string = "0xfc82f7d67facea4e93b8501f76ff5003cedccd89";
-  static vault = {
-    id: "0x5BA9d812f5533F7Cf2854963f7A9d212f8f28673",
-    collaterals: [
-      "0x8e870d67f660d95d5be530380d0ec0bd388289e1", // PAX
-      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
-      "0x0000000000085d4780B73119b644AE5ecd22b376", // USDT
-    ],
-  };
+  static vaultId: string = "0x5BA9d812f5533F7Cf2854963f7A9d212f8f28673";
+  static collaterals: string[] = [
+    "0x8e870d67f660d95d5be530380d0ec0bd388289e1", // PAX
+    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
+    "0x0000000000085d4780B73119b644AE5ecd22b376", // USDT
+  ];
 }

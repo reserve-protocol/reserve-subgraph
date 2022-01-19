@@ -4,7 +4,7 @@ type User @entity {
   address: Bytes!
   tokens: [TokenUser!]! @derivedFrom(field: "user")
   mains: [MainUser!]! @derivedFrom(field: "user")
-  entries: [Entry!]! @derivedFrom(field: "user")
+  records: [Entry!]! @derivedFrom(field: "user")
 }
 
 # Main control entity over the protocol, holds all related addresses
@@ -13,19 +13,12 @@ type Main @entity {
   id: ID! # main contract address
   address: Bytes!
   owner: Bytes! # token owner
-  mood: SystemMood! # system mood
+  token: Token! # rtoken relationship
+  vault: Vault! # current vault, could change***
+  # staked / stToken is used for insurance
+  # RSV is the only RToken without these fields
   staked: BigInt! # amount of stToken staked
   stToken: Token # backing token
-  token: Token! # rtoken relationship
-  rsr: Token # RSR Address for the Token
-  vault: Vault! # current vault, could change***
-  # TODO:
-  # Can we track total rewards?
-  # Should we track the total melted?
-}
-
-type Insurance @entity {
-  id: ID!
 }
 
 type MainUser @entity {
@@ -68,7 +61,7 @@ type Token @entity {
   main: Main # main for the Token - Only set for stToken and RToken
   users: [TokenUser!]! @derivedFrom(field: "token")
   supply: Supply @derivedFrom(field: "token")
-  entries: [Entry]! @derivedFrom(field: "token")
+  records: [Entry!]! @derivedFrom(field: "token")
   # mains: [Main]! @derivedFrom(field: "rsr") # Only RSR can have multiple associated mains
 }
 
@@ -85,7 +78,7 @@ type TokenUser @entity {
   totalOutcome: BigInt! #User Token Outcome
 }
 
-# TODO: Should we track melted?
+# Track ERC20 token supply
 type Supply @entity {
   id: ID! #Token Symbol
   token: Token! #Token
@@ -102,8 +95,6 @@ type Transaction @entity {
   timestamp: BigInt!
   from: Bytes!
   to: Bytes
-  gasUsed: BigInt!
-  gasPrice: BigInt!
 }
 
 # System entry for a given token

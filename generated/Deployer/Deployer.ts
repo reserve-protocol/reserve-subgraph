@@ -240,7 +240,9 @@ export class DeployCall__Inputs {
   }
 
   get config(): DeployCallConfigStruct {
-    return this._call.inputValues[5].value.toTuple() as DeployCallConfigStruct;
+    return changetype<DeployCallConfigStruct>(
+      this._call.inputValues[5].value.toTuple()
+    );
   }
 
   get compound(): Address {
@@ -252,7 +254,9 @@ export class DeployCall__Inputs {
   }
 
   get nonCollateral(): DeployCallNonCollateralStruct {
-    return this._call.inputValues[8].value.toTuple() as DeployCallNonCollateralStruct;
+    return changetype<DeployCallNonCollateralStruct>(
+      this._call.inputValues[8].value.toTuple()
+    );
   }
 
   get collateral(): Array<Address> {

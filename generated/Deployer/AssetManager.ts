@@ -566,7 +566,9 @@ export class IssueCall__Inputs {
   }
 
   get issuance(): IssueCallIssuanceStruct {
-    return this._call.inputValues[0].value.toTuple() as IssueCallIssuanceStruct;
+    return changetype<IssueCallIssuanceStruct>(
+      this._call.inputValues[0].value.toTuple()
+    );
   }
 }
 

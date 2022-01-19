@@ -331,7 +331,7 @@ export class Main extends ethereum.SmartContract {
       []
     );
 
-    return result[0].toTuple() as Main__configResultValue0Struct;
+    return changetype<Main__configResultValue0Struct>(result[0].toTuple());
   }
 
   try_config(): ethereum.CallResult<Main__configResultValue0Struct> {
@@ -345,7 +345,7 @@ export class Main extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(
-      value[0].toTuple() as Main__configResultValue0Struct
+      changetype<Main__configResultValue0Struct>(value[0].toTuple())
     );
   }
 
@@ -669,11 +669,15 @@ export class ConstructorCall__Inputs {
   }
 
   get oracle_(): ConstructorCallOracle_Struct {
-    return this._call.inputValues[0].value.toTuple() as ConstructorCallOracle_Struct;
+    return changetype<ConstructorCallOracle_Struct>(
+      this._call.inputValues[0].value.toTuple()
+    );
   }
 
   get config_(): ConstructorCallConfig_Struct {
-    return this._call.inputValues[1].value.toTuple() as ConstructorCallConfig_Struct;
+    return changetype<ConstructorCallConfig_Struct>(
+      this._call.inputValues[1].value.toTuple()
+    );
   }
 }
 
@@ -973,7 +977,9 @@ export class SetConfigCall__Inputs {
   }
 
   get config_(): SetConfigCallConfig_Struct {
-    return this._call.inputValues[0].value.toTuple() as SetConfigCallConfig_Struct;
+    return changetype<SetConfigCallConfig_Struct>(
+      this._call.inputValues[0].value.toTuple()
+    );
   }
 }
 
@@ -1147,7 +1153,9 @@ export class SetOracleCall__Inputs {
   }
 
   get oracle(): SetOracleCallOracleStruct {
-    return this._call.inputValues[0].value.toTuple() as SetOracleCallOracleStruct;
+    return changetype<SetOracleCallOracleStruct>(
+      this._call.inputValues[0].value.toTuple()
+    );
   }
 }
 
