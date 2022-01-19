@@ -18,6 +18,7 @@ import {
   IssuanceCanceled,
   IssuanceCompleted,
   IssuanceStarted,
+  Redemption,
   Main as MainContract,
 } from "../generated/templates/Main/Main";
 import { Transfer as TransferEvent } from "../generated/templates/RToken/RToken";
@@ -28,7 +29,10 @@ import {
 } from "../generated/templates/stRSR/stRSR";
 import { AssetManager } from "./../generated/Deployer/AssetManager";
 import { RTokenCreated } from "./../generated/Deployer/Deployer";
-import { Issuance as RSVIssuance } from "./../generated/RSVManager/RSVManager";
+import {
+  Issuance as RSVIssuance,
+  Redemption as RSVRedemption,
+} from "./../generated/RSVManager/RSVManager";
 import { Entry, MainUser } from "./../generated/schema";
 import {
   AddressType,
@@ -193,10 +197,16 @@ export function handleRSVIssuance(event: RSVIssuance): void {
   entry.save();
 }
 
-export function handleRedemption(event: any): void {
+export function handleRedemption(event: ethereum.Event): void {
   let main = getMain(event.address);
-  let user = getUser(event.params.redeemer || event.params.user);
-  let token = Token.load(main.token);
+  let _event = event as Redemption;
+  let userId: Address = _event.params.redeemer;
+  if (!userId) {
+    let newEvent = event as RSVRedemption;
+    userId = newEvent.params.user;
+  }
+  let user = getUser(userId);
+  let token = Token.load(main.token)!;
 
   // Create entry
   let trx = getTransaction(event);
@@ -208,7 +218,7 @@ export function handleRedemption(event: any): void {
   entry.main = token.main!;
   entry.user = user.id;
   entry.transaction = trx.id;
-  entry.amount = event.params.amount;
+  entry.amount = _event.params.amount;
   entry.type = EntryType.Redemption;
   entry.status = EntryStatus.Completed;
   entry.save();

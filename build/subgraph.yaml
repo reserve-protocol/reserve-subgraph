@@ -10,7 +10,7 @@ dataSources:
       abi: Deployer
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Token
@@ -32,6 +32,77 @@ dataSources:
         - event: RTokenCreated(indexed address,indexed address,indexed address)
           handler: handleCreateToken
       file: Deployer/Deployer.wasm
+  - name: RSV
+    kind: ethereum/contract
+    network: localhost
+    source:
+      abi: ERC20
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - User
+        - Supply
+        - TokenUser
+        - Transaction
+        - Entry
+      abis:
+        - name: ERC20
+          file: RSV/abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: Deployer/Deployer.wasm
+  - name: RSVManager
+    kind: ethereum/contract
+    network: localhost
+    source:
+      abi: RSVManager
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Main
+        - MainUser
+        - Transaction
+        - Entry
+        - User
+        - Token
+      abis:
+        - name: RSVManager
+          file: RSVManager/abis/RSVManager.json
+      eventHandlers:
+        - event: Issuance(indexed address,indexed uint256)
+          handler: handleRSVIssuance
+        - event: Redemption(indexed address,indexed uint256)
+          handler: handleRedemption
+      file: Deployer/Deployer.wasm
+  - name: RSR
+    kind: ethereum/contract
+    network: localhost
+    source:
+      abi: ERC20
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - User
+        - Supply
+        - TokenUser
+        - Transaction
+        - Entry
+      abis:
+        - name: ERC20
+          file: RSR/abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: Deployer/Deployer.wasm
 templates:
   - name: RToken
     kind: ethereum/contract
@@ -40,7 +111,7 @@ templates:
       abi: RToken
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Token
@@ -63,7 +134,7 @@ templates:
       abi: Main
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Main
@@ -94,7 +165,7 @@ templates:
       abi: stRSR
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Main
