@@ -24,7 +24,10 @@ import {
   EntryType,
   TokenType,
   EntryStatus,
-  SystemMood,
+  RSVInfo,
+  getConcatenatedId,
+  getTokenUserId,
+  isTokenUserExist,
 } from "./helper";
 import { Transfer as TransferEvent } from "../generated/templates/RToken/RToken";
 import {
@@ -33,6 +36,7 @@ import {
   IssuanceCanceled,
   IssuanceCompleted,
   IssuanceStarted,
+  Redemption,
 } from "../generated/templates/Main/Main";
 import { RTokenCreated } from "./../generated/Deployer/Deployer";
 import { AssetManager } from "./../generated/Deployer/AssetManager";
@@ -80,7 +84,6 @@ export function handleCreateToken(event: RTokenCreated): void {
   main.stToken = stToken.id;
   main.rsr = rsr.id;
   main.vault = vault.id;
-  main.mood = SystemMood.CALM;
   main.staked = BI_ZERO;
   main.save();
 
@@ -122,6 +125,7 @@ export function handleTransfer(event: TransferEvent): void {
 
   // Create entry
   let entry = new Entry(event.transaction.hash.toHexString());
+  entry.createdAt = event.block.timestamp;
   entry.token = token.id;
   entry.main = token.main;
   entry.user = fromUser.id;
@@ -161,6 +165,7 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
   // Create entry
   let trx = getTransaction(event);
   let entry = new Entry(getIssuanceId(event.params.issuanceId));
+  entry.createdAt = event.block.timestamp;
   entry.token = token.id;
   entry.main = token.main;
   entry.user = user.id;
@@ -169,6 +174,27 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
   entry.type = EntryType.Issuance;
   entry.status = EntryStatus.Pending;
   entry.availableAt = event.params.blockAvailableAt;
+  entry.save();
+}
+
+export function handleRedemption(event: Redemption): void {
+  let main = getMain(event.address);
+  let user = getUser(event.params.redeemer);
+  let token = Token.load(main.token);
+
+  // Create entry
+  let trx = getTransaction(event);
+  let entry = new Entry(
+    getConcatenatedId("Redeem", event.transaction.hash.toHexString())
+  );
+  entry.createdAt = event.block.timestamp;
+  entry.token = token.id;
+  entry.main = token.main;
+  entry.user = user.id;
+  entry.transaction = trx.id;
+  entry.amount = event.params.amount;
+  entry.type = EntryType.Redemption;
+  entry.status = EntryStatus.Completed;
   entry.save();
 }
 
@@ -204,6 +230,7 @@ function updateEntryStatus(
     entry.completionTxn = trx.id;
   }
 
+  entry.updatedAt = event.block.timestamp;
   entry.status = status;
   entry.save();
 }
@@ -225,6 +252,7 @@ export function handleStake(event: Staked): void {
   // Create entry
   let trx = getTransaction(event);
   let entry = new Entry(event.transaction.hash.toHexString());
+  entry.createdAt = event.block.timestamp;
   entry.token = token.id;
   entry.main = token.main;
   entry.user = user.id;
@@ -243,6 +271,7 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
   // Create entry
   let trx = getTransaction(event);
   let entry = new Entry(id);
+  entry.createdAt = event.block.timestamp;
   entry.token = token.id;
   entry.main = token.main;
   entry.user = user.id;
@@ -285,7 +314,7 @@ export function getUser(address: Address): User {
 }
 
 export function getMain(address: Address): Main {
-  log.info(address.toHexString(), [])
+  log.info(address.toHexString(), []);
   let main = Main.load(address.toHexString());
 
   return main as Main;
@@ -340,8 +369,7 @@ function getMainUser(user: string, main: string): MainUser {
   let mainUser = MainUser.load(getConcatenatedId(main, user));
 
   if (mainUser == null) {
-    let fromUser = 
-    mainUser = new MainUser(getConcatenatedId(main, user));
+    let fromUser = (mainUser = new MainUser(getConcatenatedId(main, user)));
     mainUser.main = main;
     mainUser.user = user;
     mainUser.staked = BI_ZERO;
@@ -431,9 +459,46 @@ function getTokenInitial(
     token.holdersCount = BI_ZERO;
     token.type = type;
     token.save();
+
+    // hardcoded RSV info
+    if (address.toHexString() === RSVInfo.address) {
+      createRSV(token);
+    }
   }
 
   return token as Token;
+}
+
+// Gets an ERC20 Token and convert it to an RToken
+// NOTE: RSV is the only case
+function createRSV(token: Token) {
+  // Create RSV Collaterals mappings from Vault
+  let vault = getVault(Bytes.fromHexString(RSVInfo.vault.id));
+
+  for (let i = 0; i < RSVInfo.vault.collaterals.length; i++) {
+    let token = getTokenInitial(
+      Bytes.fromHexString(RSVInfo.vault.collaterals[i])
+    );
+    let collateral = new Collateral(getConcatenatedId(vault.id, token.id));
+    collateral.vault = vault.id;
+    collateral.token = token.id;
+    collateral.index = i;
+    collateral.save();
+  }
+
+  // Create Main entity
+  let main = new Main(RSVInfo.main);
+  main.address = Bytes.fromHexString(RSVInfo.main);
+  main.owner = Bytes.fromHexString(RSVInfo.owner);
+  main.token = token.id;
+  main.vault = vault.id;
+  main.staked = BI_ZERO;
+  main.save();
+
+  // Update token
+  token.type = TokenType.RToken;
+  token.main = main.id;
+  token.save();
 }
 
 function getNewHolderNumber(
@@ -454,16 +519,4 @@ function getNewHolderNumber(
   }
 
   return newHoldersNumber as BigInt;
-}
-
-function getTokenUserId(tokenAddress: string, userAddr: Bytes): string {
-  return tokenAddress.concat("-").concat(userAddr.toHexString());
-}
-
-function getConcatenatedId(a: string, b: string): string {
-  return a.concat("-").concat(b);
-}
-
-function isTokenUserExist(tokenUser: TokenUser | null): boolean {
-  return tokenUser != null;
 }

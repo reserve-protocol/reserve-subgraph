@@ -917,6 +917,32 @@ export class Entry extends Entity {
     this.set("status", Value.fromString(value));
   }
 
+  get createdAt(): BigInt {
+    let value = this.get("createdAt");
+    return value.toBigInt();
+  }
+
+  set createdAt(value: BigInt) {
+    this.set("createdAt", Value.fromBigInt(value));
+  }
+
+  get updatedAt(): BigInt | null {
+    let value = this.get("updatedAt");
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set updatedAt(value: BigInt | null) {
+    if (value === null) {
+      this.unset("updatedAt");
+    } else {
+      this.set("updatedAt", Value.fromBigInt(value as BigInt));
+    }
+  }
+
   get toAddr(): string | null {
     let value = this.get("toAddr");
     if (value === null || value.kind == ValueKind.NULL) {

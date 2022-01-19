@@ -13,15 +13,11 @@ type Main @entity {
   id: ID! # main contract address
   address: Bytes!
   owner: Bytes! # token owner
-  mood: SystemMood! # system mood
   staked: BigInt! # amount of stToken staked
   stToken: Token! # backing token
   token: Token! # rtoken relationship
   rsr: Token! # RSR Address for the Token
-  vault: Vault! # current vault, could change***
-  # TODO:
-  # Can we track total rewards?
-  # Should we track the total melted?
+  vault: Vault! # current vault, could change
 }
 
 type MainUser @entity {
@@ -107,11 +103,13 @@ type Entry @entity {
   id: ID! # id of the entry, it can be specified by the event
   token: Token!
   main: Main!
-  user: User! 
+  user: User!
   transaction: Transaction! # tx related to the entry
   amount: BigInt! # amount of the operation
-  type: EntryType! # Type of entry
+  type: String! # Type of entry
   status: EntryStatus! # default: Completed
+  createdAt: BigInt!
+  updatedAt: BigInt
   # transfer specific
   toAddr: User
   # Unstake / issuance specific
@@ -119,18 +117,8 @@ type Entry @entity {
   completionTxn: Transaction
 }
 
-enum EntryType {
-  Mint
-  Burn
-  Transfer
-  Stake
-  Unstake
-  Issuance
-  Redemption
-}
-
 enum EntryStatus {
-  Pending 
+  Pending
   Canceled
   Completed
 }
@@ -140,10 +128,4 @@ enum TokenType {
   RSR
   StakingToken
   ERC20
-}
-
-enum SystemMood {
-  CALM, # 100% capitalized + no auctions
-  DOUBT, # in this state for 24h before default, no auctions or unstaking
-  TRADING # auctions in progress, no unstaking
 }

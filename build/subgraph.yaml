@@ -84,6 +84,8 @@ templates:
           handler: handleIssuanceCancel
         - event: IssuanceCompleted(indexed uint256)
           handler: handleIssuance
+        - event: Redemption(indexed address,indexed uint256)
+          handler: handleRedemption
       file: Deployer/Deployer.wasm
   - name: stRSR
     kind: ethereum/contract
