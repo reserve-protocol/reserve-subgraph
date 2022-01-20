@@ -1,10 +1,11 @@
-import { ERC20 } from "../generated/Deployer/ERC20";
+import { ERC20 } from "../generated/RSR/ERC20";
 import {
   Address,
   ByteArray,
   BigInt,
   crypto,
   Bytes,
+  log,
 } from "@graphprotocol/graph-ts";
 import { TokenUser } from "../generated/schema";
 export let ADDRESS_ZERO = Address.fromString(
@@ -43,9 +44,16 @@ export class TokenInfo {
     let tokenInfo = new TokenInfo();
     let contract = ERC20.bind(address);
     tokenInfo.address = address.toHexString();
-    tokenInfo.name = contract.name();
-    tokenInfo.symbol = contract.symbol();
-    tokenInfo.decimals = contract.decimals();
+
+    if (isRSV(address)) {
+      tokenInfo.name = "Reserve";
+      tokenInfo.symbol = "RSV";
+      tokenInfo.decimals = 18;
+    } else {
+      tokenInfo.name = contract.name();
+      tokenInfo.symbol = contract.symbol();
+      tokenInfo.decimals = contract.decimals();
+    }
 
     return tokenInfo;
   }
@@ -86,13 +94,23 @@ export class SystemMood {
 }
 
 export class RSVInfo {
-  static main: string = "0x5BA9d812f5533F7Cf2854963f7A9d212f8f28673";
-  static address: string = "0x196f4727526eA7FB1e17b2071B3d8eAA38486988";
+  static main: string = "0x5ba9d812f5533f7cf2854963f7a9d212f8f28673";
+  static address: string = "0x196f4727526ea7fb1e17b2071b3d8eaa38486988";
   static owner: string = "0xfc82f7d67facea4e93b8501f76ff5003cedccd89";
-  static vaultId: string = "0x5BA9d812f5533F7Cf2854963f7A9d212f8f28673";
+  static vaultId: string = "0xaedcfcdd80573c2a312d15d6bb9d921a01e4fb0f";
   static collaterals: string[] = [
     "0x8e870d67f660d95d5be530380d0ec0bd388289e1", // PAX
     "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
     "0x0000000000085d4780B73119b644AE5ecd22b376", // USDT
   ];
+}
+
+export function isRSV(address: Address): boolean {
+  let addressString = address.toHexString();
+
+  return (
+    addressString == RSVInfo.address ||
+    addressString == RSVInfo.main ||
+    addressString == RSVInfo.vaultId
+  );
 }

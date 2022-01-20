@@ -78,11 +78,13 @@ dataSources:
       abis:
         - name: RSVManager
           file: RSVManager/abis/RSVManager.json
+        - name: ERC20
+          file: RSVManager/abis/ERC20.json
       eventHandlers:
         - event: Issuance(indexed address,indexed uint256)
           handler: handleRSVIssuance
         - event: Redemption(indexed address,indexed uint256)
-          handler: handleRedemption
+          handler: handleRSVRedemption
       file: Deployer/Deployer.wasm
   - name: RSR
     kind: ethereum/contract

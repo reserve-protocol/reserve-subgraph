@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 import {
   Collateral,
   Main,
@@ -43,6 +43,7 @@ import {
   EntryType,
   getConcatenatedId,
   getTokenUserId,
+  isRSV,
   isTokenUserExist,
   RSVInfo,
   TokenInfo,
@@ -128,7 +129,10 @@ export function handleTransfer(event: TransferEvent): void {
   let entry = new Entry(event.transaction.hash.toHexString());
   entry.createdAt = event.block.timestamp;
   entry.token = token.id;
-  entry.main = token.main!;
+  let mainId = token.main;
+  if (mainId) {
+    entry.main = mainId;
+  }
   entry.user = fromUser.id;
   entry.transaction = trx.id;
   entry.amount = event.params.value;
@@ -197,15 +201,13 @@ export function handleRSVIssuance(event: RSVIssuance): void {
   entry.save();
 }
 
-export function handleRedemption(event: ethereum.Event): void {
+function _handleRedemption(
+  event: ethereum.Event,
+  userAddress: Address,
+  amount: BigInt
+): void {
   let main = getMain(event.address);
-  let _event = event as Redemption;
-  let userId: Address = _event.params.redeemer;
-  if (!userId) {
-    let newEvent = event as RSVRedemption;
-    userId = newEvent.params.user;
-  }
-  let user = getUser(userId);
+  let user = getUser(userAddress);
   let token = Token.load(main.token)!;
 
   // Create entry
@@ -218,10 +220,18 @@ export function handleRedemption(event: ethereum.Event): void {
   entry.main = token.main!;
   entry.user = user.id;
   entry.transaction = trx.id;
-  entry.amount = _event.params.amount;
+  entry.amount = amount;
   entry.type = EntryType.Redemption;
   entry.status = EntryStatus.Completed;
   entry.save();
+}
+
+export function handleRedemption(event: Redemption): void {
+  _handleRedemption(event, event.params.redeemer, event.params.amount);
+}
+
+export function handleRSVRedemption(event: RSVRedemption): void {
+  _handleRedemption(event, event.params.user, event.params.amount);
 }
 
 export function handleIssuance(event: IssuanceCompleted): void {
@@ -338,6 +348,11 @@ export function getUser(address: Address): User {
 
 export function getMain(address: Address): Main {
   let main = Main.load(address.toHexString());
+
+  if (main == null && isRSV(address)) {
+    getTokenInitial(Address.fromString(RSVInfo.address));
+    main = Main.load(RSVInfo.main);
+  }
 
   return main as Main;
 }
@@ -470,6 +485,7 @@ function getTokenInitial(
   type: string = TokenType.ERC20
 ): Token {
   let token = Token.load(address.toHexString());
+
   if (token == null) {
     let tokenInfo = TokenInfo.build(address);
     token = new Token(address.toHexString());
@@ -483,7 +499,7 @@ function getTokenInitial(
     token.save();
 
     // hardcoded RSV info
-    if (address.toHexString() === RSVInfo.address) {
+    if (isRSV(address)) {
       createRSV(token);
     }
   }
@@ -495,12 +511,10 @@ function getTokenInitial(
 // NOTE: RSV is the only case
 function createRSV(token: Token): void {
   // Create RSV Collaterals mappings from Vault
-  let vault = getVault(<Address>Address.fromHexString(RSVInfo.vaultId));
+  let vault = getVault(Address.fromString(RSVInfo.vaultId));
 
   for (let i = 0; i < RSVInfo.collaterals.length; i++) {
-    let token = getTokenInitial(
-      <Address>Address.fromHexString(RSVInfo.collaterals[i])
-    );
+    let token = getTokenInitial(Address.fromString(RSVInfo.collaterals[i]));
     let collateral = new Collateral(getConcatenatedId(vault.id, token.id));
     collateral.vault = vault.id;
     collateral.token = token.id;
@@ -510,8 +524,8 @@ function createRSV(token: Token): void {
 
   // Create Main entity
   let main = new Main(RSVInfo.main);
-  main.address = <Address>Address.fromHexString(RSVInfo.main);
-  main.owner = <Bytes>Bytes.fromHexString(RSVInfo.owner);
+  main.address = Address.fromString(RSVInfo.main);
+  main.owner = Address.fromString(RSVInfo.owner);
   main.token = token.id;
   main.vault = vault.id;
   main.staked = BI_ZERO;

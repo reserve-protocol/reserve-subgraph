@@ -81,11 +81,13 @@ dataSources:
       abis:
         - name: RSVManager
           file: ./abis/RSVManager.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: Issuance(indexed address,indexed uint256)
           handler: handleRSVIssuance
         - event: Redemption(indexed address,indexed uint256)
-          handler: handleRedemption
+          handler: handleRSVRedemption
       file: ./src/mapping.ts
   # RSR Tracks ERC20 txs
   - name: RSR
