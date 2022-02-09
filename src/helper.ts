@@ -87,17 +87,11 @@ export class EntryStatus {
   static Completed: string = "Completed";
 }
 
-export class SystemMood {
-  static CALM: string = "CALM";
-  static DOUBT: string = "DOUBT";
-  static TRADING: string = "TRADING";
-}
-
 export class RSVInfo {
-  static main: string = "0x5ba9d812f5533f7cf2854963f7a9d212f8f28673";
+  static main: string = "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6";
   static address: string = "0x196f4727526ea7fb1e17b2071b3d8eaa38486988";
   static owner: string = "0xfc82f7d67facea4e93b8501f76ff5003cedccd89";
-  static vaultId: string = "0xaedcfcdd80573c2a312d15d6bb9d921a01e4fb0f";
+  static vaultId: string = "0xAeDCFcdD80573c2a312d15d6Bb9d921a01E4FB0f";
   static collaterals: string[] = [
     "0x8e870d67f660d95d5be530380d0ec0bd388289e1", // PAX
     "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
