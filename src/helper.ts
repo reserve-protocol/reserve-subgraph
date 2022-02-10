@@ -88,7 +88,7 @@ export class EntryStatus {
 }
 
 export class RSVInfo {
-  static main: string = "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6";
+  static main: string = "0x4b481872f31bab47c6780d5488c84d309b1b8bb6";
   static address: string = "0x196f4727526ea7fb1e17b2071b3d8eaa38486988";
   static owner: string = "0xfc82f7d67facea4e93b8501f76ff5003cedccd89";
   static vaultId: string = "0xAeDCFcdD80573c2a312d15d6Bb9d921a01E4FB0f";
