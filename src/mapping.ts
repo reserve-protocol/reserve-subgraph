@@ -145,6 +145,11 @@ export function handleTransfer(event: TransferEvent): void {
   getSupply(entry, token, event.block.timestamp);
 }
 
+export function handleTransferOldRSV(event: TransferEvent): void {
+  event.address = Address.fromString(RSVInfo.address);
+  handleTransfer(event);
+}
+
 function getTransaction(event: ethereum.Event): Transaction {
   let tx = Transaction.load(event.transaction.hash.toHexString());
 
@@ -181,7 +186,7 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
 }
 
 export function handleRSVIssuance(event: RSVIssuance): void {
-  let main = getMain(event.address);
+  let main = getMain(Address.fromString(RSVInfo.main));
   let user = getUser(event.params.user);
   let token = Token.load(main.token)!;
 
@@ -203,10 +208,11 @@ export function handleRSVIssuance(event: RSVIssuance): void {
 
 function _handleRedemption(
   event: ethereum.Event,
+  mainAddress: Address,
   userAddress: Address,
   amount: BigInt
 ): void {
-  let main = getMain(event.address);
+  let main = getMain(mainAddress);
   let user = getUser(userAddress);
   let token = Token.load(main.token)!;
 
@@ -227,11 +233,21 @@ function _handleRedemption(
 }
 
 export function handleRedemption(event: Redemption): void {
-  _handleRedemption(event, event.params.redeemer, event.params.amount);
+  _handleRedemption(
+    event,
+    event.address,
+    event.params.redeemer,
+    event.params.amount
+  );
 }
 
 export function handleRSVRedemption(event: RSVRedemption): void {
-  _handleRedemption(event, event.params.user, event.params.amount);
+  _handleRedemption(
+    event,
+    Address.fromString(RSVInfo.main),
+    event.params.user,
+    event.params.amount
+  );
 }
 
 export function handleIssuance(event: IssuanceCompleted): void {
@@ -538,13 +554,13 @@ function createRSV(token: Token): void {
 }
 
 function getNewHolderNumber(
-  tokenSymbol: string,
+  tokenAddress: string,
   userAddr: Address,
   amount: BigInt
 ): BigInt {
   let newHoldersNumber = BI_ZERO;
 
-  let tokenUser = TokenUser.load(getTokenUserId(tokenSymbol, userAddr));
+  let tokenUser = TokenUser.load(getTokenUserId(tokenAddress, userAddr));
   let newBalance = BI_ZERO;
   if (isTokenUserExist(tokenUser) && tokenUser) {
     newBalance = tokenUser.balance;

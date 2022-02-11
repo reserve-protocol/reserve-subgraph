@@ -89,6 +89,61 @@ dataSources:
         - event: Redemption(indexed address,indexed uint256)
           handler: handleRSVRedemption
       file: ./src/mapping.ts
+  # OLD RSV Contracts for correct mapping
+  - name: OldRSV
+    kind: ethereum/contract
+    network: localhost
+    source:
+      address: "0x1c5857e110cd8411054660f60b5de6a6958cfae2"
+      abi: ERC20
+      startBlock: 8686125
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - User
+        - Supply
+        - TokenUser
+        - Transaction
+        - Entry
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransferOldRSV
+      file: ./src/mapping.ts
+  - name: OldRSVManager
+    kind: ethereum/contract
+    network: localhost
+    source:
+      address: "0x5BA9d812f5533F7Cf2854963f7A9d212f8f28673"
+      abi: RSVManager
+      startBlock: 8686125
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Main
+        - MainUser
+        - Transaction
+        - Entry
+        - User
+        - Token
+      abis:
+        - name: RSVManager
+          file: ./abis/RSVManager.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Issuance(indexed address,indexed uint256)
+          handler: handleRSVIssuance
+        - event: Redemption(indexed address,indexed uint256)
+          handler: handleRSVRedemption
+      file: ./src/mapping.ts
   # RSR Tracks ERC20 txs
   - name: RSR
     kind: ethereum/contract
