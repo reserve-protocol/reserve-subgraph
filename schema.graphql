@@ -12,6 +12,7 @@ type User @entity {
 type Main @entity {
   id: ID! # main contract address
   address: Bytes!
+  facade: Bytes
   owner: Bytes! # token owner
   token: Token! # rtoken relationship
   basket: Basket! # current basket, could change***
@@ -27,14 +28,11 @@ type MainUser @entity {
   user: User!
   staked: BigInt!
   rewarded: BigInt!
-  # TODO: Define these
-  # lastStakeTimestamp: BigInt
-  # lastWithdrawTimestamp: BigInt
 }
 
 # Collateral asset for a given basket
 type Collateral @entity {
-  id: ID! # basketAddress>-<tokenAddress>
+  id: ID! # <basketAddress>-<tokenAddress>
   basket: Basket! # Related basket id
   token: Token! # Collateral token
   index: Int! # Asset index
@@ -42,8 +40,7 @@ type Collateral @entity {
 
 # RToken basket
 type Basket @entity {
-  id: ID! # basket contract address
-  address: Bytes!
+  id: ID! # tx address when created
   main: Main # Main module
   collaterals: [Collateral!] @derivedFrom(field: "basket") # collateral assets
 }
