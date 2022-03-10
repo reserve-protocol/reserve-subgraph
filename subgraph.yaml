@@ -194,38 +194,13 @@ templates:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-      file: ./src/mapping.ts
-  # Track Issuance and Redemption
-  - name: Main
-    kind: ethereum/contract
-    network: localhost
-    source:
-      abi: Main # RToken Main
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Main
-        - MainUser
-        - Transaction
-        - Entry
-        - User
-        - Token
-      abis:
-        - name: Main
-          file: ./abis/Main.json
-      # TODO: Handle vault changed event in P1
-      eventHandlers:
-        - event: SystemStateChanged(indexed uint8,indexed uint8)
-          handler: handleSystemStateChanged
-        - event: IssuanceStarted(indexed uint256,indexed address,indexed uint256,uint256)
+        - event: IssuanceStarted(indexed address,indexed uint256,indexed uint256,int192,address[],uint256[],int192)
           handler: handleIssuanceStart
-        - event: IssuanceCanceled(indexed uint256)
+        - event: IssuanceCanceled(indexed address,indexed uint256,indexed uint256)
           handler: handleIssuanceCancel
-        - event: IssuanceCompleted(indexed uint256)
+        - event: IssuanceCompleted(indexed address, indexed uint256, indexed uint256)
           handler: handleIssuance
-        - event: Redemption(indexed address,indexed uint256)
+        - event: Redemption(indexed address,indexed uint256,indexed int192[])
           handler: handleRedemption
       file: ./src/mapping.ts
   - name: stRSR
@@ -250,10 +225,10 @@ templates:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-        - event: Staked(indexed address,indexed uint256)
+        - event: Staked(indexed address,indexed uint256,indexed uint256)
           handler: handleStake
-        - event: UnstakingStarted(indexed uint256,indexed address,indexed uint256,uint256)
+        - event: UnstakingStarted(indexed uint256,indexed uint256,indexed address,uint256,uint256)
           handler: handleUnstakeStarted
-        - event: UnstakingCompleted(indexed uint256,indexed address,indexed uint256)
+        - event: UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed address,uint256)
           handler: handleUnstake
       file: ./src/mapping.ts

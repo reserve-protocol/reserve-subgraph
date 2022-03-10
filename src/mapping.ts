@@ -100,7 +100,6 @@ export function handleCreateToken(event: RTokenCreated): void {
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(stTokenAddress);
-  MainTemplate.create(event.params.main);
 }
 
 export function handleTransfer(event: TransferEvent): void {

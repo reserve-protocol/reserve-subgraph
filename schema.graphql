@@ -14,7 +14,7 @@ type Main @entity {
   address: Bytes!
   owner: Bytes! # token owner
   token: Token! # rtoken relationship
-  vault: Vault! # current vault, could change***
+  basket: Basket! # current basket, could change***
   # staked / stToken is used for insurance
   # RSV is the only RToken without these fields
   staked: BigInt! # amount of stToken staked
@@ -32,20 +32,20 @@ type MainUser @entity {
   # lastWithdrawTimestamp: BigInt
 }
 
-# Collateral asset for a given Vault
+# Collateral asset for a given basket
 type Collateral @entity {
-  id: ID! # vaultAddress>-<tokenAddress>
-  vault: Vault! # Related vault id
+  id: ID! # basketAddress>-<tokenAddress>
+  basket: Basket! # Related basket id
   token: Token! # Collateral token
   index: Int! # Asset index
 }
 
-# RToken Vault
-type Vault @entity {
-  id: ID! # vault contract address
+# RToken basket
+type Basket @entity {
+  id: ID! # basket contract address
   address: Bytes!
   main: Main # Main module
-  collaterals: [Collateral!] @derivedFrom(field: "vault") # collateral assets
+  collaterals: [Collateral!] @derivedFrom(field: "basket") # collateral assets
 }
 
 # Tokens
@@ -127,10 +127,4 @@ enum TokenType {
   RSR
   StakingToken
   ERC20
-}
-
-enum SystemMood {
-  CALM # 100% capitalized + no auctions
-  DOUBT # in this state for 24h before default, no auctions or unstaking
-  TRADING # auctions in progress, no unstaking
 }
