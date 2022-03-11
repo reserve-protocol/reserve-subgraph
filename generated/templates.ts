@@ -16,16 +16,6 @@ export class RToken extends DataSourceTemplate {
   }
 }
 
-export class Main extends DataSourceTemplate {
-  static create(address: Address): void {
-    DataSourceTemplate.create("Main", [address.toHex()]);
-  }
-
-  static createWithContext(address: Address, context: DataSourceContext): void {
-    DataSourceTemplate.createWithContext("Main", [address.toHex()], context);
-  }
-}
-
 export class stRSR extends DataSourceTemplate {
   static create(address: Address): void {
     DataSourceTemplate.create("stRSR", [address.toHex()]);

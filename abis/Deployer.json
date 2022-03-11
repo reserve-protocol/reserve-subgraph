@@ -1,17 +1,65 @@
 [
   {
+    "inputs": [
+      {
+        "internalType": "contract IERC20Metadata",
+        "name": "rsr_",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IERC20Metadata",
+        "name": "comp_",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IERC20Metadata",
+        "name": "aave_",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IMarket",
+        "name": "market_",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IComptroller",
+        "name": "comptroller_",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IAaveLendingPool",
+        "name": "aaveLendingPool_",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
+        "internalType": "contract IMain",
         "name": "main",
         "type": "address"
       },
       {
         "indexed": true,
-        "internalType": "address",
+        "internalType": "contract IRToken",
         "name": "rToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "contract IStRSR",
+        "name": "stRSR",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "contract IFacade",
+        "name": "facade",
         "type": "address"
       },
       {
@@ -23,6 +71,84 @@
     ],
     "name": "RTokenCreated",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "aave",
+    "outputs": [
+      {
+        "internalType": "contract IERC20Metadata",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "aaveClaimer",
+    "outputs": [
+      {
+        "internalType": "contract IClaimAdapter",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "aaveLendingPool",
+    "outputs": [
+      {
+        "internalType": "contract IAaveLendingPool",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "comp",
+    "outputs": [
+      {
+        "internalType": "contract IERC20Metadata",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "compoundClaimer",
+    "outputs": [
+      {
+        "internalType": "contract IClaimAdapter",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "comptroller",
+    "outputs": [
+      {
+        "internalType": "contract IComptroller",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -42,21 +168,28 @@
         "type": "address"
       },
       {
-        "internalType": "contract IVault",
-        "name": "vault",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IERC20",
-        "name": "rsr",
-        "type": "address"
-      },
-      {
         "components": [
           {
-            "internalType": "uint256",
-            "name": "rewardStart",
-            "type": "uint256"
+            "internalType": "Fix",
+            "name": "maxAuctionSize",
+            "type": "int192"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "rTokenDist",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "rsrDist",
+                "type": "uint16"
+              }
+            ],
+            "internalType": "struct RevenueShare",
+            "name": "dist",
+            "type": "tuple"
           },
           {
             "internalType": "uint256",
@@ -64,19 +197,29 @@
             "type": "uint256"
           },
           {
+            "internalType": "Fix",
+            "name": "rewardRatio",
+            "type": "int192"
+          },
+          {
             "internalType": "uint256",
-            "name": "auctionPeriod",
+            "name": "unstakingDelay",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "stRSRWithdrawalDelay",
+            "name": "auctionDelay",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "defaultDelay",
+            "name": "auctionLength",
             "type": "uint256"
+          },
+          {
+            "internalType": "Fix",
+            "name": "backingBuffer",
+            "type": "int192"
           },
           {
             "internalType": "Fix",
@@ -85,85 +228,18 @@
           },
           {
             "internalType": "Fix",
-            "name": "auctionClearingTolerance",
-            "type": "int192"
-          },
-          {
-            "internalType": "Fix",
-            "name": "maxAuctionSize",
-            "type": "int192"
-          },
-          {
-            "internalType": "Fix",
-            "name": "minRecapitalizationAuctionSize",
-            "type": "int192"
-          },
-          {
-            "internalType": "Fix",
-            "name": "minRevenueAuctionSize",
-            "type": "int192"
-          },
-          {
-            "internalType": "Fix",
-            "name": "migrationChunk",
+            "name": "dustAmount",
             "type": "int192"
           },
           {
             "internalType": "Fix",
             "name": "issuanceRate",
             "type": "int192"
-          },
-          {
-            "internalType": "Fix",
-            "name": "defaultThreshold",
-            "type": "int192"
-          },
-          {
-            "internalType": "Fix",
-            "name": "f",
-            "type": "int192"
           }
         ],
-        "internalType": "struct Config",
-        "name": "config",
+        "internalType": "struct DeploymentParams",
+        "name": "params",
         "type": "tuple"
-      },
-      {
-        "internalType": "contract IComptroller",
-        "name": "compound",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IAaveLendingPool",
-        "name": "aave",
-        "type": "address"
-      },
-      {
-        "components": [
-          {
-            "internalType": "contract RSRAssetP0",
-            "name": "rsrAsset",
-            "type": "address"
-          },
-          {
-            "internalType": "contract COMPAssetP0",
-            "name": "compAsset",
-            "type": "address"
-          },
-          {
-            "internalType": "contract AAVEAssetP0",
-            "name": "aaveAsset",
-            "type": "address"
-          }
-        ],
-        "internalType": "struct IDeployer.ParamsAssets",
-        "name": "nonCollateral",
-        "type": "tuple"
-      },
-      {
-        "internalType": "contract ICollateral[]",
-        "name": "collateral",
-        "type": "address[]"
       }
     ],
     "name": "deploy",
@@ -189,6 +265,32 @@
     "outputs": [
       {
         "internalType": "contract IMain",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "market",
+    "outputs": [
+      {
+        "internalType": "contract IMarket",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rsr",
+    "outputs": [
+      {
+        "internalType": "contract IERC20Metadata",
         "name": "",
         "type": "address"
       }

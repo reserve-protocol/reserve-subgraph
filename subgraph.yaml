@@ -21,16 +21,12 @@ dataSources:
       abis:
         - name: Deployer
           file: ./abis/Deployer.json
-        - name: RToken
-          file: ./abis/RToken.json
         - name: ERC20
           file: ./abis/ERC20.json
-        - name: Main
-          file: ./abis/Main.json
-        - name: AssetManager
-          file: ./abis/AssetManager.json
+        - name: Facade
+          file: ./abis/Facade.json
       eventHandlers:
-        - event: RTokenCreated(indexed address,indexed address,indexed address)
+        - event: RTokenCreated(indexed address,indexed address,address,address,indexed address)
           handler: handleCreateToken
       file: ./src/mapping.ts
   # RSV tracks ERC20 transactions
@@ -196,11 +192,11 @@ templates:
           handler: handleTransfer
         - event: IssuanceStarted(indexed address,indexed uint256,indexed uint256,int192,address[],uint256[],int192)
           handler: handleIssuanceStart
-        - event: IssuanceCanceled(indexed address,indexed uint256,indexed uint256)
+        - event: IssuancesCanceled(indexed address,indexed uint256,indexed uint256)
           handler: handleIssuanceCancel
-        - event: IssuanceCompleted(indexed address, indexed uint256, indexed uint256)
+        - event: IssuancesCompleted(indexed address,indexed uint256,indexed uint256)
           handler: handleIssuance
-        - event: Redemption(indexed address,indexed uint256,indexed int192[])
+        - event: Redemption(indexed address,indexed uint256,indexed int192)
           handler: handleRedemption
       file: ./src/mapping.ts
   - name: stRSR

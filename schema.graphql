@@ -55,11 +55,11 @@ type Token @entity {
   transfersCount: BigInt! #Number of transfers
   holdersCount: BigInt! #Number of holders
   type: TokenType! # type of token ERC20 - RSR - RToken - StakingToken
-  main: Main # main for the Token - Only set for stToken and RToken
+  main: Main # main for the Token - Only set forstToken and RToken
+  apy: Int # token APY for rToken and stRSR
   users: [TokenUser!]! @derivedFrom(field: "token")
   supply: Supply @derivedFrom(field: "token")
   records: [Entry!]! @derivedFrom(field: "token")
-  # mains: [Main]! @derivedFrom(field: "rsr") # Only RSR can have multiple associated mains
 }
 
 type TokenUser @entity {

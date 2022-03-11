@@ -90,7 +90,7 @@ export class Main extends Entity {
     this.set("address", Value.fromBytes(Bytes.empty()));
     this.set("owner", Value.fromBytes(Bytes.empty()));
     this.set("token", Value.fromString(""));
-    this.set("vault", Value.fromString(""));
+    this.set("basket", Value.fromString(""));
     this.set("staked", Value.fromBigInt(BigInt.zero()));
   }
 
@@ -129,6 +129,23 @@ export class Main extends Entity {
     this.set("address", Value.fromBytes(value));
   }
 
+  get facade(): Bytes | null {
+    let value = this.get("facade");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set facade(value: Bytes | null) {
+    if (!value) {
+      this.unset("facade");
+    } else {
+      this.set("facade", Value.fromBytes(<Bytes>value));
+    }
+  }
+
   get owner(): Bytes {
     let value = this.get("owner");
     return value!.toBytes();
@@ -147,13 +164,13 @@ export class Main extends Entity {
     this.set("token", Value.fromString(value));
   }
 
-  get vault(): string {
-    let value = this.get("vault");
+  get basket(): string {
+    let value = this.get("basket");
     return value!.toString();
   }
 
-  set vault(value: string) {
-    this.set("vault", Value.fromString(value));
+  set basket(value: string) {
+    this.set("basket", Value.fromString(value));
   }
 
   get staked(): BigInt {
@@ -262,7 +279,7 @@ export class Collateral extends Entity {
     super();
     this.set("id", Value.fromString(id));
 
-    this.set("vault", Value.fromString(""));
+    this.set("basket", Value.fromString(""));
     this.set("token", Value.fromString(""));
     this.set("index", Value.fromI32(0));
   }
@@ -293,13 +310,13 @@ export class Collateral extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get vault(): string {
-    let value = this.get("vault");
+  get basket(): string {
+    let value = this.get("basket");
     return value!.toString();
   }
 
-  set vault(value: string) {
-    this.set("vault", Value.fromString(value));
+  set basket(value: string) {
+    this.set("basket", Value.fromString(value));
   }
 
   get token(): string {
@@ -321,29 +338,27 @@ export class Collateral extends Entity {
   }
 }
 
-export class Vault extends Entity {
+export class Basket extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
-
-    this.set("address", Value.fromBytes(Bytes.empty()));
   }
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save Vault entity without an ID");
+    assert(id != null, "Cannot save Basket entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        "Cannot save Vault entity with non-string ID. " +
+        "Cannot save Basket entity with non-string ID. " +
           'Considering using .toHex() to convert the "id" to a string.'
       );
-      store.set("Vault", id.toString(), this);
+      store.set("Basket", id.toString(), this);
     }
   }
 
-  static load(id: string): Vault | null {
-    return changetype<Vault | null>(store.get("Vault", id));
+  static load(id: string): Basket | null {
+    return changetype<Basket | null>(store.get("Basket", id));
   }
 
   get id(): string {
@@ -353,15 +368,6 @@ export class Vault extends Entity {
 
   set id(value: string) {
     this.set("id", Value.fromString(value));
-  }
-
-  get address(): Bytes {
-    let value = this.get("address");
-    return value!.toBytes();
-  }
-
-  set address(value: Bytes) {
-    this.set("address", Value.fromBytes(value));
   }
 
   get main(): string | null {
@@ -517,6 +523,15 @@ export class Token extends Entity {
     } else {
       this.set("main", Value.fromString(<string>value));
     }
+  }
+
+  get apy(): i32 {
+    let value = this.get("apy");
+    return value!.toI32();
+  }
+
+  set apy(value: i32) {
+    this.set("apy", Value.fromI32(value));
   }
 
   get users(): Array<string> {

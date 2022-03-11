@@ -31,80 +31,72 @@ export class RTokenCreated__Params {
     return this._event.parameters[1].value.toAddress();
   }
 
-  get owner(): Address {
+  get stRSR(): Address {
     return this._event.parameters[2].value.toAddress();
+  }
+
+  get facade(): Address {
+    return this._event.parameters[3].value.toAddress();
+  }
+
+  get owner(): Address {
+    return this._event.parameters[4].value.toAddress();
   }
 }
 
-export class Deployer__deployInputConfigStruct extends ethereum.Tuple {
-  get rewardStart(): BigInt {
+export class Deployer__deployInputParamsStruct extends ethereum.Tuple {
+  get maxAuctionSize(): BigInt {
     return this[0].toBigInt();
   }
 
-  get rewardPeriod(): BigInt {
-    return this[1].toBigInt();
+  get dist(): Deployer__deployInputParamsDistStruct {
+    return changetype<Deployer__deployInputParamsDistStruct>(this[1].toTuple());
   }
 
-  get auctionPeriod(): BigInt {
+  get rewardPeriod(): BigInt {
     return this[2].toBigInt();
   }
 
-  get stRSRWithdrawalDelay(): BigInt {
+  get rewardRatio(): BigInt {
     return this[3].toBigInt();
   }
 
-  get defaultDelay(): BigInt {
+  get unstakingDelay(): BigInt {
     return this[4].toBigInt();
   }
 
-  get maxTradeSlippage(): BigInt {
+  get auctionDelay(): BigInt {
     return this[5].toBigInt();
   }
 
-  get auctionClearingTolerance(): BigInt {
+  get auctionLength(): BigInt {
     return this[6].toBigInt();
   }
 
-  get maxAuctionSize(): BigInt {
+  get backingBuffer(): BigInt {
     return this[7].toBigInt();
   }
 
-  get minRecapitalizationAuctionSize(): BigInt {
+  get maxTradeSlippage(): BigInt {
     return this[8].toBigInt();
   }
 
-  get minRevenueAuctionSize(): BigInt {
+  get dustAmount(): BigInt {
     return this[9].toBigInt();
   }
 
-  get migrationChunk(): BigInt {
-    return this[10].toBigInt();
-  }
-
   get issuanceRate(): BigInt {
-    return this[11].toBigInt();
-  }
-
-  get defaultThreshold(): BigInt {
-    return this[12].toBigInt();
-  }
-
-  get f(): BigInt {
-    return this[13].toBigInt();
+    return this[10].toBigInt();
   }
 }
 
-export class Deployer__deployInputNonCollateralStruct extends ethereum.Tuple {
-  get rsrAsset(): Address {
-    return this[0].toAddress();
+export class Deployer__deployInputParamsDistStruct extends ethereum.Tuple {
+  get rTokenDist(): i32 {
+    return this[0].toI32();
   }
 
-  get compAsset(): Address {
-    return this[1].toAddress();
-  }
-
-  get aaveAsset(): Address {
-    return this[2].toAddress();
+  get rsrDist(): i32 {
+    return this[1].toI32();
   }
 }
 
@@ -113,32 +105,126 @@ export class Deployer extends ethereum.SmartContract {
     return new Deployer("Deployer", address);
   }
 
+  aave(): Address {
+    let result = super.call("aave", "aave():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_aave(): ethereum.CallResult<Address> {
+    let result = super.tryCall("aave", "aave():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  aaveClaimer(): Address {
+    let result = super.call("aaveClaimer", "aaveClaimer():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_aaveClaimer(): ethereum.CallResult<Address> {
+    let result = super.tryCall("aaveClaimer", "aaveClaimer():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  aaveLendingPool(): Address {
+    let result = super.call(
+      "aaveLendingPool",
+      "aaveLendingPool():(address)",
+      []
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_aaveLendingPool(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "aaveLendingPool",
+      "aaveLendingPool():(address)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  comp(): Address {
+    let result = super.call("comp", "comp():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_comp(): ethereum.CallResult<Address> {
+    let result = super.tryCall("comp", "comp():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  compoundClaimer(): Address {
+    let result = super.call(
+      "compoundClaimer",
+      "compoundClaimer():(address)",
+      []
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_compoundClaimer(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "compoundClaimer",
+      "compoundClaimer():(address)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  comptroller(): Address {
+    let result = super.call("comptroller", "comptroller():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_comptroller(): ethereum.CallResult<Address> {
+    let result = super.tryCall("comptroller", "comptroller():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
   deploy(
     name: string,
     symbol: string,
     owner: Address,
-    vault: Address,
-    rsr: Address,
-    config: Deployer__deployInputConfigStruct,
-    compound: Address,
-    aave: Address,
-    nonCollateral: Deployer__deployInputNonCollateralStruct,
-    collateral: Array<Address>
+    params: Deployer__deployInputParamsStruct
   ): Address {
     let result = super.call(
       "deploy",
-      "deploy(string,string,address,address,address,(uint256,uint256,uint256,uint256,uint256,int192,int192,int192,int192,int192,int192,int192,int192,int192),address,address,(address,address,address),address[]):(address)",
+      "deploy(string,string,address,(int192,(uint16,uint16),uint256,int192,uint256,uint256,uint256,int192,int192,int192,int192)):(address)",
       [
         ethereum.Value.fromString(name),
         ethereum.Value.fromString(symbol),
         ethereum.Value.fromAddress(owner),
-        ethereum.Value.fromAddress(vault),
-        ethereum.Value.fromAddress(rsr),
-        ethereum.Value.fromTuple(config),
-        ethereum.Value.fromAddress(compound),
-        ethereum.Value.fromAddress(aave),
-        ethereum.Value.fromTuple(nonCollateral),
-        ethereum.Value.fromAddressArray(collateral)
+        ethereum.Value.fromTuple(params)
       ]
     );
 
@@ -149,28 +235,16 @@ export class Deployer extends ethereum.SmartContract {
     name: string,
     symbol: string,
     owner: Address,
-    vault: Address,
-    rsr: Address,
-    config: Deployer__deployInputConfigStruct,
-    compound: Address,
-    aave: Address,
-    nonCollateral: Deployer__deployInputNonCollateralStruct,
-    collateral: Array<Address>
+    params: Deployer__deployInputParamsStruct
   ): ethereum.CallResult<Address> {
     let result = super.tryCall(
       "deploy",
-      "deploy(string,string,address,address,address,(uint256,uint256,uint256,uint256,uint256,int192,int192,int192,int192,int192,int192,int192,int192,int192),address,address,(address,address,address),address[]):(address)",
+      "deploy(string,string,address,(int192,(uint16,uint16),uint256,int192,uint256,uint256,uint256,int192,int192,int192,int192)):(address)",
       [
         ethereum.Value.fromString(name),
         ethereum.Value.fromString(symbol),
         ethereum.Value.fromAddress(owner),
-        ethereum.Value.fromAddress(vault),
-        ethereum.Value.fromAddress(rsr),
-        ethereum.Value.fromTuple(config),
-        ethereum.Value.fromAddress(compound),
-        ethereum.Value.fromAddress(aave),
-        ethereum.Value.fromTuple(nonCollateral),
-        ethereum.Value.fromAddressArray(collateral)
+        ethereum.Value.fromTuple(params)
       ]
     );
     if (result.reverted) {
@@ -199,6 +273,86 @@ export class Deployer extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  market(): Address {
+    let result = super.call("market", "market():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_market(): ethereum.CallResult<Address> {
+    let result = super.tryCall("market", "market():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  rsr(): Address {
+    let result = super.call("rsr", "rsr():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_rsr(): ethereum.CallResult<Address> {
+    let result = super.tryCall("rsr", "rsr():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+}
+
+export class ConstructorCall extends ethereum.Call {
+  get inputs(): ConstructorCall__Inputs {
+    return new ConstructorCall__Inputs(this);
+  }
+
+  get outputs(): ConstructorCall__Outputs {
+    return new ConstructorCall__Outputs(this);
+  }
+}
+
+export class ConstructorCall__Inputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+
+  get rsr_(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get comp_(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+
+  get aave_(): Address {
+    return this._call.inputValues[2].value.toAddress();
+  }
+
+  get market_(): Address {
+    return this._call.inputValues[3].value.toAddress();
+  }
+
+  get comptroller_(): Address {
+    return this._call.inputValues[4].value.toAddress();
+  }
+
+  get aaveLendingPool_(): Address {
+    return this._call.inputValues[5].value.toAddress();
+  }
+}
+
+export class ConstructorCall__Outputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
   }
 }
 
@@ -231,36 +385,10 @@ export class DeployCall__Inputs {
     return this._call.inputValues[2].value.toAddress();
   }
 
-  get vault(): Address {
-    return this._call.inputValues[3].value.toAddress();
-  }
-
-  get rsr(): Address {
-    return this._call.inputValues[4].value.toAddress();
-  }
-
-  get config(): DeployCallConfigStruct {
-    return changetype<DeployCallConfigStruct>(
-      this._call.inputValues[5].value.toTuple()
+  get params(): DeployCallParamsStruct {
+    return changetype<DeployCallParamsStruct>(
+      this._call.inputValues[3].value.toTuple()
     );
-  }
-
-  get compound(): Address {
-    return this._call.inputValues[6].value.toAddress();
-  }
-
-  get aave(): Address {
-    return this._call.inputValues[7].value.toAddress();
-  }
-
-  get nonCollateral(): DeployCallNonCollateralStruct {
-    return changetype<DeployCallNonCollateralStruct>(
-      this._call.inputValues[8].value.toTuple()
-    );
-  }
-
-  get collateral(): Array<Address> {
-    return this._call.inputValues[9].value.toAddressArray();
   }
 }
 
@@ -276,74 +404,58 @@ export class DeployCall__Outputs {
   }
 }
 
-export class DeployCallConfigStruct extends ethereum.Tuple {
-  get rewardStart(): BigInt {
+export class DeployCallParamsStruct extends ethereum.Tuple {
+  get maxAuctionSize(): BigInt {
     return this[0].toBigInt();
   }
 
-  get rewardPeriod(): BigInt {
-    return this[1].toBigInt();
+  get dist(): DeployCallParamsDistStruct {
+    return changetype<DeployCallParamsDistStruct>(this[1].toTuple());
   }
 
-  get auctionPeriod(): BigInt {
+  get rewardPeriod(): BigInt {
     return this[2].toBigInt();
   }
 
-  get stRSRWithdrawalDelay(): BigInt {
+  get rewardRatio(): BigInt {
     return this[3].toBigInt();
   }
 
-  get defaultDelay(): BigInt {
+  get unstakingDelay(): BigInt {
     return this[4].toBigInt();
   }
 
-  get maxTradeSlippage(): BigInt {
+  get auctionDelay(): BigInt {
     return this[5].toBigInt();
   }
 
-  get auctionClearingTolerance(): BigInt {
+  get auctionLength(): BigInt {
     return this[6].toBigInt();
   }
 
-  get maxAuctionSize(): BigInt {
+  get backingBuffer(): BigInt {
     return this[7].toBigInt();
   }
 
-  get minRecapitalizationAuctionSize(): BigInt {
+  get maxTradeSlippage(): BigInt {
     return this[8].toBigInt();
   }
 
-  get minRevenueAuctionSize(): BigInt {
+  get dustAmount(): BigInt {
     return this[9].toBigInt();
   }
 
-  get migrationChunk(): BigInt {
-    return this[10].toBigInt();
-  }
-
   get issuanceRate(): BigInt {
-    return this[11].toBigInt();
-  }
-
-  get defaultThreshold(): BigInt {
-    return this[12].toBigInt();
-  }
-
-  get f(): BigInt {
-    return this[13].toBigInt();
+    return this[10].toBigInt();
   }
 }
 
-export class DeployCallNonCollateralStruct extends ethereum.Tuple {
-  get rsrAsset(): Address {
-    return this[0].toAddress();
+export class DeployCallParamsDistStruct extends ethereum.Tuple {
+  get rTokenDist(): i32 {
+    return this[0].toI32();
   }
 
-  get compAsset(): Address {
-    return this[1].toAddress();
-  }
-
-  get aaveAsset(): Address {
-    return this[2].toAddress();
+  get rsrDist(): i32 {
+    return this[1].toI32();
   }
 }
