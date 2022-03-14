@@ -81,10 +81,10 @@ dataSources:
           file: ./abis/ERC20.json
       eventHandlers:
         - event: Issuance(indexed address,indexed uint256)
-          handler: handleRSVIssuance
+          handler: handleIssuance
         - event: Redemption(indexed address,indexed uint256)
-          handler: handleRSVRedemption
-      file: ./src/mapping.ts
+          handler: handleRedemption
+      file: ./src/rsv.ts
   # OLD RSV Contracts for correct mapping
   - name: OldRSV
     kind: ethereum/contract
@@ -110,7 +110,7 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransferOldRSV
-      file: ./src/mapping.ts
+      file: ./src/rsv.ts
   - name: OldRSVManager
     kind: ethereum/contract
     network: localhost
@@ -136,10 +136,10 @@ dataSources:
           file: ./abis/ERC20.json
       eventHandlers:
         - event: Issuance(indexed address,indexed uint256)
-          handler: handleRSVIssuance
+          handler: handleIssuance
         - event: Redemption(indexed address,indexed uint256)
-          handler: handleRSVRedemption
-      file: ./src/mapping.ts
+          handler: handleRedemption
+      file: ./src/rsv.ts
   # RSR Tracks ERC20 txs
   - name: RSR
     kind: ethereum/contract

@@ -959,6 +959,23 @@ export class Entry extends Entity {
     this.set("amount", Value.fromBigInt(value));
   }
 
+  get stAmount(): BigInt | null {
+    let value = this.get("stAmount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set stAmount(value: BigInt | null) {
+    if (!value) {
+      this.unset("stAmount");
+    } else {
+      this.set("stAmount", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
   get type(): string {
     let value = this.get("type");
     return value!.toString();

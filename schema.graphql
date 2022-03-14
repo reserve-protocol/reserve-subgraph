@@ -102,6 +102,7 @@ type Entry @entity {
   user: User!
   transaction: Transaction! # tx related to the entry
   amount: BigInt! # amount of the operation
+  stAmount: BigInt # amount corresponding of st token
   type: String! # Type of entry
   status: EntryStatus! # default: Completed
   createdAt: BigInt!
