@@ -273,7 +273,8 @@ export function handleCreateToken(event: RTokenCreated): void {
   let basket = getBasket(
     getConcatenatedId(rToken.id, event.transaction.hash.toHexString())
   );
-  let backingTokens = Facade.backingTokens();
+  let facadeContract = Facade.bind(event.params.facade);
+  let backingTokens = facadeContract.basketTokens();
 
   for (let i = 0; i < backingTokens.length; i++) {
     let token = getTokenInitial(backingTokens[i]);

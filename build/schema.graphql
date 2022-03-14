@@ -12,9 +12,10 @@ type User @entity {
 type Main @entity {
   id: ID! # main contract address
   address: Bytes!
+  facade: Bytes
   owner: Bytes! # token owner
   token: Token! # rtoken relationship
-  vault: Vault! # current vault, could change***
+  basket: Basket! # current basket, could change***
   # staked / stToken is used for insurance
   # RSV is the only RToken without these fields
   staked: BigInt! # amount of stToken staked
@@ -27,25 +28,21 @@ type MainUser @entity {
   user: User!
   staked: BigInt!
   rewarded: BigInt!
-  # TODO: Define these
-  # lastStakeTimestamp: BigInt
-  # lastWithdrawTimestamp: BigInt
 }
 
-# Collateral asset for a given Vault
+# Collateral asset for a given basket
 type Collateral @entity {
-  id: ID! # vaultAddress>-<tokenAddress>
-  vault: Vault! # Related vault id
+  id: ID! # <basketAddress>-<tokenAddress>
+  basket: Basket! # Related basket id
   token: Token! # Collateral token
   index: Int! # Asset index
 }
 
-# RToken Vault
-type Vault @entity {
-  id: ID! # vault contract address
-  address: Bytes!
+# RToken basket
+type Basket @entity {
+  id: ID! # tx address when created
   main: Main # Main module
-  collaterals: [Collateral!] @derivedFrom(field: "vault") # collateral assets
+  collaterals: [Collateral!] @derivedFrom(field: "basket") # collateral assets
 }
 
 # Tokens
@@ -58,11 +55,11 @@ type Token @entity {
   transfersCount: BigInt! #Number of transfers
   holdersCount: BigInt! #Number of holders
   type: TokenType! # type of token ERC20 - RSR - RToken - StakingToken
-  main: Main # main for the Token - Only set for stToken and RToken
+  main: Main # main for the Token - Only set forstToken and RToken
+  apy: Int # token APY for rToken and stRSR
   users: [TokenUser!]! @derivedFrom(field: "token")
   supply: Supply @derivedFrom(field: "token")
   records: [Entry!]! @derivedFrom(field: "token")
-  # mains: [Main]! @derivedFrom(field: "rsr") # Only RSR can have multiple associated mains
 }
 
 type TokenUser @entity {
@@ -105,6 +102,7 @@ type Entry @entity {
   user: User!
   transaction: Transaction! # tx related to the entry
   amount: BigInt! # amount of the operation
+  stAmount: BigInt # amount corresponding of st token
   type: String! # Type of entry
   status: EntryStatus! # default: Completed
   createdAt: BigInt!
@@ -127,10 +125,4 @@ enum TokenType {
   RSR
   StakingToken
   ERC20
-}
-
-enum SystemMood {
-  CALM # 100% capitalized + no auctions
-  DOUBT # in this state for 24h before default, no auctions or unstaking
-  TRADING # auctions in progress, no unstaking
 }

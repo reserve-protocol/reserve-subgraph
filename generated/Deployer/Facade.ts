@@ -32,6 +32,25 @@ export class Facade extends ethereum.SmartContract {
     return new Facade("Facade", address);
   }
 
+  basketTokens(): Array<Address> {
+    let result = super.call("basketTokens", "basketTokens():(address[])", []);
+
+    return result[0].toAddressArray();
+  }
+
+  try_basketTokens(): ethereum.CallResult<Array<Address>> {
+    let result = super.tryCall(
+      "basketTokens",
+      "basketTokens():(address[])",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddressArray());
+  }
+
   currentAssets(): Facade__currentAssetsResult {
     let result = super.call(
       "currentAssets",

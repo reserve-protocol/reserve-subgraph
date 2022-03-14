@@ -102,6 +102,7 @@ export function getMainUser(user: string, main: string): MainUser {
   let mainUser = MainUser.load(getConcatenatedId(main, user));
 
   if (mainUser == null) {
+    mainUser = new MainUser(getConcatenatedId(main, user));
     mainUser.main = main;
     mainUser.user = user;
     mainUser.staked = BI_ZERO;
