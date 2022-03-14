@@ -6,14 +6,14 @@ import {
   Redemption as RSVRedemption,
 } from "./../generated/RSVManager/RSVManager";
 import { Entry } from "./../generated/schema";
-import { EntryStatus, EntryType, getConcatenatedId, RSVInfo } from "./helper";
 import {
-  getMain,
-  getTransaction,
-  getUser,
-  handleRTokenRedemption,
-  handleTransfer,
-} from "./mapping";
+  EntryStatus,
+  EntryType,
+  getConcatenatedId,
+  RSVInfo,
+} from "./utils/helper";
+import { handleRTokenRedemption, handleTransfer } from "./mapping";
+import { getMain, getTransaction, getUser } from "./utils/getters";
 
 /**
  * * RSV specific mappings

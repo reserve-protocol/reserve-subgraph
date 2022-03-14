@@ -308,6 +308,12 @@
         "internalType": "uint256",
         "name": "stRSRAmount",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "availableAt",
+        "type": "uint256"
       }
     ],
     "name": "UnstakingStarted",
@@ -554,6 +560,16 @@
                 "type": "address"
               },
               {
+                "internalType": "contract IFurnace",
+                "name": "furnace",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IBroker",
+                "name": "broker",
+                "type": "address"
+              },
+              {
                 "internalType": "contract IRevenueTrader",
                 "name": "rsrTrader",
                 "type": "address"
@@ -564,36 +580,24 @@
                 "type": "address"
               }
             ],
-            "internalType": "struct Core",
-            "name": "core",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "contract IMarket",
-                "name": "market",
-                "type": "address"
-              },
-              {
-                "internalType": "contract IFurnace",
-                "name": "furnace",
-                "type": "address"
-              },
-              {
-                "internalType": "contract IAsset[]",
-                "name": "assets",
-                "type": "address[]"
-              }
-            ],
-            "internalType": "struct Periphery",
-            "name": "periphery",
+            "internalType": "struct Components",
+            "name": "components",
             "type": "tuple"
           },
           {
             "internalType": "contract IERC20",
             "name": "rsr",
             "type": "address"
+          },
+          {
+            "internalType": "contract IGnosis",
+            "name": "gnosis",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IAsset[]",
+            "name": "assets",
+            "type": "address[]"
           }
         ],
         "internalType": "struct ConstructorArgs",
@@ -604,6 +608,19 @@
     "name": "initComponent",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "main",
+    "outputs": [
+      {
+        "internalType": "contract IMain",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

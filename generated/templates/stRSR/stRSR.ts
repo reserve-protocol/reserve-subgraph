@@ -304,6 +304,10 @@ export class UnstakingStarted__Params {
   get stRSRAmount(): BigInt {
     return this._event.parameters[4].value.toBigInt();
   }
+
+  get availableAt(): BigInt {
+    return this._event.parameters[5].value.toBigInt();
+  }
 }
 
 export class stRSR__withdrawalsResult {
@@ -471,6 +475,21 @@ export class stRSR extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  main(): Address {
+    let result = super.call("main", "main():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_main(): ethereum.CallResult<Address> {
+    let result = super.tryCall("main", "main():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   name(): string {
@@ -820,16 +839,20 @@ export class InitComponentCallArgsStruct extends ethereum.Tuple {
     return changetype<InitComponentCallArgsParamsStruct>(this[0].toTuple());
   }
 
-  get core(): InitComponentCallArgsCoreStruct {
-    return changetype<InitComponentCallArgsCoreStruct>(this[1].toTuple());
-  }
-
-  get periphery(): InitComponentCallArgsPeripheryStruct {
-    return changetype<InitComponentCallArgsPeripheryStruct>(this[2].toTuple());
+  get components(): InitComponentCallArgsComponentsStruct {
+    return changetype<InitComponentCallArgsComponentsStruct>(this[1].toTuple());
   }
 
   get rsr(): Address {
+    return this[2].toAddress();
+  }
+
+  get gnosis(): Address {
     return this[3].toAddress();
+  }
+
+  get assets(): Array<Address> {
+    return this[4].toAddressArray();
   }
 }
 
@@ -889,7 +912,7 @@ export class InitComponentCallArgsParamsDistStruct extends ethereum.Tuple {
   }
 }
 
-export class InitComponentCallArgsCoreStruct extends ethereum.Tuple {
+export class InitComponentCallArgsComponentsStruct extends ethereum.Tuple {
   get rToken(): Address {
     return this[0].toAddress();
   }
@@ -914,26 +937,20 @@ export class InitComponentCallArgsCoreStruct extends ethereum.Tuple {
     return this[5].toAddress();
   }
 
-  get rsrTrader(): Address {
+  get furnace(): Address {
     return this[6].toAddress();
   }
 
-  get rTokenTrader(): Address {
+  get broker(): Address {
     return this[7].toAddress();
   }
-}
 
-export class InitComponentCallArgsPeripheryStruct extends ethereum.Tuple {
-  get market(): Address {
-    return this[0].toAddress();
+  get rsrTrader(): Address {
+    return this[8].toAddress();
   }
 
-  get furnace(): Address {
-    return this[1].toAddress();
-  }
-
-  get assets(): Array<Address> {
-    return this[2].toAddressArray();
+  get rTokenTrader(): Address {
+    return this[9].toAddress();
   }
 }
 

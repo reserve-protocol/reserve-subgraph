@@ -1,4 +1,4 @@
-import { ERC20 } from "../generated/RSR/ERC20";
+import { ERC20 } from "../../generated/RSR/ERC20";
 import {
   Address,
   ByteArray,
@@ -7,7 +7,7 @@ import {
   Bytes,
   log,
 } from "@graphprotocol/graph-ts";
-import { TokenUser } from "../generated/schema";
+import { TokenUser } from "../../generated/schema";
 export let ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );

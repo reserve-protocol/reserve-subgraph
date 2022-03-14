@@ -1,28 +1,36 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import {
-  Collateral,
-  Main, Token
-} from "../generated/schema";
+import { Collateral, Main, Token } from "../generated/schema";
 import {
   RToken as RTokenTemplate,
-  stRSR as stRSRTemplate
+  stRSR as stRSRTemplate,
 } from "../generated/templates";
 import {
   IssuancesCanceled,
   IssuancesCompleted,
   IssuanceStarted,
   Redemption,
-  Transfer as TransferEvent
+  Transfer as TransferEvent,
 } from "../generated/templates/RToken/RToken";
 import {
   Staked,
   UnstakingCompleted,
-  UnstakingStarted
+  UnstakingStarted,
 } from "../generated/templates/stRSR/stRSR";
 import { RTokenCreated } from "./../generated/Deployer/Deployer";
 import { Facade } from "./../generated/Deployer/Facade";
 import { Entry } from "./../generated/schema";
-import { getBasket, getMain, getMainUser, getSupply, getSupplyInitial, getToken, getTokenInitial, getTokenUser, getTransaction, getUser } from "./utils/getters";
+import {
+  getBasket,
+  getMain,
+  getMainUser,
+  getSupply,
+  getSupplyInitial,
+  getToken,
+  getTokenInitial,
+  getTokenUser,
+  getTransaction,
+  getUser,
+} from "./utils/getters";
 import {
   AddressType,
   ADDRESS_ZERO,
@@ -31,7 +39,8 @@ import {
   EntryStatus,
   EntryType,
   getConcatenatedId,
-  getEntryId, TokenType
+  getEntryId,
+  TokenType,
 } from "./utils/helper";
 
 /**
@@ -156,10 +165,12 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
   let id = getEntryId(
     token.id,
     EntryType.Unstake,
-    getConcatenatedId(
-      event.params.draftEra.toHexString(),
-      event.params.draftId.toHexString()
-    )
+    event.params.staker
+      .toHexString()
+      .concat("-")
+      .concat(event.params.draftEra.toHexString())
+      .concat("-")
+      .concat(event.params.draftId.toHexString())
   );
 
   // Create entry
@@ -174,21 +185,37 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
   entry.stAmount = event.params.stRSRAmount;
   entry.type = EntryType.Unstake;
   entry.status = EntryStatus.Pending;
-  entry.availableAt = event.params.;
+  entry.availableAt = event.params.availableAt;
   entry.save();
 }
 
 export function handleUnstake(event: UnstakingCompleted): void {
-  let id = getUnstakeId(event.params.withdrawalId);
   let token = getTokenInitial(event.address, TokenType.StakingToken);
   let main = Main.load(token.main!)!;
   let mainUser = getMainUser(event.params.staker.toHexString(), main.id);
 
-  main.staked = main.staked.minus(event.params.amount);
-  mainUser.staked = mainUser.staked.minus(event.params.amount);
+  main.staked = main.staked.minus(event.params.rsrAmount);
+  mainUser.staked = mainUser.staked.minus(event.params.rsrAmount);
   main.save();
   mainUser.save();
-  updateEntryStatus(id, EntryStatus.Completed, event);
+
+  let currentIndex = event.params.firstId;
+
+  do {
+    let id = getEntryId(
+      token.id,
+      EntryType.Unstake,
+      event.params.staker
+        .toHexString()
+        .concat("-")
+        .concat(event.params.draftEra.toHexString())
+        .concat("-")
+        .concat(currentIndex.toHexString())
+    );
+
+    updateEntryStatus(id, EntryStatus.Completed, event);
+    currentIndex.plus(BI_ONE);
+  } while (!currentIndex.equals(event.params.endId));
 }
 
 // * Handle Token Transfer (shared between stToken/RSR/RSV/RToken)
@@ -309,7 +336,11 @@ function updateEntriesStatus(
 
   do {
     updateEntryStatus(
-      getEntryId(event.address.toHexString(), entryType, currentId.toHexString()),
+      getEntryId(
+        event.address.toHexString(),
+        entryType,
+        currentId.toHexString()
+      ),
       status,
       event
     );
