@@ -30,6 +30,14 @@ export function getConcatenatedId(a: string, b: string): string {
   return a.concat("-").concat(b);
 }
 
+export function getEntryId(
+  tokenId: string,
+  entryType: string,
+  id: string
+): string {
+  return getConcatenatedId(getConcatenatedId(tokenId, entryType), id);
+}
+
 export function isTokenUserExist(tokenUser: TokenUser | null): boolean {
   return tokenUser != null;
 }
