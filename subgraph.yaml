@@ -23,8 +23,6 @@ dataSources:
           file: ./abis/Deployer.json
         - name: ERC20
           file: ./abis/ERC20.json
-        - name: Facade
-          file: ./abis/Facade.json
         - name: Main
           file: ./abis/Main.json
       eventHandlers:
@@ -188,6 +186,10 @@ templates:
       abis:
         - name: BasketHandler
           file: ./abis/BasketHandler.json
+        - name: Facade
+          file: ./abis/Facade.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: BasketSet(address[],int192[])
           handler: handleBasketChange
