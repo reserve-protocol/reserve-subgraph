@@ -1,8 +1,10 @@
+import { BasketSet } from "./../generated/templates/BasketHandler/BasketHandler";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { Collateral, Main, Token } from "../generated/schema";
+import { Collateral, Main, Token, BasketHandler } from "../generated/schema";
 import {
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
+  BasketHandler as BasketHandlerTemplate,
 } from "../generated/templates";
 import {
   IssuancesCanceled,
@@ -18,9 +20,11 @@ import {
 } from "../generated/templates/stRSR/stRSR";
 import { RTokenCreated } from "./../generated/Deployer/Deployer";
 import { Facade } from "./../generated/Deployer/Facade";
+import { Main as MainContract } from "./../generated/Deployer/Main";
 import { Entry } from "./../generated/schema";
 import {
   getBasket,
+  getBasketHandler,
   getMain,
   getMainUser,
   getSupply,
@@ -260,20 +264,18 @@ export function handleTransfer(event: TransferEvent): void {
   getSupply(entry, token, event.block.timestamp);
 }
 
-// * RToken Deployment
-export function handleCreateToken(event: RTokenCreated): void {
-  // Create related tokens
-  let rToken = getTokenInitial(event.params.rToken, TokenType.RToken);
-  let stToken = getTokenInitial(event.params.stRSR, TokenType.StakingToken);
-
-  getSupplyInitial(rToken.id);
-  getSupplyInitial(stToken.id);
+// * Handle Basket set (always happens on RToken creation)
+export function handleBasketChange(event: BasketSet): void {
+  let basketHandler = getBasketHandler(event.address.toHexString());
+  let main = Main.load(basketHandler.main!)!;
 
   // Create basket entity, use the event hash as id
   let basket = getBasket(
-    getConcatenatedId(rToken.id, event.transaction.hash.toHexString())
+    getConcatenatedId(main.token, event.transaction.hash.toHexString())
   );
-  let facadeContract = Facade.bind(event.params.facade);
+  let facadeContract = Facade.bind(
+    Address.fromString(main.facade!.toHexString())
+  );
   let backingTokens = facadeContract.basketTokens();
 
   for (let i = 0; i < backingTokens.length; i++) {
@@ -285,6 +287,23 @@ export function handleCreateToken(event: RTokenCreated): void {
     collateral.save();
   }
 
+  main.basket = basket.id;
+  main.save();
+}
+
+// * RToken Deployment
+export function handleCreateToken(event: RTokenCreated): void {
+  // Create related tokens
+  let rToken = getTokenInitial(event.params.rToken, TokenType.RToken);
+  let stToken = getTokenInitial(event.params.stRSR, TokenType.StakingToken);
+
+  getSupplyInitial(rToken.id);
+  getSupplyInitial(stToken.id);
+
+  let mainContract = MainContract.bind(event.params.main);
+  let basketHandlerAddress = mainContract.basketHandler();
+  let basketHandler = getBasketHandler(basketHandlerAddress.toHexString());
+
   // Create Main entity
   let main = new Main(event.params.main.toHexString());
   main.address = event.params.main;
@@ -292,21 +311,23 @@ export function handleCreateToken(event: RTokenCreated): void {
   main.facade = event.params.facade;
   main.token = rToken.id;
   main.stToken = stToken.id;
-  main.basket = basket.id;
+  main.basketHandler = basketHandlerAddress;
+
   main.staked = BI_ZERO;
   main.save();
 
   // Main relationships
-  basket.main = main.id;
+  basketHandler.main = main.id;
   rToken.main = main.id;
   stToken.main = main.id;
   rToken.save();
   stToken.save();
-  basket.save();
+  basketHandler.save();
 
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(event.params.stRSR);
+  BasketHandlerTemplate.create(basketHandlerAddress);
 }
 
 function updateEntryStatus(

@@ -6,8 +6,9 @@ dataSources:
     name: Deployer
     network: localhost
     source:
-      address: "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8"
+      address: "0x4bf010f1b9beDA5450a8dD702ED602A104ff65EE"
       abi: Deployer
+      startBlock: 14393840
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -15,8 +16,7 @@ dataSources:
       entities:
         - Token
         - Main
-        - Vault
-        - Collateral
+        - BasketHandler
       abis:
         - name: Deployer
           file: Deployer/abis/Deployer.json
@@ -24,118 +24,12 @@ dataSources:
           file: Deployer/abis/ERC20.json
         - name: Facade
           file: Deployer/abis/Facade.json
+        - name: Main
+          file: Deployer/abis/Main.json
       eventHandlers:
         - event: RTokenCreated(indexed address,indexed address,address,address,indexed address)
           handler: handleCreateToken
       file: Deployer/Deployer.wasm
-  - name: RSV
-    kind: ethereum/contract
-    network: localhost
-    source:
-      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
-      abi: ERC20
-      startBlock: 8686125
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Token
-        - User
-        - Supply
-        - TokenUser
-        - Transaction
-        - Entry
-      abis:
-        - name: ERC20
-          file: RSV/abis/ERC20.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: Deployer/Deployer.wasm
-  - name: RSVManager
-    kind: ethereum/contract
-    network: localhost
-    source:
-      address: "0x4b481872f31bab47c6780d5488c84d309b1b8bb6"
-      abi: RSVManager
-      startBlock: 8686125
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Main
-        - MainUser
-        - Transaction
-        - Entry
-        - User
-        - Token
-      abis:
-        - name: RSVManager
-          file: RSVManager/abis/RSVManager.json
-        - name: ERC20
-          file: RSVManager/abis/ERC20.json
-      eventHandlers:
-        - event: Issuance(indexed address,indexed uint256)
-          handler: handleIssuance
-        - event: Redemption(indexed address,indexed uint256)
-          handler: handleRedemption
-      file: RSVManager/RSVManager.wasm
-  - name: OldRSV
-    kind: ethereum/contract
-    network: localhost
-    source:
-      address: "0x1c5857e110cd8411054660f60b5de6a6958cfae2"
-      abi: ERC20
-      startBlock: 8686125
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Token
-        - User
-        - Supply
-        - TokenUser
-        - Transaction
-        - Entry
-      abis:
-        - name: ERC20
-          file: OldRSV/abis/ERC20.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransferOldRSV
-      file: RSVManager/RSVManager.wasm
-  - name: OldRSVManager
-    kind: ethereum/contract
-    network: localhost
-    source:
-      address: "0x5BA9d812f5533F7Cf2854963f7A9d212f8f28673"
-      abi: RSVManager
-      startBlock: 8686125
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Main
-        - MainUser
-        - Transaction
-        - Entry
-        - User
-        - Token
-      abis:
-        - name: RSVManager
-          file: OldRSVManager/abis/RSVManager.json
-        - name: ERC20
-          file: OldRSVManager/abis/ERC20.json
-      eventHandlers:
-        - event: Issuance(indexed address,indexed uint256)
-          handler: handleIssuance
-        - event: Redemption(indexed address,indexed uint256)
-          handler: handleRedemption
-      file: RSVManager/RSVManager.wasm
   - name: RSR
     kind: ethereum/contract
     network: localhost
@@ -162,6 +56,28 @@ dataSources:
           handler: handleTransfer
       file: Deployer/Deployer.wasm
 templates:
+  - name: BasketHandler
+    kind: ethereum/contract
+    network: localhost
+    source:
+      abi: BasketHandler
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - BasketHandler
+        - Token
+        - Main
+        - Basket
+        - Collateral
+      abis:
+        - name: BasketHandler
+          file: BasketHandler/abis/BasketHandler.json
+      eventHandlers:
+        - event: BasketSet(address[],int192[])
+          handler: handleBasketChange
+      file: Deployer/Deployer.wasm
   - name: RToken
     kind: ethereum/contract
     network: localhost

@@ -8,6 +8,7 @@ import {
   TokenUser,
   Transaction,
   User,
+  BasketHandler,
 } from "../../generated/schema";
 import { Transfer as TransferEvent } from "../../generated/templates/RToken/RToken";
 import { Entry, MainUser } from "./../../generated/schema";
@@ -48,6 +49,15 @@ export function getMain(address: Address): Main {
   }
 
   return main as Main;
+}
+
+export function getBasketHandler(id: string): BasketHandler {
+  let basketHandler = BasketHandler.load(id);
+  if (basketHandler == null) {
+    basketHandler = new BasketHandler(id);
+    basketHandler.save();
+  }
+  return basketHandler as BasketHandler;
 }
 
 export function getBasket(id: string): Basket {
@@ -245,12 +255,12 @@ export function getNewHolderNumber(
 // NOTE: RSV is the only case
 function createRSV(token: Token): void {
   // Create RSV Collaterals mappings from Vault
-  let vault = getBasket(RSVInfo.vaultId);
+  let basket = getBasket(RSVInfo.vaultId);
 
   for (let i = 0; i < RSVInfo.collaterals.length; i++) {
     let token = getTokenInitial(Address.fromString(RSVInfo.collaterals[i]));
-    let collateral = new Collateral(getConcatenatedId(vault.id, token.id));
-    collateral.basket = vault.id;
+    let collateral = new Collateral(getConcatenatedId(basket.id, token.id));
+    collateral.basket = basket.id;
     collateral.token = token.id;
     collateral.index = i;
     collateral.save();
@@ -261,7 +271,7 @@ function createRSV(token: Token): void {
   main.address = Address.fromString(RSVInfo.main);
   main.owner = Address.fromString(RSVInfo.owner);
   main.token = token.id;
-  main.basket = vault.id;
+  main.basket = basket.id;
   main.staked = BI_ZERO;
   main.save();
 

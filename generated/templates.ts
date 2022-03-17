@@ -6,6 +6,20 @@ import {
   DataSourceContext
 } from "@graphprotocol/graph-ts";
 
+export class BasketHandler extends DataSourceTemplate {
+  static create(address: Address): void {
+    DataSourceTemplate.create("BasketHandler", [address.toHex()]);
+  }
+
+  static createWithContext(address: Address, context: DataSourceContext): void {
+    DataSourceTemplate.createWithContext(
+      "BasketHandler",
+      [address.toHex()],
+      context
+    );
+  }
+}
+
 export class RToken extends DataSourceTemplate {
   static create(address: Address): void {
     DataSourceTemplate.create("RToken", [address.toHex()]);

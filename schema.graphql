@@ -15,7 +15,8 @@ type Main @entity {
   facade: Bytes
   owner: Bytes! # token owner
   token: Token! # rtoken relationship
-  basket: Basket! # current basket, could change***
+  basket: Basket # current basket, could change***
+  basketHandler: Bytes
   # staked / stToken is used for insurance
   # RSV is the only RToken without these fields
   staked: BigInt! # amount of stToken staked
@@ -38,10 +39,16 @@ type Collateral @entity {
   index: Int! # Asset index
 }
 
+# RToken basket handler
+type BasketHandler @entity {
+  id: ID! # address of contract
+  main: Main # main module
+}
+
 # RToken basket
 type Basket @entity {
   id: ID! # tx address when created
-  main: Main # Main module
+  handler: BasketHandler! # Main module
   collaterals: [Collateral!] @derivedFrom(field: "basket") # collateral assets
 }
 

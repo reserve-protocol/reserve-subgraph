@@ -90,7 +90,6 @@ export class Main extends Entity {
     this.set("address", Value.fromBytes(Bytes.empty()));
     this.set("owner", Value.fromBytes(Bytes.empty()));
     this.set("token", Value.fromString(""));
-    this.set("basket", Value.fromString(""));
     this.set("staked", Value.fromBigInt(BigInt.zero()));
   }
 
@@ -164,13 +163,38 @@ export class Main extends Entity {
     this.set("token", Value.fromString(value));
   }
 
-  get basket(): string {
+  get basket(): string | null {
     let value = this.get("basket");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set basket(value: string) {
-    this.set("basket", Value.fromString(value));
+  set basket(value: string | null) {
+    if (!value) {
+      this.unset("basket");
+    } else {
+      this.set("basket", Value.fromString(<string>value));
+    }
+  }
+
+  get basketHandler(): Bytes | null {
+    let value = this.get("basketHandler");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set basketHandler(value: Bytes | null) {
+    if (!value) {
+      this.unset("basketHandler");
+    } else {
+      this.set("basketHandler", Value.fromBytes(<Bytes>value));
+    }
   }
 
   get staked(): BigInt {
@@ -338,10 +362,62 @@ export class Collateral extends Entity {
   }
 }
 
+export class BasketHandler extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save BasketHandler entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save BasketHandler entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("BasketHandler", id.toString(), this);
+    }
+  }
+
+  static load(id: string): BasketHandler | null {
+    return changetype<BasketHandler | null>(store.get("BasketHandler", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get main(): string | null {
+    let value = this.get("main");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set main(value: string | null) {
+    if (!value) {
+      this.unset("main");
+    } else {
+      this.set("main", Value.fromString(<string>value));
+    }
+  }
+}
+
 export class Basket extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
+
+    this.set("handler", Value.fromString(""));
   }
 
   save(): void {
@@ -370,21 +446,13 @@ export class Basket extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get main(): string | null {
-    let value = this.get("main");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toString();
-    }
+  get handler(): string {
+    let value = this.get("handler");
+    return value!.toString();
   }
 
-  set main(value: string | null) {
-    if (!value) {
-      this.unset("main");
-    } else {
-      this.set("main", Value.fromString(<string>value));
-    }
+  set handler(value: string) {
+    this.set("handler", Value.fromString(value));
   }
 
   get collaterals(): Array<string> | null {
