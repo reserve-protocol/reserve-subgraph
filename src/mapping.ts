@@ -1,10 +1,9 @@
-import { BasketSet } from "./../generated/templates/BasketHandler/BasketHandler";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { Collateral, Main, Token, BasketHandler } from "../generated/schema";
+import { Collateral, Main, Token } from "../generated/schema";
 import {
+  BasketHandler as BasketHandlerTemplate,
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
-  BasketHandler as BasketHandlerTemplate,
 } from "../generated/templates";
 import {
   IssuancesCanceled,
@@ -22,6 +21,7 @@ import { RTokenCreated } from "./../generated/Deployer/Deployer";
 import { Facade } from "./../generated/Deployer/Facade";
 import { Main as MainContract } from "./../generated/Deployer/Main";
 import { Entry } from "./../generated/schema";
+import { BasketSet } from "./../generated/templates/BasketHandler/BasketHandler";
 import {
   getBasket,
   getBasketHandler,
@@ -107,13 +107,24 @@ export function handleRedemption(event: Redemption): void {
 // Used for RSV as well
 export function handleRTokenRedemption(
   event: ethereum.Event,
-  mainAddress: Address,
+  address: Address,
   userAddress: Address,
-  amount: BigInt
+  amount: BigInt,
+  isRSV: boolean = false
 ): void {
-  let main = getMain(mainAddress);
   let user = getUser(userAddress);
-  let token = Token.load(main.token)!;
+  let mainAddress = "";
+  let tokenAddress = "";
+
+  if (isRSV) {
+    let main = getMain(address);
+    mainAddress = main.id;
+    tokenAddress = main.token;
+  } else {
+    let token = Token.load(address.toHexString())!;
+    tokenAddress = token.id;
+    mainAddress = token.main!;
+  }
 
   // Create entry
   let trx = getTransaction(event);
@@ -121,8 +132,8 @@ export function handleRTokenRedemption(
     getConcatenatedId("Redeem", event.transaction.hash.toHexString())
   );
   entry.createdAt = event.block.timestamp;
-  entry.token = token.id;
-  entry.main = token.main!;
+  entry.token = tokenAddress;
+  entry.main = mainAddress;
   entry.user = user.id;
   entry.transaction = trx.id;
   entry.amount = amount;

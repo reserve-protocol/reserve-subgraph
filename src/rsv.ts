@@ -47,7 +47,8 @@ export function handleRedemption(event: RSVRedemption): void {
     event,
     Address.fromString(RSVInfo.main),
     event.params.user,
-    event.params.amount
+    event.params.amount,
+    true
   );
 }
 
