@@ -54,14 +54,13 @@ import {
 // * Issue and Redemption
 // * Issuance
 export function handleIssuanceStart(event: IssuanceStarted): void {
-  let main = getMain(event.address);
+  let token = Token.load(event.address.toHexString())!;
   let user = getUser(event.params.issuer);
-  let token = Token.load(main.token)!;
 
   // Create entry
   let trx = getTransaction(event);
   let entry = new Entry(
-    getEntryId(token.id, EntryType.Issuance, event.params.index.toString())
+    getEntryId(token.id, EntryType.Issuance, event.params.index.toHexString())
   );
   entry.createdAt = event.block.timestamp;
   entry.token = token.id;
