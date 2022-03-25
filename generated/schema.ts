@@ -1009,6 +1009,23 @@ export class Entry extends Entity {
     this.set("user", Value.fromString(value));
   }
 
+  get draftId(): BigInt | null {
+    let value = this.get("draftId");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set draftId(value: BigInt | null) {
+    if (!value) {
+      this.unset("draftId");
+    } else {
+      this.set("draftId", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
   get transaction(): string {
     let value = this.get("transaction");
     return value!.toString();

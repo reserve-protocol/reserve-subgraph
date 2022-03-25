@@ -70,6 +70,7 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
   entry.amount = event.params.amount;
   entry.type = EntryType.Issuance;
   entry.status = EntryStatus.Pending;
+  entry.draftId = event.params.index;
   entry.availableAt = event.params.blockAvailableAt;
   entry.save();
 }
@@ -176,6 +177,8 @@ export function handleStake(event: Staked): void {
 export function handleUnstakeStarted(event: UnstakingStarted): void {
   let user = getUser(event.params.staker);
   let token = Token.load(event.address.toHexString())!;
+  let main = Main.load(token.main!)!;
+  let mainUser = getMainUser(event.params.staker.toHexString(), main.id);
   let id = getEntryId(
     token.id,
     EntryType.Unstake,
@@ -187,6 +190,11 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
       .concat(event.params.draftId.toHexString())
   );
 
+  main.staked = main.staked.minus(event.params.rsrAmount);
+  mainUser.staked = mainUser.staked.minus(event.params.rsrAmount);
+  main.save();
+  mainUser.save();
+
   // Create entry
   let trx = getTransaction(event);
   let entry = new Entry(id);
@@ -194,6 +202,7 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
   entry.token = token.id;
   entry.main = token.main!;
   entry.user = user.id;
+  entry.draftId = event.params.draftId;
   entry.transaction = trx.id;
   entry.amount = event.params.rsrAmount;
   entry.stAmount = event.params.stRSRAmount;
@@ -203,18 +212,25 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
   entry.save();
 }
 
+// TODO: Consider storing pending RSR to be withdrawn on UserMain relationship
 export function handleUnstake(event: UnstakingCompleted): void {
   let token = getTokenInitial(event.address, TokenType.StakingToken);
-  let main = Main.load(token.main!)!;
-  let mainUser = getMainUser(event.params.staker.toHexString(), main.id);
 
-  main.staked = main.staked.minus(event.params.rsrAmount);
-  mainUser.staked = mainUser.staked.minus(event.params.rsrAmount);
-  main.save();
-  mainUser.save();
+  // Create entry
+  let trx = getTransaction(event);
+  let entry = new Entry(trx.id);
+  entry.createdAt = event.block.timestamp;
+  entry.token = token.id;
+  entry.main = token.main!;
+  entry.user = event.params.staker.toHexString();
+  entry.transaction = trx.id;
+  entry.amount = event.params.rsrAmount;
+  entry.type = EntryType.Withdrawn;
+  entry.status = EntryStatus.Completed;
+  entry.save();
 
+  // Mark previous unstake entries as complete
   let currentIndex = event.params.firstId;
-
   do {
     let id = getEntryId(
       token.id,

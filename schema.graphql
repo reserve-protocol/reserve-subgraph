@@ -107,6 +107,7 @@ type Entry @entity {
   token: Token!
   main: Main!
   user: User!
+  draftId: BigInt # for issuance/unstaking
   transaction: Transaction! # tx related to the entry
   amount: BigInt! # amount of the operation
   stAmount: BigInt # amount corresponding of st token

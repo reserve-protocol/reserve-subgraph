@@ -56,6 +56,10 @@ export class BasketSet__Params {
   get refAmts(): Array<BigInt> {
     return this._event.parameters[1].value.toBigIntArray();
   }
+
+  get defaulted(): boolean {
+    return this._event.parameters[2].value.toBoolean();
+  }
 }
 
 export class PrimeBasketSet extends ethereum.Event {
@@ -77,6 +81,10 @@ export class PrimeBasketSet__Params {
 
   get targetAmts(): Array<BigInt> {
     return this._event.parameters[1].value.toBigIntArray();
+  }
+
+  get targetNames(): Array<Bytes> {
+    return this._event.parameters[2].value.toBytesArray();
   }
 }
 
@@ -390,7 +398,7 @@ export class InitComponentCallArgsStruct extends ethereum.Tuple {
 }
 
 export class InitComponentCallArgsParamsStruct extends ethereum.Tuple {
-  get maxAuctionSize(): BigInt {
+  get maxTradeVolume(): BigInt {
     return this[0].toBigInt();
   }
 
