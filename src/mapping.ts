@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { Collateral, Main, Token } from "../generated/schema";
 import {
   BasketHandler as BasketHandlerTemplate,
@@ -60,7 +60,11 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
   // Create entry
   let trx = getTransaction(event);
   let entry = new Entry(
-    getEntryId(token.id, EntryType.Issuance, event.params.index.toHexString())
+    getEntryId(
+      token.id,
+      EntryType.Issuance,
+      event.params.index.toI32().toString()
+    )
   );
   entry.createdAt = event.block.timestamp;
   entry.token = token.id;
@@ -77,8 +81,8 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
 
 export function handleIssuance(event: IssuancesCompleted): void {
   updateEntriesStatus(
-    event.params.firstId,
-    event.params.endId,
+    event.params.firstId.toI32(),
+    event.params.endId.toI32(),
     EntryType.Issuance,
     EntryStatus.Completed,
     event
@@ -87,8 +91,8 @@ export function handleIssuance(event: IssuancesCompleted): void {
 
 export function handleIssuanceCancel(event: IssuancesCanceled): void {
   updateEntriesStatus(
-    event.params.firstId,
-    event.params.endId,
+    event.params.firstId.toI32(),
+    event.params.endId.toI32(),
     EntryType.Issuance,
     EntryStatus.Canceled,
     event
@@ -187,7 +191,7 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
       .concat("-")
       .concat(event.params.draftEra.toHexString())
       .concat("-")
-      .concat(event.params.draftId.toHexString())
+      .concat(event.params.draftId.toI32().toString())
   );
 
   main.staked = main.staked.minus(event.params.rsrAmount);
@@ -225,13 +229,15 @@ export function handleUnstake(event: UnstakingCompleted): void {
   entry.user = event.params.staker.toHexString();
   entry.transaction = trx.id;
   entry.amount = event.params.rsrAmount;
-  entry.type = EntryType.Withdrawn;
+  entry.type = EntryType.Withdraw;
   entry.status = EntryStatus.Completed;
   entry.save();
 
-  // Mark previous unstake entries as complete
-  let currentIndex = event.params.firstId;
-  do {
+  // Mark previous pending unstake entries as complete
+  let currentIndex = event.params.firstId.toI32();
+  let endIndex = event.params.endId.toI32();
+
+  for (let i = currentIndex; i < endIndex; i++) {
     let id = getEntryId(
       token.id,
       EntryType.Unstake,
@@ -240,12 +246,11 @@ export function handleUnstake(event: UnstakingCompleted): void {
         .concat("-")
         .concat(event.params.draftEra.toHexString())
         .concat("-")
-        .concat(currentIndex.toHexString())
+        .concat(i.toString())
     );
 
     updateEntryStatus(id, EntryStatus.Completed, event);
-    currentIndex.plus(BI_ONE);
-  } while (!currentIndex.equals(event.params.endId));
+  }
 }
 
 // * Handle Token Transfer (shared between stToken/RSR/RSV/RToken)
@@ -374,24 +379,17 @@ function updateEntryStatus(
 }
 
 function updateEntriesStatus(
-  from: BigInt,
-  to: BigInt,
+  from: number,
+  to: number,
   entryType: string,
   status: string,
   event: ethereum.Event
 ): void {
-  let currentId = from;
-
-  do {
+  for (let i = from; i < to; i++) {
     updateEntryStatus(
-      getEntryId(
-        event.address.toHexString(),
-        entryType,
-        currentId.toHexString()
-      ),
+      getEntryId(event.address.toHexString(), entryType, i.toString()),
       status,
       event
     );
-    currentId.plus(BI_ONE);
-  } while (!currentId.equals(to));
+  }
 }

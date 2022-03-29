@@ -85,7 +85,7 @@ export class EntryType {
   static Transfer: string = "Transfer";
   static Stake: string = "Stake";
   static Unstake: string = "Unstake";
-  static Withdrawn: string = "Withdrawn";
+  static Withdraw: string = "Withdraw";
   static Issuance: string = "Issuance";
   static Redemption: string = "Redemption";
 }
