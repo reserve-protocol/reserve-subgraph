@@ -10,6 +10,7 @@ import {
   IssuancesCompleted,
   IssuanceStarted,
   Redemption,
+  BasketsNeededChanged,
   Transfer as TransferEvent,
 } from "../generated/templates/RToken/RToken";
 import {
@@ -47,9 +48,36 @@ import {
   TokenType,
 } from "./utils/helper";
 
+// DoD
+// Research how to calculate APY rate for:
+// RToken holding
+// StRSR staking
+
+// Research topics:
+// Luis: get familiar with the calculations
+// How to get this data from the protocol events?
+// How to store this data on theGraph?
+// How to consume and generate charts for APY (ranges of time)
+
+// ## Results
+// For RToken APY:
+
+// Listen for BasketsNeededChanged(basketsNeeded, basketsNeeded_) from the RToken contract, and query basketsNeeded as well from the RToken.
+// The difference in % is the appreciation rate of this specific RToken, this can be stored in theGraph and query this value change over time to get the mean value of the appreciation by any given time.
+
+// For stRSR:
+// Listen for rsrSeized or rsrRewarded, and then query for totalStakes and stakeRSR, the formula totalStakes / stakeRSR give the amount of appreciation of this given stRSR.
+// Store this value inside a entity on theGraph and query over time.
+
 /**
  * * Event handlers
  */
+
+// * Handle baskets UoA ratio change, updates appreciation rate of an rToken
+export function handleRTokenBaskets(event: BasketsNeededChanged): void {}
+
+// * CalculateInsuranceRewards
+export function calculateInsuranceRewards(event: Event): void {}
 
 // * Issue and Redemption
 // * Issuance
