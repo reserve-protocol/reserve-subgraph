@@ -1,5 +1,5 @@
 import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
-import { Collateral, Main, Token } from "../generated/schema";
+import { Collateral, Main, Token, TokenDayData } from "../generated/schema";
 import {
   BasketHandler as BasketHandlerTemplate,
   RToken as RTokenTemplate,
@@ -69,12 +69,54 @@ import {
 // Listen for rsrSeized or rsrRewarded, and then query for totalStakes and stakeRSR, the formula totalStakes / stakeRSR give the amount of appreciation of this given stRSR.
 // Store this value inside a entity on theGraph and query over time.
 
+export function updateTokenDayData(
+  token: Token,
+  appreciationRate: BigInt,
+  event: ethereum.Event
+): TokenDayData {
+  let timestamp = event.block.timestamp.toI32();
+  let dayID = timestamp / 86400;
+  let dayStartTimestamp = dayID * 86400;
+  let tokenDayID = token.id
+    .toString()
+    .concat("-")
+    .concat(dayID.toString());
+
+  let tokenDayData = TokenDayData.load(tokenDayID);
+  if (tokenDayData === null) {
+    tokenDayData = new TokenDayData(tokenDayID);
+    tokenDayData.date = dayStartTimestamp;
+    tokenDayData.token = token.id;
+    tokenDayData.open = appreciationRate;
+    tokenDayData.high = appreciationRate;
+    tokenDayData.low = appreciationRate;
+    tokenDayData.close = appreciationRate;
+  }
+
+  if (appreciationRate.gt(tokenDayData.high)) {
+    tokenDayData.high = appreciationRate;
+  }
+
+  if (appreciationRate.lt(tokenDayData.low)) {
+    tokenDayData.low = appreciationRate;
+  }
+
+  tokenDayData.close = appreciationRate;
+  tokenDayData.save();
+
+  return tokenDayData as TokenDayData;
+}
+
 /**
  * * Event handlers
  */
 
 // * Handle baskets UoA ratio change, updates appreciation rate of an rToken
-export function handleRTokenBaskets(event: BasketsNeededChanged): void {}
+export function handleRTokenBaskets(event: BasketsNeededChanged): void {
+  let token = Token.load(event.address.toHexString())!;
+  let apr = event.params.newBasketsNeeded.div(event.params.oldBasketsNeeded);
+  updateTokenDayData(token, apr, event);
+}
 
 // * CalculateInsuranceRewards
 export function calculateInsuranceRewards(event: Event): void {}

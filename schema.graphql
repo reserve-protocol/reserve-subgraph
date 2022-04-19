@@ -69,6 +69,17 @@ type Token @entity {
   records: [Entry!]! @derivedFrom(field: "token")
 }
 
+type TokenDayData @entity {
+  # token address concatendated with date
+  id: ID!
+  date: Int!
+  token: Token!
+  open: BigInt!
+  high: BigInt!
+  low: BigInt!
+  close: BigInt!
+}
+
 type TokenUser @entity {
   id: ID! #<Token Address>-<User Address>
   token: Token! # RToken

@@ -638,6 +638,100 @@ export class Token extends Entity {
   }
 }
 
+export class TokenDayData extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("date", Value.fromI32(0));
+    this.set("token", Value.fromString(""));
+    this.set("open", Value.fromBigInt(BigInt.zero()));
+    this.set("high", Value.fromBigInt(BigInt.zero()));
+    this.set("low", Value.fromBigInt(BigInt.zero()));
+    this.set("close", Value.fromBigInt(BigInt.zero()));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save TokenDayData entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save TokenDayData entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("TokenDayData", id.toString(), this);
+    }
+  }
+
+  static load(id: string): TokenDayData | null {
+    return changetype<TokenDayData | null>(store.get("TokenDayData", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get date(): i32 {
+    let value = this.get("date");
+    return value!.toI32();
+  }
+
+  set date(value: i32) {
+    this.set("date", Value.fromI32(value));
+  }
+
+  get token(): string {
+    let value = this.get("token");
+    return value!.toString();
+  }
+
+  set token(value: string) {
+    this.set("token", Value.fromString(value));
+  }
+
+  get open(): BigInt {
+    let value = this.get("open");
+    return value!.toBigInt();
+  }
+
+  set open(value: BigInt) {
+    this.set("open", Value.fromBigInt(value));
+  }
+
+  get high(): BigInt {
+    let value = this.get("high");
+    return value!.toBigInt();
+  }
+
+  set high(value: BigInt) {
+    this.set("high", Value.fromBigInt(value));
+  }
+
+  get low(): BigInt {
+    let value = this.get("low");
+    return value!.toBigInt();
+  }
+
+  set low(value: BigInt) {
+    this.set("low", Value.fromBigInt(value));
+  }
+
+  get close(): BigInt {
+    let value = this.get("close");
+    return value!.toBigInt();
+  }
+
+  set close(value: BigInt) {
+    this.set("close", Value.fromBigInt(value));
+  }
+}
+
 export class TokenUser extends Entity {
   constructor(id: string) {
     super();
