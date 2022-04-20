@@ -42,6 +42,12 @@ export function isTokenUserExist(tokenUser: TokenUser | null): boolean {
   return tokenUser != null;
 }
 
+export function getTotalSupply(tokenAddress: Address): BigInt {
+  let contract = ERC20.bind(tokenAddress);
+
+  return contract.totalSupply();
+}
+
 export class TokenInfo {
   name!: string;
   symbol!: string;

@@ -1,3 +1,4 @@
+import { ExchangeRateSet } from "./../generated/templates/stRSR/stRSR";
 import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { Collateral, Main, Token, TokenDayData } from "../generated/schema";
 import {
@@ -45,33 +46,13 @@ import {
   EntryType,
   getConcatenatedId,
   getEntryId,
+  getTotalSupply,
   TokenType,
 } from "./utils/helper";
 
-// DoD
-// Research how to calculate APY rate for:
-// RToken holding
-// StRSR staking
-
-// Research topics:
-// Luis: get familiar with the calculations
-// How to get this data from the protocol events?
-// How to store this data on theGraph?
-// How to consume and generate charts for APY (ranges of time)
-
-// ## Results
-// For RToken APY:
-
-// Listen for BasketsNeededChanged(basketsNeeded, basketsNeeded_) from the RToken contract, and query basketsNeeded as well from the RToken.
-// The difference in % is the appreciation rate of this specific RToken, this can be stored in theGraph and query this value change over time to get the mean value of the appreciation by any given time.
-
-// For stRSR:
-// Listen for rsrSeized or rsrRewarded, and then query for totalStakes and stakeRSR, the formula totalStakes / stakeRSR give the amount of appreciation of this given stRSR.
-// Store this value inside a entity on theGraph and query over time.
-
 export function updateTokenDayData(
   token: Token,
-  appreciationRate: BigInt,
+  exchangeRate: BigInt,
   event: ethereum.Event
 ): TokenDayData {
   let timestamp = event.block.timestamp.toI32();
@@ -87,21 +68,21 @@ export function updateTokenDayData(
     tokenDayData = new TokenDayData(tokenDayID);
     tokenDayData.date = dayStartTimestamp;
     tokenDayData.token = token.id;
-    tokenDayData.open = appreciationRate;
-    tokenDayData.high = appreciationRate;
-    tokenDayData.low = appreciationRate;
-    tokenDayData.close = appreciationRate;
+    tokenDayData.open = exchangeRate;
+    tokenDayData.high = exchangeRate;
+    tokenDayData.low = exchangeRate;
+    tokenDayData.close = exchangeRate;
   }
 
-  if (appreciationRate.gt(tokenDayData.high)) {
-    tokenDayData.high = appreciationRate;
+  if (exchangeRate.gt(tokenDayData.high)) {
+    tokenDayData.high = exchangeRate;
   }
 
-  if (appreciationRate.lt(tokenDayData.low)) {
-    tokenDayData.low = appreciationRate;
+  if (exchangeRate.lt(tokenDayData.low)) {
+    tokenDayData.low = exchangeRate;
   }
 
-  tokenDayData.close = appreciationRate;
+  tokenDayData.close = exchangeRate;
   tokenDayData.save();
 
   return tokenDayData as TokenDayData;
@@ -114,12 +95,20 @@ export function updateTokenDayData(
 // * Handle baskets UoA ratio change, updates appreciation rate of an rToken
 export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let token = Token.load(event.address.toHexString())!;
-  let apr = event.params.newBasketsNeeded.div(event.params.oldBasketsNeeded);
+  let apr = BigInt.fromI32(0);
+  let totalSupply = getTotalSupply(event.address);
+
+  if (event.params.newBasketsNeeded.gt(apr) && totalSupply.gt(apr)) {
+    apr = event.params.newBasketsNeeded.div(totalSupply);
+  }
   updateTokenDayData(token, apr, event);
 }
 
 // * CalculateInsuranceRewards
-export function calculateInsuranceRewards(event: Event): void {}
+export function handleExchangeRate(event: ExchangeRateSet): void {
+  let token = Token.load(event.address.toHexString())!;
+  updateTokenDayData(token, event.params.newVal, event);
+}
 
 // * Issue and Redemption
 // * Issuance

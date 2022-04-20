@@ -16,24 +16,12 @@
     "type": "constructor"
   },
   {
-    "inputs": [
-      {
-        "internalType": "int256",
-        "name": "value",
-        "type": "int256"
-      }
-    ],
+    "inputs": [],
     "name": "IntOutOfBounds",
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
+    "inputs": [],
     "name": "UIntOutOfBounds",
     "type": "error"
   },
@@ -80,56 +68,18 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "contract IMain",
-        "name": "oldMain",
-        "type": "address"
+        "internalType": "int192",
+        "name": "oldVal",
+        "type": "int192"
       },
       {
         "indexed": true,
-        "internalType": "contract IMain",
-        "name": "newMain",
-        "type": "address"
+        "internalType": "int192",
+        "name": "newVal",
+        "type": "int192"
       }
     ],
-    "name": "MainSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "numPeriods",
-        "type": "uint256"
-      }
-    ],
-    "name": "RSRRewarded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "RSRSeized",
+    "name": "ExchangeRateSet",
     "type": "event"
   },
   {
@@ -156,13 +106,13 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "Fix",
+        "internalType": "int192",
         "name": "oldVal",
         "type": "int192"
       },
       {
         "indexed": true,
-        "internalType": "Fix",
+        "internalType": "int192",
         "name": "newVal",
         "type": "int192"
       }
@@ -436,7 +386,7 @@
     "name": "exchangeRate",
     "outputs": [
       {
-        "internalType": "Fix",
+        "internalType": "int192",
         "name": "",
         "type": "int192"
       }
@@ -456,8 +406,8 @@
           {
             "components": [
               {
-                "internalType": "Fix",
-                "name": "maxAuctionSize",
+                "internalType": "int192",
+                "name": "maxTradeVolume",
                 "type": "int192"
               },
               {
@@ -483,7 +433,7 @@
                 "type": "uint256"
               },
               {
-                "internalType": "Fix",
+                "internalType": "int192",
                 "name": "rewardRatio",
                 "type": "int192"
               },
@@ -494,7 +444,7 @@
               },
               {
                 "internalType": "uint256",
-                "name": "auctionDelay",
+                "name": "tradingDelay",
                 "type": "uint256"
               },
               {
@@ -503,22 +453,22 @@
                 "type": "uint256"
               },
               {
-                "internalType": "Fix",
+                "internalType": "int192",
                 "name": "backingBuffer",
                 "type": "int192"
               },
               {
-                "internalType": "Fix",
+                "internalType": "int192",
                 "name": "maxTradeSlippage",
                 "type": "int192"
               },
               {
-                "internalType": "Fix",
+                "internalType": "int192",
                 "name": "dustAmount",
                 "type": "int192"
               },
               {
-                "internalType": "Fix",
+                "internalType": "int192",
                 "name": "issuanceRate",
                 "type": "int192"
               }
@@ -723,7 +673,7 @@
     "name": "rewardRatio",
     "outputs": [
       {
-        "internalType": "Fix",
+        "internalType": "int192",
         "name": "",
         "type": "int192"
       }
@@ -766,7 +716,7 @@
   {
     "inputs": [
       {
-        "internalType": "Fix",
+        "internalType": "int192",
         "name": "val",
         "type": "int192"
       }

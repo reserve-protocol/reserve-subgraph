@@ -20,6 +20,10 @@ type Main @entity {
   # staked / stToken is used for insurance
   # RSV is the only RToken without these fields
   staked: BigInt! # amount of stToken staked
+  initialTokenBasketNeeded: BigInt!
+  initialRSRExchangeRate: BigInt! 
+  tokenBasketNeeded: BigDecimal! # number of basket units needed to keep its price
+  rsrExchangeRate: BigDecimal!
   stToken: Token # backing token
 }
 
