@@ -20,10 +20,10 @@ import {
   UnstakingStarted,
 } from "../generated/templates/stRSR/stRSR";
 import { RTokenCreated } from "./../generated/Deployer/Deployer";
-import { Facade } from "./../generated/Deployer/Facade";
 import { Main as MainContract } from "./../generated/Deployer/Main";
 import { Entry } from "./../generated/schema";
 import { BasketSet } from "./../generated/templates/BasketHandler/BasketHandler";
+import { Facade } from "./../generated/templates/BasketHandler/Facade";
 import {
   getBasket,
   getBasketHandler,
