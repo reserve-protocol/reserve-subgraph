@@ -17,8 +17,8 @@
         "type": "address"
       },
       {
-        "internalType": "contract IMarket",
-        "name": "market_",
+        "internalType": "contract IGnosis",
+        "name": "gnosis_",
         "type": "address"
       },
       {
@@ -30,6 +30,100 @@
         "internalType": "contract IAaveLendingPool",
         "name": "aaveLendingPool_",
         "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "contract IMain",
+            "name": "main",
+            "type": "address"
+          },
+          {
+            "components": [
+              {
+                "internalType": "contract IRToken",
+                "name": "rToken",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IStRSR",
+                "name": "stRSR",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IAssetRegistry",
+                "name": "assetRegistry",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IBasketHandler",
+                "name": "basketHandler",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IBackingManager",
+                "name": "backingManager",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IDistributor",
+                "name": "distributor",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IFurnace",
+                "name": "furnace",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IBroker",
+                "name": "broker",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IRevenueTrader",
+                "name": "rsrTrader",
+                "type": "address"
+              },
+              {
+                "internalType": "contract IRevenueTrader",
+                "name": "rTokenTrader",
+                "type": "address"
+              }
+            ],
+            "internalType": "struct Components",
+            "name": "components",
+            "type": "tuple"
+          },
+          {
+            "internalType": "contract ITrade",
+            "name": "trade",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IAsset",
+            "name": "rTokenAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IAsset",
+            "name": "aavePricedAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IAsset",
+            "name": "compoundPricedAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IFacade",
+            "name": "facade",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct Implementations",
+        "name": "implementations_",
+        "type": "tuple"
       }
     ],
     "stateMutability": "nonpayable",
@@ -74,12 +168,12 @@
   },
   {
     "inputs": [],
-    "name": "aave",
+    "name": "ENS",
     "outputs": [
       {
-        "internalType": "contract IERC20Metadata",
+        "internalType": "string",
         "name": "",
-        "type": "address"
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -87,10 +181,10 @@
   },
   {
     "inputs": [],
-    "name": "aaveClaimer",
+    "name": "aave",
     "outputs": [
       {
-        "internalType": "contract IClaimAdapter",
+        "internalType": "contract IERC20Metadata",
         "name": "",
         "type": "address"
       }
@@ -126,19 +220,6 @@
   },
   {
     "inputs": [],
-    "name": "compoundClaimer",
-    "outputs": [
-      {
-        "internalType": "contract IClaimAdapter",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "comptroller",
     "outputs": [
       {
@@ -163,6 +244,11 @@
         "type": "string"
       },
       {
+        "internalType": "string",
+        "name": "constitutionURI",
+        "type": "string"
+      },
+      {
         "internalType": "address",
         "name": "owner",
         "type": "address"
@@ -170,8 +256,13 @@
       {
         "components": [
           {
-            "internalType": "Fix",
-            "name": "maxAuctionSize",
+            "internalType": "uint32",
+            "name": "oneshotPauseDuration",
+            "type": "uint32"
+          },
+          {
+            "internalType": "int192",
+            "name": "maxTradeVolume",
             "type": "int192"
           },
           {
@@ -192,47 +283,47 @@
             "type": "tuple"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint32",
             "name": "rewardPeriod",
-            "type": "uint256"
+            "type": "uint32"
           },
           {
-            "internalType": "Fix",
+            "internalType": "int192",
             "name": "rewardRatio",
             "type": "int192"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint32",
             "name": "unstakingDelay",
-            "type": "uint256"
+            "type": "uint32"
           },
           {
-            "internalType": "uint256",
-            "name": "auctionDelay",
-            "type": "uint256"
+            "internalType": "uint32",
+            "name": "tradingDelay",
+            "type": "uint32"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint32",
             "name": "auctionLength",
-            "type": "uint256"
+            "type": "uint32"
           },
           {
-            "internalType": "Fix",
+            "internalType": "int192",
             "name": "backingBuffer",
             "type": "int192"
           },
           {
-            "internalType": "Fix",
+            "internalType": "int192",
             "name": "maxTradeSlippage",
             "type": "int192"
           },
           {
-            "internalType": "Fix",
+            "internalType": "int192",
             "name": "dustAmount",
             "type": "int192"
           },
           {
-            "internalType": "Fix",
+            "internalType": "int192",
             "name": "issuanceRate",
             "type": "int192"
           }
@@ -254,17 +345,11 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "deployments",
+    "inputs": [],
+    "name": "gnosis",
     "outputs": [
       {
-        "internalType": "contract IMain",
+        "internalType": "contract IGnosis",
         "name": "",
         "type": "address"
       }
@@ -274,11 +359,93 @@
   },
   {
     "inputs": [],
-    "name": "market",
+    "name": "implementations",
     "outputs": [
       {
-        "internalType": "contract IMarket",
-        "name": "",
+        "internalType": "contract IMain",
+        "name": "main",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "contract IRToken",
+            "name": "rToken",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IStRSR",
+            "name": "stRSR",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IAssetRegistry",
+            "name": "assetRegistry",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IBasketHandler",
+            "name": "basketHandler",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IBackingManager",
+            "name": "backingManager",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IDistributor",
+            "name": "distributor",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IFurnace",
+            "name": "furnace",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IBroker",
+            "name": "broker",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IRevenueTrader",
+            "name": "rsrTrader",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IRevenueTrader",
+            "name": "rTokenTrader",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct Components",
+        "name": "components",
+        "type": "tuple"
+      },
+      {
+        "internalType": "contract ITrade",
+        "name": "trade",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IAsset",
+        "name": "rTokenAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IAsset",
+        "name": "aavePricedAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IAsset",
+        "name": "compoundPricedAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IFacade",
+        "name": "facade",
         "type": "address"
       }
     ],
