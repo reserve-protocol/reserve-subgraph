@@ -1,15 +1,19 @@
+import { BI_ZERO } from "./../utils/helper";
 // import { log } from "@graphprotocol/graph-ts"
 import { Address, ethereum } from "@graphprotocol/graph-ts";
 import {
   Token,
-  DexAmmProtocol,
   UsageMetricsDailySnapshot,
-  FinancialsDailySnapshot,
-  LiquidityPoolHourlySnapshot,
-  LiquidityPoolDailySnapshot,
   UsageMetricsHourlySnapshot,
-  LiquidityPool,
-  RewardToken,
+  FinancialsDailySnapshot,
+  RTokenHourlySnapshot,
+  RTokenDailySnapshot,
+  TokenHourlySnapshot,
+  TokenDailySnapshot,
+  RToken,
+  Account,
+  AccountBalance,
+  AccountBalanceDailySnapshot,
 } from "../../generated/schema";
 import { fetchTokenSymbol, fetchTokenName, fetchTokenDecimals } from "./tokens";
 import {
@@ -21,7 +25,6 @@ import {
   SECONDS_PER_DAY,
   BIGINT_ZERO,
   SECONDS_PER_HOUR,
-  RewardTokenType,
   PROTOCOL_NAME,
   PROTOCOL_SLUG,
   PROTOCOL_SCHEMA_VERSION,
@@ -32,7 +35,8 @@ import {
 
 export function getOrCreateToken(
   tokenAddress: Address,
-  type: string = TokenType.GENERIC
+  type: string = TokenType.GENERIC,
+  rTokenAddress?: string
 ): Token {
   let token = Token.load(tokenAddress.toHexString());
   // fetch info if null
@@ -41,7 +45,18 @@ export function getOrCreateToken(
     token.symbol = fetchTokenSymbol(tokenAddress);
     token.name = fetchTokenName(tokenAddress);
     token.decimals = fetchTokenDecimals(tokenAddress);
+    token.holderCount = BI_ZERO;
+    token.transferCount = BI_ZERO;
+    token.mintCount = BI_ZERO;
+    token.burnCount = BI_ZERO;
+    token.totalSupply = BIGDECIMAL_ZERO;
+
     token.type = type;
+
+    if (rTokenAddress) {
+      token.rToken = rTokenAddress;
+    }
+
     token.save();
   }
   return token;
