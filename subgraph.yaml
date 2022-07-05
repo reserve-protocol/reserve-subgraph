@@ -191,7 +191,7 @@ templates:
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        - event: BasketSet(address[],int192[],bool)
+        - event: BasketSet(address[],uint192[],bool)
           handler: handleBasketChange
       file: ./src/mapping.ts
   # Track RToken ERC20 events

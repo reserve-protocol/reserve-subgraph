@@ -1,151 +1,682 @@
-# Blockchain user
-type User @entity {
-  id: ID! #User Address
-  address: Bytes!
-  tokens: [TokenUser!]! @derivedFrom(field: "user")
-  mains: [MainUser!]! @derivedFrom(field: "user")
-  records: [Entry!]! @derivedFrom(field: "user")
+# Subgraph Schema: Generic
+# Version: 1.3.0
+# See https://github.com/messari/subgraphs/blob/master/docs/Schema.md for details
+
+enum Network {
+  ARBITRUM_ONE
+  ARWEAVE_MAINNET
+  AURORA
+  AVALANCHE
+  BOBA
+  BSC # aka BNB Chain
+  CELO
+  COSMOS
+  CRONOS
+  MAINNET # Ethereum Mainnet
+  FANTOM
+  FUSE
+  HARMONY
+  JUNO
+  MOONBEAM
+  MOONRIVER
+  NEAR_MAINNET
+  OPTIMISM
+  OSMOSIS
+  MATIC # aka Polygon
+  XDAI # aka Gnosis Chain
 }
 
-# Main control entity over the protocol, holds all related addresses
-# A list of "RTokens" is a list of "Mains"
-type Main @entity {
-  id: ID! # main contract address
-  address: Bytes!
-  facade: Bytes
-  owner: Bytes! # token owner
-  token: Token! # rtoken relationship
-  basket: Basket # current basket, could change***
-  basketHandler: Bytes
-  # staked / stToken is used for insurance
-  # RSV is the only RToken without these fields
-  staked: BigInt! # amount of stToken staked
-  initialTokenBasketNeeded: BigInt!
-  initialRSRExchangeRate: BigInt! 
-  tokenBasketNeeded: BigDecimal! # number of basket units needed to keep its price
-  rsrExchangeRate: BigDecimal!
-  stToken: Token # backing token
+enum ProtocolType {
+  EXCHANGE
+  LENDING
+  YIELD
+  BRIDGE
+  GENERIC
+  # Will add more
 }
 
-type MainUser @entity {
-  id: ID! # <Main Address>-<User Address>
-  main: Main!
-  user: User!
-  staked: BigInt!
-  rewarded: BigInt!
-}
-
-# Collateral asset for a given basket
-type Collateral @entity {
-  id: ID! # <basketAddress>-<tokenAddress>
-  basket: Basket! # Related basket id
-  token: Token! # Collateral token
-  index: Int! # Asset index
-}
-
-# RToken basket handler
-type BasketHandler @entity {
-  id: ID! # address of contract
-  main: Main # main module
-}
-
-# RToken basket
-type Basket @entity {
-  id: ID! # tx address when created
-  handler: BasketHandler! # Main module
-  collaterals: [Collateral!] @derivedFrom(field: "basket") # collateral assets
-}
-
-# Tokens
-type Token @entity {
-  id: ID! #Token contract address
-  address: Bytes!
-  name: String! # name of the token
-  symbol: String! # symbol of the token
-  decimals: Int! # number of decimals
-  transfersCount: BigInt! #Number of transfers
-  holdersCount: BigInt! #Number of holders
-  type: TokenType! # type of token ERC20 - RSR - RToken - StakingToken
-  main: Main # main for the Token - Only set forstToken and RToken
-  apy: Int # token APY for rToken and stRSR
-  users: [TokenUser!]! @derivedFrom(field: "token")
-  supply: Supply @derivedFrom(field: "token")
-  records: [Entry!]! @derivedFrom(field: "token")
-}
-
-type TokenDayData @entity {
-  # token address concatendated with date
-  id: ID!
-  date: Int!
-  token: Token!
-  open: BigInt!
-  high: BigInt!
-  low: BigInt!
-  close: BigInt!
-}
-
-type TokenUser @entity {
-  id: ID! #<Token Address>-<User Address>
-  token: Token! # RToken
-  user: User! #User
-  lastTransferTimestamp: BigInt #Timestamp of the last transaction made by user
-  transferCount: BigInt! #Number of transfers
-  inTransferCount: BigInt! #Number of income transactions
-  outTransferCount: BigInt! #Number of outcome transactions
-  balance: BigInt! #User Token Balance
-  totalIncome: BigInt! #User Token Income
-  totalOutcome: BigInt! #User Token Outcome
-}
-
-# Track ERC20 token supply
-type Supply @entity {
-  id: ID! #Token Symbol
-  token: Token! #Token
-  changedTimestamp: BigInt #Timestamp of the last supply change (minted/burned)
-  minted: BigInt! #Minted Tokens Amount
-  burned: BigInt! #Burned Tokens Amount
-  total: BigInt! #Total Supply
-}
-
-# EVM transaction entity
-type Transaction @entity {
-  id: ID! # tx hash
-  block: BigInt!
-  timestamp: BigInt!
-  from: Bytes!
-  to: Bytes
-}
-
-# System entry for a given token
-type Entry @entity {
-  id: ID! # id of the entry, it can be specified by the event
-  token: Token!
-  main: Main!
-  user: User!
-  draftId: BigInt # for issuance/unstaking
-  transaction: Transaction! # tx related to the entry
-  amount: BigInt! # amount of the operation
-  stAmount: BigInt # amount corresponding of st token
-  type: String! # Type of entry
-  status: EntryStatus! # default: Completed
-  createdAt: BigInt!
-  updatedAt: BigInt
-  # transfer specific
-  toAddr: User
-  # Unstake / issuance specific
-  availableAt: BigInt
-  completionTxn: Transaction
-}
-
-enum EntryStatus {
-  Pending
-  Canceled
-  Completed
+# TODO: Not used, cannot do multi enum query type
+enum EntryType {
+  TRANSFER # ERC20 Token transfer
+  ISSUE # Issuance
+  REDEEM # Issuance
+  CLAIM # Issuance
+  CANCEL_ISSUANCE # Cancel Issuance
+  STAKE # stake
+  UNSTAKE # stake
+  WITHDRAWN # stake
+  # TODO: Run auctions? governance? 
 }
 
 enum TokenType {
-  RToken
-  RSR
-  StakingToken
-  ERC20
+  RToken # ERC20 generated by the protocol "rToken"
+  RewardToken # stRSR 
+  Generic # generic RSV/USDC/etc...
+}
+
+#############################
+##### Protocol Metadata #####
+#############################
+
+type Protocol @entity {
+  " Smart contract address of the protocol's main contract (Factory, Registry, etc) "
+  id: ID!
+
+  " Name of the protocol, including version. e.g. Uniswap v3 "
+  name: String!
+
+  " Slug of protocol, including version. e.g. uniswap-v3 "
+  slug: String!
+
+  " Version of the subgraph schema, in SemVer format (e.g. 1.0.0) "
+  schemaVersion: String!
+
+  " Version of the subgraph implementation, in SemVer format (e.g. 1.0.0) "
+  subgraphVersion: String!
+
+  " Version of the methodology used to compute metrics, loosely based on SemVer format (e.g. 1.0.0) "
+  methodologyVersion: String!
+
+  " The blockchain network this subgraph is indexing on "
+  network: Network!
+
+  " The type of protocol (e.g. DEX, Lending, Yield, etc) "
+  type: ProtocolType!
+
+  ##### Quantitative Data #####
+
+  " Current TVL (Total Value Locked) of the entire protocol "
+  totalValueLockedUSD: BigDecimal!
+
+  " Current PCV (Protocol Controlled Value). Only relevant for protocols with PCV. "
+  protocolControlledValueUSD: BigDecimal
+
+  " Revenue claimed by suppliers to the protocol. LPs on DEXs (e.g. 0.25% of the swap fee in Sushiswap). Depositors on Lending Protocols. NFT sellers on OpenSea. "
+  cumulativeSupplySideRevenueUSD: BigDecimal!
+
+  " Gross revenue for the protocol (revenue claimed by protocol). Examples: AMM protocol fee (Sushi’s 0.05%). OpenSea 10% sell fee. "
+  cumulativeProtocolSideRevenueUSD: BigDecimal!
+
+  " All revenue generated by the protocol. e.g. 0.30% of swap fee in Sushiswap, all yield generated by Yearn. "
+  cumulativeTotalRevenueUSD: BigDecimal!
+
+  " Number of cumulative unique users "
+  cumulativeUniqueUsers: Int!
+
+  " Total number of pools "
+  totalTokenCount: Int!
+
+  ##### Snapshots #####
+
+  " Daily usage metrics for this protocol "
+  dailyUsageMetrics: [UsageMetricsDailySnapshot!]!
+    @derivedFrom(field: "protocol")
+
+  " Hourly usage metrics for this protocol "
+  hourlyUsageMetrics: [UsageMetricsHourlySnapshot!]!
+    @derivedFrom(field: "protocol")
+
+  " Daily financial metrics for this protocol "
+  financialMetrics: [FinancialsDailySnapshot!]! @derivedFrom(field: "protocol")
+
+  ##### rTokens #####
+
+  " All rtokens that belong to this protocol "
+  rTokens: [RToken!]! @derivedFrom(field: "protocol")
+}
+
+###############################
+##### Protocol Timeseries #####
+###############################
+
+type UsageMetricsDailySnapshot @entity {
+  " ID is # of days since Unix epoch time "
+  id: ID!
+
+  " Protocol this snapshot is associated with "
+  protocol: Protocol!
+
+  " Number of unique daily active users "
+  dailyActiveUsers: Int!
+
+  " Number of cumulative unique users "
+  cumulativeUniqueUsers: Int!
+
+  " Total number of transactions occurred in a day. Transactions include all entities that implement the Event interface. "
+  dailyTransactionCount: Int!
+
+  " Total number of rtokens "
+  totalRTokenCount: Int!
+
+  " Block number of this snapshot "
+  blockNumber: BigInt!
+
+  " Timestamp of this snapshot "
+  timestamp: BigInt!
+}
+
+type UsageMetricsHourlySnapshot @entity {
+  " { # of hours since Unix epoch time } "
+  id: ID!
+
+  " Protocol this snapshot is associated with "
+  protocol: Protocol!
+
+  " Number of unique hourly active users "
+  hourlyActiveUsers: Int!
+
+  " Number of cumulative unique users "
+  cumulativeUniqueUsers: Int!
+
+  " Total number of transactions occurred in an hour. Transactions include all entities that implement the Event interface. "
+  hourlyTransactionCount: Int!
+
+  " Block number of this snapshot "
+  blockNumber: BigInt!
+
+  " Timestamp of this snapshot "
+  timestamp: BigInt!
+}
+
+type FinancialsDailySnapshot @entity {
+  " ID is # of days since Unix epoch time "
+  id: ID!
+
+  " Protocol this snapshot is associated with "
+  protocol: Protocol!
+
+  " Current TVL (Total Value Locked) of the entire protocol "
+  totalValueLockedUSD: BigDecimal!
+
+  " Current PCV (Protocol Controlled Value). Only relevant for protocols with PCV. "
+  protocolControlledValueUSD: BigDecimal
+
+  " Revenue claimed by suppliers to the protocol. LPs on DEXs (e.g. 0.25% of the swap fee in Sushiswap). Depositors on Lending Protocols. NFT sellers on OpenSea. "
+  dailySupplySideRevenueUSD: BigDecimal!
+
+  " Revenue claimed by suppliers to the protocol. LPs on DEXs (e.g. 0.25% of the swap fee in Sushiswap). Depositors on Lending Protocols. NFT sellers on OpenSea. "
+  cumulativeSupplySideRevenueUSD: BigDecimal!
+
+  " Gross revenue for the protocol (revenue claimed by protocol). Examples: AMM protocol fee (Sushi’s 0.05%). OpenSea 10% sell fee. "
+  dailyProtocolSideRevenueUSD: BigDecimal!
+
+  " Gross revenue for the protocol (revenue claimed by protocol). Examples: AMM protocol fee (Sushi’s 0.05%). OpenSea 10% sell fee. "
+  cumulativeProtocolSideRevenueUSD: BigDecimal!
+
+  " All revenue generated by the protocol. e.g. 0.30% of swap fee in Sushiswap, all yield generated by Yearn. "
+  dailyTotalRevenueUSD: BigDecimal!
+
+  " All revenue generated by the protocol. e.g. 0.30% of swap fee in Sushiswap, all yield generated by Yearn. "
+  cumulativeTotalRevenueUSD: BigDecimal!
+
+  " Block number of this snapshot "
+  blockNumber: BigInt!
+
+  " Timestamp of this snapshot "
+  timestamp: BigInt!
+}
+
+###########################
+#### RToken-Level Data ####
+###########################
+
+type RToken @entity {
+  " RToken address or RSV Manager "
+  id: ID!
+
+  " The protocol this pool belongs to "
+  protocol: Protocol!
+
+  " ERC20 token "
+  token: Token!
+
+  " stRSR Token, only for insured tokens doesnt apply for RSV "
+  rewardToken: Token
+
+  " Creation timestamp "
+  createdTimestamp: BigInt!
+
+  " Creation block number "
+  createdBlockNumber: BigInt!
+
+  ##### Quantitative Data #####
+
+  " #TODO All revenue generated by the rToken "
+  # cumulativeTotalRevenueUSD: BigDecimal!
+
+  " Total token supply "
+  tokenSupply: BigInt
+
+  " Price per share of output token in USD "
+  tokenPriceUSD: BigDecimal
+
+  " Total supply of rewardToken "
+  rewardTokenSupply: BigInt
+
+  " Reward token price "
+  rewardTokenPriceUSD: BigDecimal
+
+  " Reward token exchange rate "
+  rsrExchangeRate: BigInt
+
+  " RToken collateral basket units needed to keep price peg "
+  # TODO: Considering rToken price change over time, we could use price to calculate APY
+  basketUnits: BigInt
+
+  " Per-block reward token emission as of the current block normalized to a day, in token's native amount. This should be ideally calculated as the theoretical rate instead of the realized amount. "
+  # TODO: Review how is this calculated
+  rewardTokenEmissionsAmount: [BigInt!]
+
+  " Per-block reward token emission as of the current block normalized to a day, in USD value. This should be ideally calculated as the theoretical rate instead of the realized amount. "
+  # TODO: Review how is this calculated
+  rewardTokenEmissionsUSD: [BigDecimal!]
+
+  ##### Snapshots #####
+
+  " RToken daily snapshots "
+  dailySnapshots: [RTokenDailySnapshot!]! @derivedFrom(field: "rToken")
+
+  " RToken hourly snapshots "
+  hourlySnapshots: [RTokenHourlySnapshot!]! @derivedFrom(field: "rToken")
+
+  # TODO: Auctions / Default events / Basket change? Track basket?
+}
+
+type RTokenDailySnapshot @entity {
+  " { Smart contract address of the rToken }-{ # of days since Unix epoch time } "
+  id: ID!
+
+  " The protocol this snapshot belongs to "
+  protocol: Protocol!
+
+  " The rToken this snapshot belongs to "
+  rToken: RToken!
+
+  " Block number of this snapshot "
+  blockNumber: BigInt!
+
+  " Timestamp of this snapshot "
+  timestamp: BigInt!
+
+  ##### Quantitative Data #####
+
+  " Current TVL (Total Value Locked) of this pool "
+  totalValueLockedUSD: BigDecimal!
+
+  " All revenue generated by the pool, accrued to the supply side. "
+  cumulativeSupplySideRevenueUSD: BigDecimal!
+
+  " Daily revenue generated by the pool, accrued to the supply side. "
+  dailySupplySideRevenueUSD: BigDecimal!
+
+  " All revenue generated by the pool, accrued to the protocol. "
+  cumulativeProtocolSideRevenueUSD: BigDecimal!
+
+  " Daily revenue generated by the pool, accrued to the protocol. "
+  dailyProtocolSideRevenueUSD: BigDecimal!
+
+  " All revenue generated by the pool. "
+  cumulativeTotalRevenueUSD: BigDecimal!
+
+  " Daily revenue generated by the pool. "
+  dailyTotalRevenueUSD: BigDecimal!
+
+  " Amount of input tokens in the pool. The ordering should be the same as the pool's `inputTokens` field. "
+  inputTokenBalances: [BigInt!]!
+
+  " Total supply of output token. Note that certain DEXes don't have an output token (e.g. Bancor) "
+  outputTokenSupply: BigInt
+
+  " Price per share of output token in USD "
+  outputTokenPriceUSD: BigDecimal
+
+  " Total supply of output tokens that are staked (usually in the MasterChef contract). Used to calculate reward APY. "
+  stakedOutputTokenAmount: BigInt
+
+  " Per-block reward token emission as of the current block normalized to a day, in token's native amount. This should be ideally calculated as the theoretical rate instead of the realized amount. "
+  rewardTokenEmissionsAmount: [BigInt!]
+
+  " Per-block reward token emission as of the current block normalized to a day, in USD value. This should be ideally calculated as the theoretical rate instead of the realized amount. "
+  rewardTokenEmissionsUSD: [BigDecimal!]
+}
+
+type RTokenHourlySnapshot @entity {
+  " { Smart contract address of the rToken }-{ # of hours since Unix epoch time } "
+  id: ID!
+
+  " The protocol this snapshot belongs to "
+  protocol: Protocol!
+
+  " The pool this snapshot belongs to "
+  pool: Pool!
+
+  " Block number of this snapshot "
+  blockNumber: BigInt!
+
+  " Timestamp of this snapshot "
+  timestamp: BigInt!
+
+  ##### Quantitative Data #####
+
+  " Current TVL (Total Value Locked) of this pool "
+  totalValueLockedUSD: BigDecimal!
+
+  " All revenue generated by the pool, accrued to the supply side. "
+  cumulativeSupplySideRevenueUSD: BigDecimal!
+
+  " Hourly revenue generated by the pool, accrued to the supply side. "
+  hourlySupplySideRevenueUSD: BigDecimal!
+
+  " All revenue generated by the pool, accrued to the protocol. "
+  cumulativeProtocolSideRevenueUSD: BigDecimal!
+
+  " Hourly revenue generated by the pool, accrued to the protocol. "
+  hourlyProtocolSideRevenueUSD: BigDecimal!
+
+  " All revenue generated by the pool. "
+  cumulativeTotalRevenueUSD: BigDecimal!
+
+  " Hourly revenue generated by the pool. "
+  hourlyTotalRevenueUSD: BigDecimal!
+
+  " Amount of input tokens in the pool. The ordering should be the same as the pool's `inputTokens` field. "
+  inputTokenBalances: [BigInt!]!
+
+  " Total supply of output token. Note that certain DEXes don't have an output token (e.g. Bancor) "
+  outputTokenSupply: BigInt
+
+  " Price per share of output token in USD "
+  outputTokenPriceUSD: BigDecimal
+
+  " Total supply of output tokens that are staked (usually in the MasterChef contract). Used to calculate reward APY. "
+  stakedOutputTokenAmount: BigInt
+
+  " Per-block reward token emission as of the current block normalized to a day (not hour), in token's native amount. This should be ideally calculated as the theoretical rate instead of the realized amount. "
+  rewardTokenEmissionsAmount: [BigInt!]
+
+  " Per-block reward token emission as of the current block normalized to a day (not hour), in USD value. This should be ideally calculated as the theoretical rate instead of the realized amount. "
+  rewardTokenEmissionsUSD: [BigDecimal!]
+}
+
+#############################
+####### Token Metadata ######
+#############################
+
+type Token @entity {
+  " Smart contract address of the token "
+  id: ID!
+
+  " Name of the token, mirrored from the smart contract "
+  name: String!
+
+  " Symbol of the token, mirrored from the smart contract "
+  symbol: String!
+
+  " The number of decimal places this token uses, default to 18 "
+  decimals: Int!
+
+  " RToken relation "
+  rToken: RToken!
+
+  " Number of unique token holders "
+  holderCount: BigInt!
+
+  " Total number of token transfer events "
+  transferCount: BigInt!
+
+  " Total number of token mint events "
+  mintCount: BigInt!
+
+  " Total number of token burn events "
+  burnCount: BigInt!
+
+  " Total token supply "
+  totalSupply: BigDecimal!
+
+  " Total token burned "
+  totalBurned: BigDecimal!
+
+  " Total token minted "
+  totalMinted: BigDecimal!
+
+  " Token type - rToken / RewardToken / Generic "
+  type: TokenType!
+
+  " List of token entries "
+  entries: [Entry!]! @derivedFrom(field: "token")
+
+  " Token holder's balance "
+  holdersBalance: [AccountBalance!]! @derivedFrom(field: "token")
+
+  ##### Snapshots #####
+
+  " Daily snapshot for this token "
+  dailyTokenSnapshot: [TokenDailySnapshot!]! @derivedFrom(field: "token")
+
+  " Hourly snapshot for this token "
+  hourlyTokenSnapshot: [TokenHourlySnapshot!]! @derivedFrom(field: "token")
+}
+
+###############################
+####### Token Timeseries ######
+###############################
+
+type TokenDailySnapshot @entity {
+  " { Token Address }-{ # of days since Unix epoch time } "
+  id: ID!
+
+  " Token this snapshot is associated with "
+  token: Token!
+
+  " Daily total Supply of the token "
+  dailyTotalSupply: BigInt!
+
+  " # of accounts holding this token "
+  dailyHolderCount: Int!
+
+  " # of unique daily active users/holders "
+  dailyActiveUsers: Int!
+
+  " # of cumulative unique users/holders "
+  cumulativeUniqueUsers: Int!
+
+  " Total number of events occurred in a day "
+  dailyEventCount: Int!
+
+  " Total number of mints in a day "
+  dailyMintCount: Int!
+
+  " Total number of token minted in a day "
+  dailyMintAmount: BigInt!
+
+  " Total number of burns in a day "
+  dailyBurnCount: Int!
+
+  " Total number of token burnt in a day "
+  dailyBurnAmount: BigInt!
+
+  " Block number of this snapshot "
+  blockNumber: BigInt!
+
+  " Timestamp of this snapshot "
+  timestamp: BigInt!
+}
+
+type TokenHourlySnapshot @entity {
+  " { Token Address }-{ # of hours since Unix epoch time } "
+  id: ID!
+
+  " Token this snapshot is associated with "
+  token: Token!
+
+  " Hourly total Supply of the token "
+  hourlyTotalSupply: BigInt!
+
+  " # of accounts holding this token "
+  hourlyHolderCount: Int!
+
+  " # of unique hourly active users "
+  hourlyActiveUsers: Int!
+
+  " # of cumulative unique users "
+  cumulativeUniqueUsers: Int!
+
+  " Total number of events occurred in an hour "
+  hourlyEventCount: Int!
+
+  " Total number of mints in a hour "
+  hourlyMintCount: Int!
+
+  " Total amount of token minted in a hour "
+  hourlyMintAmount: BigInt!
+
+  " Total number of burns in a hour "
+  hourlyBurnCount: Int!
+
+  " Total number of token burnt in a hour "
+  hourlyBurnAmount: BigInt!
+
+  " Block number of this snapshot "
+  blockNumber: BigInt!
+
+  " Timestamp of this snapshot "
+  timestamp: BigInt!
+}
+
+##################################
+##### Event-Level Data #####
+##################################
+
+interface Event {
+  " { Token ID }-{ Transaction hash }-{ Log index } "
+  id: ID!
+
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+
+  " The token this event belongs to "
+  token: Token!
+
+  " Nonce of the transaction that emitted this event "
+  nonce: Int!
+
+  " Address that received the tokens "
+  to: String!
+
+  " Address that sent the tokens "
+  from: String!
+
+  " Block number of this event "
+  blockNumber: BigInt!
+
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type Entry implements Event @entity {
+  " { Token ID }-{ Transaction hash }-{ Log index } "
+  id: ID!
+
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+
+  " The token this event belongs to "
+  token: Token!
+
+  " The rToken this event belongs to "
+  rToken: RToken!
+
+  " Nonce of the transaction that emitted this event "
+  nonce: Int!
+
+  " Account that sent the transaction "
+  from: Account!
+
+  " Block number of this event "
+  blockNumber: BigInt!
+
+  " Timestamp of this event "
+  timestamp: BigInt!
+
+  " Entry Type "
+  type: String!
+
+  " TRANSFER - Account that received the tokens "
+  to: Account
+
+  " Stake/Unstake - staking token amount"
+  stAmount: BigInt
+}
+
+##################################
+######## Account MetaData ########
+##################################
+
+# An account is a unique Ethereum address
+type Account @entity {
+  " Address of the account "
+  id: ID!
+
+  " Token transfers to this account "
+  transferTo: [Entry!]! @derivedFrom(field: "to")
+
+  " Token transfers from this account "
+  entries: [Entry!]! @derivedFrom(field: "from")
+
+  " Token balances that this account holds "
+  balances: [AccountBalance!]! @derivedFrom(field: "account")
+
+  " Token balances snapshot that this account holds "
+  balancesSnapshot: [AccountBalanceDailySnapshot!]!
+    @derivedFrom(field: "account")
+}
+
+type AccountBalance @entity {
+  " { Address Of the Account }-{ Address of the Token }"
+  id: ID!
+
+  " Account address "
+  account: Account!
+
+  " Token address "
+  token: Token!
+
+  " Current account balance "
+  amount: BigDecimal!
+
+  " Block number in which the balance was last modified "
+  blockNumber: BigInt!
+
+  " Timestamp in which the balance was last modified "
+  timestamp: BigInt!
+}
+
+###############################
+###### Account Timeseries #####
+###############################
+
+type AccountBalanceDailySnapshot @entity {
+  " { Address Of the Account }-{ Address of the Token }-{ # of hours since Unix epoch time } "
+  id: ID!
+
+  " Account address "
+  account: Account!
+
+  " Token address "
+  token: Token!
+
+  " Current account balance "
+  amount: BigDecimal!
+
+  " Block number in which the balance was last modified "
+  blockNumber: BigInt!
+
+  " Timestamp in which the balance was last modified "
+  timestamp: BigInt!
 }
