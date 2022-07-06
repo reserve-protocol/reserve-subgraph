@@ -78,7 +78,15 @@ export function getOrCreateUsageMetricDailySnapshot(
     usageMetrics.dailyActiveUsers = INT_ZERO;
     usageMetrics.cumulativeUniqueUsers = INT_ZERO;
     usageMetrics.dailyTransactionCount = INT_ZERO;
-    usageMetrics.totalRTokenCount = INT_ZERO;
+
+    usageMetrics.dailyRSRStaked = BI_ZERO;
+    usageMetrics.dailyRSRStakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.cumulativeRSRStaked = BI_ZERO;
+    usageMetrics.cumulativeRSRStakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.dailyRSRUnstaked = BI_ZERO;
+    usageMetrics.dailyRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.cumulativeRSRUnstaked = BI_ZERO;
+    usageMetrics.cumulativeRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
 
     usageMetrics.blockNumber = event.block.number;
     usageMetrics.timestamp = event.block.timestamp;
@@ -105,6 +113,15 @@ export function getOrCreateUsageMetricHourlySnapshot(
     usageMetrics.hourlyActiveUsers = INT_ZERO;
     usageMetrics.cumulativeUniqueUsers = INT_ZERO;
     usageMetrics.hourlyTransactionCount = INT_ZERO;
+
+    usageMetrics.hourlyRSRStaked = BI_ZERO;
+    usageMetrics.hourlyRSRStakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.cumulativeRSRStaked = BI_ZERO;
+    usageMetrics.cumulativeRSRStakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.hourlyRSRUnstaked = BI_ZERO;
+    usageMetrics.hourlyRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.cumulativeRSRUnstaked = BI_ZERO;
+    usageMetrics.cumulativeRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
 
     usageMetrics.blockNumber = event.block.number;
     usageMetrics.timestamp = event.block.timestamp;

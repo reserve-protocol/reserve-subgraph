@@ -166,11 +166,23 @@ type UsageMetricsDailySnapshot @entity {
   " Total USD value of stake rsr from the day"
   dailyRSRStakedValueUSD: BigDecimal!
 
+  " Cumulative Staked RSR "
+  cumulativeRSRStaked: BigInt!
+
+  " Cumulative Staked RSR USD"
+  cumulativeRSRStakedValueUSD: BigDecimal!
+
   " All daily RSR Unstaked "
   dailyRSRUnstaked: BigInt!
 
   " Total USD value of stake rsr from the day"
   dailyRSRUnstakedValueUSD: BigDecimal!
+
+  " Cumulative Staked RSR "
+  cumulativeRSRUnstaked: BigInt!
+
+  " Cumulative Staked RSR USD"
+  cumulativeRSRUnstakedValueUSD: BigDecimal!
 
   " Block number of this snapshot "
   blockNumber: BigInt!
