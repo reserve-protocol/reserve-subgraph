@@ -14,6 +14,7 @@ import {
   Account,
   AccountBalance,
   AccountBalanceDailySnapshot,
+  Protocol,
 } from "../../generated/schema";
 import { fetchTokenSymbol, fetchTokenName, fetchTokenDecimals } from "./tokens";
 import {
@@ -33,33 +34,36 @@ import {
   TokenType,
 } from "../common/constants";
 
-export function getOrCreateToken(
-  tokenAddress: Address,
-  type: string = TokenType.GENERIC,
-  rTokenAddress?: string
-): Token {
-  let token = Token.load(tokenAddress.toHexString());
-  // fetch info if null
-  if (!token) {
-    token = new Token(tokenAddress.toHexString());
-    token.symbol = fetchTokenSymbol(tokenAddress);
-    token.name = fetchTokenName(tokenAddress);
-    token.decimals = fetchTokenDecimals(tokenAddress);
-    token.holderCount = BI_ZERO;
-    token.transferCount = BI_ZERO;
-    token.mintCount = BI_ZERO;
-    token.burnCount = BI_ZERO;
-    token.totalSupply = BIGDECIMAL_ZERO;
+export function getOrCreateProtocol(): Protocol {
+  let protocol = Protocol.load(FACTORY_ADDRESS);
 
-    token.type = type;
+  if (!protocol) {
+    protocol = new Protocol(FACTORY_ADDRESS);
+    protocol.name = PROTOCOL_NAME;
+    protocol.slug = PROTOCOL_SLUG;
+    protocol.schemaVersion = PROTOCOL_SCHEMA_VERSION;
+    protocol.subgraphVersion = PROTOCOL_SUBGRAPH_VERSION;
+    protocol.methodologyVersion = PROTOCOL_METHODOLOGY_VERSION;
+    protocol.totalValueLockedUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeSupplySideRevenueUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeProtocolSideRevenueUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeUniqueUsers = INT_ZERO;
+    protocol.network = Network.MAINNET;
+    protocol.type = ProtocolType.GENERIC;
 
-    if (rTokenAddress) {
-      token.rToken = rTokenAddress;
-    }
+    protocol.rsrStaked = BI_ZERO;
+    protocol.rsrStakedValueUSD = BIGDECIMAL_ZERO;
+    protocol.rsrUnstaked = BI_ZERO;
+    protocol.rsrUnstakedValueUSD = BIGDECIMAL_ZERO;
+    protocol.totalRTokenSupply = BI_ZERO;
+    protocol.totalRTokenValueUSD = BIGDECIMAL_ZERO; // Maybe duplicated from cumulative volume
+    protocol.rTokenCount = INT_ZERO;
 
-    token.save();
+    protocol.save();
   }
-  return token;
+  return protocol;
 }
 
 export function getOrCreateUsageMetricDailySnapshot(
@@ -132,42 +136,70 @@ export function getOrCreateUsageMetricHourlySnapshot(
   return usageMetrics;
 }
 
+export function getOrCreateFinancialsDailySnapshot(
+  event: ethereum.Event
+): FinancialsDailySnapshot {
+  // Number of days since Unix epoch
+  let dayID = event.block.timestamp.toI32() / SECONDS_PER_DAY;
+  let id = dayID.toString();
+
+  let financialMetrics = FinancialsDailySnapshot.load(id);
+
+  if (!financialMetrics) {
+    financialMetrics = new FinancialsDailySnapshot(id);
+    financialMetrics.protocol = FACTORY_ADDRESS;
+
+    financialMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
+    financialMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;
+    financialMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
+
+    financialMetrics.dailyTotalRevenueUSD = BIGDECIMAL_ZERO;
+    financialMetrics.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
+
+    financialMetrics.blockNumber = event.block.number;
+    financialMetrics.timestamp = event.block.timestamp;
+
+    financialMetrics.save();
+  }
+  return financialMetrics;
+}
+
 export function getOrCreateRTokenDailySnapshot(
   event: ethereum.Event
-): LiquidityPoolDailySnapshot {
+): RTokenDailySnapshot {
   let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
   let dayId = day.toString();
-  let poolMetrics = LiquidityPoolDailySnapshot.load(
+  let rTokenMetrics = RTokenDailySnapshot.load(
     event.address
       .toHexString()
       .concat("-")
       .concat(dayId)
   );
 
-  if (!poolMetrics) {
-    poolMetrics = new LiquidityPoolDailySnapshot(
+  if (!rTokenMetrics) {
+    rTokenMetrics = new RTokenDailySnapshot(
       event.address
         .toHexString()
         .concat("-")
         .concat(dayId)
     );
-    poolMetrics.protocol = FACTORY_ADDRESS;
-    poolMetrics.pool = event.address.toHexString();
-    poolMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
-    poolMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;
-    poolMetrics.dailyVolumeByTokenAmount = [BIGINT_ZERO, BIGINT_ZERO];
-    poolMetrics.dailyVolumeByTokenUSD = [BIGDECIMAL_ZERO, BIGDECIMAL_ZERO];
-    poolMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
-    poolMetrics.inputTokenBalances = [BIGINT_ZERO, BIGINT_ZERO];
-    poolMetrics.inputTokenWeights = [BIGDECIMAL_ZERO, BIGDECIMAL_ZERO];
+    rTokenMetrics.protocol = FACTORY_ADDRESS;
+    rTokenMetrics.pool = event.address.toHexString();
+    rTokenMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.dailyVolumeByTokenAmount = [BIGINT_ZERO, BIGINT_ZERO];
+    rTokenMetrics.dailyVolumeByTokenUSD = [BIGDECIMAL_ZERO, BIGDECIMAL_ZERO];
+    rTokenMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.inputTokenBalances = [BIGINT_ZERO, BIGINT_ZERO];
+    rTokenMetrics.inputTokenWeights = [BIGDECIMAL_ZERO, BIGDECIMAL_ZERO];
 
-    poolMetrics.blockNumber = event.block.number;
-    poolMetrics.timestamp = event.block.timestamp;
+    rTokenMetrics.blockNumber = event.block.number;
+    rTokenMetrics.timestamp = event.block.timestamp;
 
-    poolMetrics.save();
+    rTokenMetrics.save();
   }
 
-  return poolMetrics;
+  return rTokenMetrics;
 }
 
 export function getOrCreateRTokenHourlySnapshot(
@@ -209,64 +241,33 @@ export function getOrCreateRTokenHourlySnapshot(
   return poolMetrics;
 }
 
-export function getOrCreateFinancialsDailySnapshot(
-  event: ethereum.Event
-): FinancialsDailySnapshot {
-  // Number of days since Unix epoch
-  let dayID = event.block.timestamp.toI32() / SECONDS_PER_DAY;
-  let id = dayID.toString();
+export function getOrCreateToken(
+  tokenAddress: Address,
+  type: string = TokenType.GENERIC,
+  rTokenAddress?: string
+): Token {
+  let token = Token.load(tokenAddress.toHexString());
+  // fetch info if null
+  if (!token) {
+    token = new Token(tokenAddress.toHexString());
+    token.symbol = fetchTokenSymbol(tokenAddress);
+    token.name = fetchTokenName(tokenAddress);
+    token.decimals = fetchTokenDecimals(tokenAddress);
+    token.holderCount = BI_ZERO;
+    token.transferCount = BI_ZERO;
+    token.mintCount = BI_ZERO;
+    token.burnCount = BI_ZERO;
+    token.totalSupply = BIGDECIMAL_ZERO;
 
-  let financialMetrics = FinancialsDailySnapshot.load(id);
+    token.type = type;
 
-  if (!financialMetrics) {
-    financialMetrics = new FinancialsDailySnapshot(id);
-    financialMetrics.protocol = FACTORY_ADDRESS;
+    if (rTokenAddress) {
+      token.rToken = rTokenAddress;
+    }
 
-    financialMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
-    financialMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;
-    financialMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
-
-    financialMetrics.cumulativeSupplySideRevenueUSD = BIGDECIMAL_ZERO;
-    financialMetrics.dailySupplySideRevenueUSD = BIGDECIMAL_ZERO;
-    financialMetrics.cumulativeProtocolSideRevenueUSD = BIGDECIMAL_ZERO;
-    financialMetrics.dailyProtocolSideRevenueUSD = BIGDECIMAL_ZERO;
-    financialMetrics.dailyTotalRevenueUSD = BIGDECIMAL_ZERO;
-    financialMetrics.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
-
-    financialMetrics.blockNumber = event.block.number;
-    financialMetrics.timestamp = event.block.timestamp;
-
-    financialMetrics.save();
+    token.save();
   }
-  return financialMetrics;
-}
-
-///////////////////////////
-///// DexAmm Specific /////
-///////////////////////////
-
-export function getOrCreateDex(): DexAmmProtocol {
-  let protocol = DexAmmProtocol.load(FACTORY_ADDRESS);
-
-  if (!protocol) {
-    protocol = new DexAmmProtocol(FACTORY_ADDRESS);
-    protocol.name = PROTOCOL_NAME;
-    protocol.slug = PROTOCOL_SLUG;
-    protocol.schemaVersion = PROTOCOL_SCHEMA_VERSION;
-    protocol.subgraphVersion = PROTOCOL_SUBGRAPH_VERSION;
-    protocol.methodologyVersion = PROTOCOL_METHODOLOGY_VERSION;
-    protocol.totalValueLockedUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeSupplySideRevenueUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeProtocolSideRevenueUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeUniqueUsers = INT_ZERO;
-    protocol.network = Network.MAINNET;
-    protocol.type = ProtocolType.EXCHANGE;
-
-    protocol.save();
-  }
-  return protocol;
+  return token;
 }
 
 export function getDaysSinceEpoch(secondsSinceEpoch: number): string {
