@@ -54,6 +54,7 @@ export function getOrCreateProtocol(): Protocol {
     protocol.network = Network.MAINNET;
     protocol.type = ProtocolType.GENERIC;
 
+    protocol.insurance = BI_ZERO;
     protocol.rsrStaked = BI_ZERO;
     protocol.rsrStakedUSD = BIGDECIMAL_ZERO;
     protocol.rsrUnstaked = BI_ZERO;
