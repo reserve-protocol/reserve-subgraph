@@ -1,4 +1,3 @@
-
 /////////////////////
 // VERSION 1.0.2 ////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -9,9 +8,9 @@
 import { log, BigDecimal, BigInt, dataSource } from "@graphprotocol/graph-ts";
 import { _CircularBuffer } from "../../generated/schema";
 import {
-    Network,
-    BIGINT_TEN_TO_EIGHTEENTH,
-    SECONDS_PER_DAY
+  Network,
+  BIGINT_TEN_TO_EIGHTEENTH,
+  SECONDS_PER_DAY,
 } from "./constants";
 import {
   BIGDECIMAL_ZERO,
@@ -42,8 +41,8 @@ export const BUFFER_SIZE = 144;
 
 // Add this entity to the schema.
 // type _CircularBuffer @entity {
-//   " 'CIRCULAR_BUFFER' " 
-//   id: ID! 
+//   " 'CIRCULAR_BUFFER' "
+//   id: ID!
 
 //   " Array of sorted block numbers sorted continuously "
 //   blocks: [Int!]!
@@ -90,7 +89,7 @@ export const WINDOW_SIZE_SECONDS_BD = BigDecimal.fromString(
 // Call this function in event handlers frequently enough so that it calls on blocks frequently enough
 /**
  * @param {BigInt} currentTimestamp    - Timestamp for current event
- * @param {BigInt} currentBlockNumber  - Block nunmber of current event
+ * @param {BigInt} currentBlockNumber  - Block number of current event
  * @param {BigInt} rewardRate          - Rate of reward emissions per reward interval
  * @param {BigInt} rewardType          - Describes whether rewards are given per block or timestamp
  * @returns {BigDecimal}               - Returns estimated blocks for specified rate
@@ -110,7 +109,7 @@ export function getRewardsPerDay(
   let blocks = circularBuffer.blocks;
 
   // Interval between index and the index of the start of the window block
-  let windowWidth = abs(
+  let windowWidth = Math.abs(
     circularBuffer.windowStartIndex - circularBuffer.nextIndex
   );
   if (windowWidth == INT_ZERO) {
@@ -134,7 +133,7 @@ export function getRewardsPerDay(
     }
   }
 
-  // Add current timestamp and block numnber to array if new block is at least X blocks later than previously stored.
+  // Add current timestamp and block number to array if new block is at least X blocks later than previously stored.
   // Used to save memory and efficiency on array resizing.
   let recentSavedTimestamp: i32;
   if (circularBuffer.nextIndex == INT_ZERO) {
@@ -142,8 +141,11 @@ export function getRewardsPerDay(
   } else {
     recentSavedTimestamp = blocks[circularBuffer.nextIndex - INT_TWO];
   }
-  
-  if (currentTimestampI32 - recentSavedTimestamp <= TIMESTAMP_STORAGE_INTERVAL) {
+
+  if (
+    currentTimestampI32 - recentSavedTimestamp <=
+    TIMESTAMP_STORAGE_INTERVAL
+  ) {
     if (rewardType == RewardIntervalType.TIMESTAMP) {
       return rewardRate.times(RATE_IN_SECONDS_BD);
     } else {
@@ -162,12 +164,16 @@ export function getRewardsPerDay(
   let startTimestamp = currentTimestampI32 - WINDOW_SIZE_SECONDS;
 
   // Make sure to still have 2 blocks to calculate rate (This shouldn't happen past the beginning).
-  while (abs(circularBuffer.nextIndex - circularBuffer.windowStartIndex) > INT_FOUR) {
+  while (
+    Math.abs(circularBuffer.nextIndex - circularBuffer.windowStartIndex) >
+    INT_FOUR
+  ) {
     let windowIndexBlockTimestamp = blocks[circularBuffer.windowStartIndex];
 
     // Shift the start of the window if the current timestamp moves out of desired rate window
     if (windowIndexBlockTimestamp < startTimestamp) {
-      circularBuffer.windowStartIndex = circularBuffer.windowStartIndex + INT_TWO;
+      circularBuffer.windowStartIndex =
+        circularBuffer.windowStartIndex + INT_TWO;
       if (circularBuffer.windowStartIndex >= circularBuffer.bufferSize) {
         circularBuffer.windowStartIndex = INT_ZERO;
       }
@@ -271,7 +277,9 @@ function getStartingBlockRate(): BigDecimal {
 }
 
 export function emissionsPerDay(rewardRatePerSecond: BigInt): BigInt {
-    // Take the reward rate per second, divide out the decimals and get the emissions per day
-    const BIGINT_SECONDS_PER_DAY = BigInt.fromI32(<i32>SECONDS_PER_DAY);
-    return rewardRatePerSecond.times(BIGINT_SECONDS_PER_DAY).div(BIGINT_TEN_TO_EIGHTEENTH);
-  }
+  // Take the reward rate per second, divide out the decimals and get the emissions per day
+  const BIGINT_SECONDS_PER_DAY = BigInt.fromI32(<i32>SECONDS_PER_DAY);
+  return rewardRatePerSecond
+    .times(BIGINT_SECONDS_PER_DAY)
+    .div(BIGINT_TEN_TO_EIGHTEENTH);
+}

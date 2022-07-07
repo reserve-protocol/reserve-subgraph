@@ -1,7 +1,17 @@
 import { BigDecimal, Address, ethereum } from "@graphprotocol/graph-ts";
 import { Account, ActiveAccount } from "../../generated/schema";
-import { INT_ONE, SECONDS_PER_DAY, SECONDS_PER_HOUR, UsageType } from "./constants";
-import { getLiquidityPool, getOrCreateDex, getOrCreateFinancialsDailySnapshot, getOrCreateLiquidityPoolDailySnapshot, getOrCreateLiquidityPoolHourlySnapshot, getOrCreateUsageMetricDailySnapshot, getOrCreateUsageMetricHourlySnapshot } from "./getters";
+import {
+  INT_ONE,
+  SECONDS_PER_DAY,
+  SECONDS_PER_HOUR,
+  UsageType,
+} from "./constants";
+import {
+  getOrCreateProtocol,
+  getOrCreateFinancialsDailySnapshot,
+  getOrCreateUsageMetricDailySnapshot,
+  getOrCreateUsageMetricHourlySnapshot,
+} from "./getters";
 
 // These are meant more as boilerplates that'll be filled out depending on the
 // subgraph, and will be different from subgraph to subgraph, hence left
@@ -12,7 +22,7 @@ import { getLiquidityPool, getOrCreateDex, getOrCreateFinancialsDailySnapshot, g
 export function updateFinancials(event: ethereum.Event): void {
   let financialMetricsDaily = getOrCreateFinancialsDailySnapshot(event);
 
-  let protocol = getOrCreateDex();
+  let protocol = getOrCreateProtocol();
 
   // Update the block number and timestamp to that of the last transaction of that day
   financialMetricsDaily.blockNumber = event.block.number;
@@ -20,17 +30,28 @@ export function updateFinancials(event: ethereum.Event): void {
   financialMetricsDaily.totalValueLockedUSD = protocol.totalValueLockedUSD;
   financialMetricsDaily.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD;
 
+  financialMetricsDaily.insurance = protocol.insurance;
+  financialMetricsDaily.cumulativeTotalRevenueUSD =
+    protocol.cumulativeRTokenRevenueUSD;
+  financialMetricsDaily.cumulativeTotalRevenueUSD =
+    protocol.cumulativeTotalRevenueUSD;
+
+  // TODO: Daily metrics
   financialMetricsDaily.save();
 }
 
 // Update usage metrics entities
-export function updateUsageMetrics(event: ethereum.Event, fromAddress: Address, usageType: string): void {
+export function updateUsageMetrics(
+  event: ethereum.Event,
+  fromAddress: Address,
+  usageType: string
+): void {
   let from = fromAddress.toHexString();
 
   let usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
   let usageMetricsHourly = getOrCreateUsageMetricHourlySnapshot(event);
 
-  let protocol = getOrCreateDex();
+  let protocol = getOrCreateProtocol();
 
   // Update the block number and timestamp to that of the last transaction of that day
   usageMetricsDaily.blockNumber = event.block.number;
@@ -41,16 +62,16 @@ export function updateUsageMetrics(event: ethereum.Event, fromAddress: Address, 
   usageMetricsHourly.timestamp = event.block.timestamp;
   usageMetricsHourly.hourlyTransactionCount += INT_ONE;
 
-  if (usageType == UsageType.DEPOSIT) {
-    usageMetricsDaily.dailyDepositCount += INT_ONE;
-    usageMetricsHourly.hourlyDepositCount += INT_ONE;
-  } else if (usageType == UsageType.WITHDRAW) {
-    usageMetricsDaily.dailyWithdrawCount += INT_ONE;
-    usageMetricsHourly.hourlyWithdrawCount += INT_ONE;
-  } else if (usageType == UsageType.SWAP) {
-    usageMetricsDaily.dailySwapCount += INT_ONE;
-    usageMetricsHourly.hourlySwapCount += INT_ONE;
-  }
+  // if (usageType == UsageType.DEPOSIT) {
+  //   usageMetricsDaily.dailyDepositCount += INT_ONE;
+  //   usageMetricsHourly.hourlyDepositCount += INT_ONE;
+  // } else if (usageType == UsageType.WITHDRAW) {
+  //   usageMetricsDaily.dailyWithdrawCount += INT_ONE;
+  //   usageMetricsHourly.hourlyWithdrawCount += INT_ONE;
+  // } else if (usageType == UsageType.SWAP) {
+  //   usageMetricsDaily.dailySwapCount += INT_ONE;
+  //   usageMetricsHourly.hourlySwapCount += INT_ONE;
+  // }
 
   // Number of days since Unix epoch
   let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
@@ -91,32 +112,32 @@ export function updateUsageMetrics(event: ethereum.Event, fromAddress: Address, 
 }
 
 // Update Pool Snapshots entities
-export function updatePoolMetrics(event: ethereum.Event): void {
-  // get or create pool metrics
-  let poolMetricsDaily = getOrCreateLiquidityPoolDailySnapshot(event);
-  let poolMetricsHourly = getOrCreateLiquidityPoolHourlySnapshot(event);
+// export function updatePoolMetrics(event: ethereum.Event): void {
+//   // get or create pool metrics
+//   let poolMetricsDaily = getOrCreateLiquidityPoolDailySnapshot(event);
+//   let poolMetricsHourly = getOrCreateLiquidityPoolHourlySnapshot(event);
 
-  let pool = getLiquidityPool(event.address.toHexString());
+//   let pool = getLiquidityPool(event.address.toHexString());
 
-  // Update the block number and timestamp to that of the last transaction of that day
-  poolMetricsDaily.totalValueLockedUSD = pool.totalValueLockedUSD;
-  poolMetricsDaily.cumulativeVolumeUSD = pool.cumulativeVolumeUSD;
-  poolMetricsDaily.inputTokenBalances = pool.inputTokenBalances;
-  poolMetricsDaily.inputTokenWeights = pool.inputTokenWeights;
-  poolMetricsDaily.outputTokenSupply = pool.outputTokenSupply;
-  poolMetricsDaily.outputTokenPriceUSD = pool.outputTokenPriceUSD;
-  poolMetricsDaily.blockNumber = event.block.number;
-  poolMetricsDaily.timestamp = event.block.timestamp;
+//   // Update the block number and timestamp to that of the last transaction of that day
+//   poolMetricsDaily.totalValueLockedUSD = pool.totalValueLockedUSD;
+//   poolMetricsDaily.cumulativeVolumeUSD = pool.cumulativeVolumeUSD;
+//   poolMetricsDaily.inputTokenBalances = pool.inputTokenBalances;
+//   poolMetricsDaily.inputTokenWeights = pool.inputTokenWeights;
+//   poolMetricsDaily.outputTokenSupply = pool.outputTokenSupply;
+//   poolMetricsDaily.outputTokenPriceUSD = pool.outputTokenPriceUSD;
+//   poolMetricsDaily.blockNumber = event.block.number;
+//   poolMetricsDaily.timestamp = event.block.timestamp;
 
-  poolMetricsHourly.totalValueLockedUSD = pool.totalValueLockedUSD;
-  poolMetricsHourly.cumulativeVolumeUSD = pool.cumulativeVolumeUSD;
-  poolMetricsHourly.inputTokenBalances = pool.inputTokenBalances;
-  poolMetricsHourly.inputTokenWeights = pool.inputTokenWeights;
-  poolMetricsHourly.outputTokenSupply = pool.outputTokenSupply;
-  poolMetricsHourly.outputTokenPriceUSD = pool.outputTokenPriceUSD;
-  poolMetricsHourly.blockNumber = event.block.number;
-  poolMetricsHourly.timestamp = event.block.timestamp;
+//   poolMetricsHourly.totalValueLockedUSD = pool.totalValueLockedUSD;
+//   poolMetricsHourly.cumulativeVolumeUSD = pool.cumulativeVolumeUSD;
+//   poolMetricsHourly.inputTokenBalances = pool.inputTokenBalances;
+//   poolMetricsHourly.inputTokenWeights = pool.inputTokenWeights;
+//   poolMetricsHourly.outputTokenSupply = pool.outputTokenSupply;
+//   poolMetricsHourly.outputTokenPriceUSD = pool.outputTokenPriceUSD;
+//   poolMetricsHourly.blockNumber = event.block.number;
+//   poolMetricsHourly.timestamp = event.block.timestamp;
 
-  poolMetricsDaily.save();
-  poolMetricsHourly.save();
-}
+//   poolMetricsDaily.save();
+//   poolMetricsHourly.save();
+// }
