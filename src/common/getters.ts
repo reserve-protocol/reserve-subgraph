@@ -32,6 +32,7 @@ import {
   PROTOCOL_SUBGRAPH_VERSION,
   PROTOCOL_METHODOLOGY_VERSION,
   TokenType,
+  BIGDECIMAL_ONE,
 } from "../common/constants";
 
 export function getOrCreateProtocol(): Protocol {
@@ -46,19 +47,19 @@ export function getOrCreateProtocol(): Protocol {
     protocol.methodologyVersion = PROTOCOL_METHODOLOGY_VERSION;
     protocol.totalValueLockedUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeSupplySideRevenueUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeProtocolSideRevenueUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeUniqueUsers = INT_ZERO;
     protocol.network = Network.MAINNET;
     protocol.type = ProtocolType.GENERIC;
 
     protocol.rsrStaked = BI_ZERO;
-    protocol.rsrStakedValueUSD = BIGDECIMAL_ZERO;
+    protocol.rsrStakedUSD = BIGDECIMAL_ZERO;
     protocol.rsrUnstaked = BI_ZERO;
-    protocol.rsrUnstakedValueUSD = BIGDECIMAL_ZERO;
-    protocol.totalRTokenSupply = BI_ZERO;
-    protocol.totalRTokenValueUSD = BIGDECIMAL_ZERO; // Maybe duplicated from cumulative volume
+    protocol.rsrUnstakedUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
+    protocol.totalRTokenUSD = BIGDECIMAL_ZERO; // Maybe duplicated from cumulative volume
     protocol.rTokenCount = INT_ZERO;
 
     protocol.save();
@@ -84,13 +85,13 @@ export function getOrCreateUsageMetricDailySnapshot(
     usageMetrics.dailyTransactionCount = INT_ZERO;
 
     usageMetrics.dailyRSRStaked = BI_ZERO;
-    usageMetrics.dailyRSRStakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.dailyRSRStakedUSD = BIGDECIMAL_ZERO;
     usageMetrics.cumulativeRSRStaked = BI_ZERO;
-    usageMetrics.cumulativeRSRStakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.cumulativeRSRStakedUSD = BIGDECIMAL_ZERO;
     usageMetrics.dailyRSRUnstaked = BI_ZERO;
-    usageMetrics.dailyRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.dailyRSRUnstakedUSD = BIGDECIMAL_ZERO;
     usageMetrics.cumulativeRSRUnstaked = BI_ZERO;
-    usageMetrics.cumulativeRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.cumulativeRSRUnstakedUSD = BIGDECIMAL_ZERO;
 
     usageMetrics.blockNumber = event.block.number;
     usageMetrics.timestamp = event.block.timestamp;
@@ -153,6 +154,8 @@ export function getOrCreateFinancialsDailySnapshot(
     financialMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;
     financialMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
 
+    financialMetrics.dailyRTokenRevenueUSD = BIGDECIMAL_ZERO;
+    financialMetrics.dailyInsuranceRevenueUSD = BIGDECIMAL_ZERO;
     financialMetrics.dailyTotalRevenueUSD = BIGDECIMAL_ZERO;
     financialMetrics.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
 
@@ -165,6 +168,7 @@ export function getOrCreateFinancialsDailySnapshot(
 }
 
 export function getOrCreateRTokenDailySnapshot(
+  rTokenAddress: string,
   event: ethereum.Event
 ): RTokenDailySnapshot {
   let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
@@ -184,14 +188,14 @@ export function getOrCreateRTokenDailySnapshot(
         .concat(dayId)
     );
     rTokenMetrics.protocol = FACTORY_ADDRESS;
-    rTokenMetrics.pool = event.address.toHexString();
-    rTokenMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.dailyVolumeByTokenAmount = [BIGINT_ZERO, BIGINT_ZERO];
-    rTokenMetrics.dailyVolumeByTokenUSD = [BIGDECIMAL_ZERO, BIGDECIMAL_ZERO];
-    rTokenMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.inputTokenBalances = [BIGINT_ZERO, BIGINT_ZERO];
-    rTokenMetrics.inputTokenWeights = [BIGDECIMAL_ZERO, BIGDECIMAL_ZERO];
+    rTokenMetrics.rToken = rTokenAddress;
+
+    rTokenMetrics.tokenSupply = BI_ZERO;
+    // TODO: Fetch from rToken
+    rTokenMetrics.tokenPriceUSD = BIGDECIMAL_ONE;
+    rTokenMetrics.rewardTokenSupply = BI_ZERO;
+    // TODO: Oracle price
+    rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ONE;
 
     rTokenMetrics.blockNumber = event.block.number;
     rTokenMetrics.timestamp = event.block.timestamp;
