@@ -1,39 +1,38 @@
-import { BI_ZERO } from "./../utils/helper";
-// import { log } from "@graphprotocol/graph-ts"
-import { Address, ethereum } from "@graphprotocol/graph-ts";
 import {
-  Token,
-  UsageMetricsDailySnapshot,
-  UsageMetricsHourlySnapshot,
-  FinancialsDailySnapshot,
-  RTokenHourlySnapshot,
-  RTokenDailySnapshot,
-  TokenHourlySnapshot,
-  TokenDailySnapshot,
-  RToken,
-  Account,
   AccountBalance,
   AccountBalanceDailySnapshot,
+} from "./../../generated/schema";
+import { Address, ethereum } from "@graphprotocol/graph-ts";
+import {
+  Account,
+  FinancialsDailySnapshot,
   Protocol,
+  RewardToken,
+  RTokenDailySnapshot,
+  RTokenHourlySnapshot,
+  Token,
+  TokenDailySnapshot,
+  TokenHourlySnapshot,
+  UsageMetricsDailySnapshot,
+  UsageMetricsHourlySnapshot,
 } from "../../generated/schema";
-import { fetchTokenSymbol, fetchTokenName, fetchTokenDecimals } from "./tokens";
 import {
   BIGDECIMAL_ZERO,
-  Network,
-  INT_ZERO,
   FACTORY_ADDRESS,
+  INT_ZERO,
+  Network,
   ProtocolType,
-  SECONDS_PER_DAY,
-  BIGINT_ZERO,
-  SECONDS_PER_HOUR,
-  PROTOCOL_NAME,
-  PROTOCOL_SLUG,
-  PROTOCOL_SCHEMA_VERSION,
-  PROTOCOL_SUBGRAPH_VERSION,
   PROTOCOL_METHODOLOGY_VERSION,
-  TokenType,
-  BIGDECIMAL_ONE,
+  PROTOCOL_NAME,
+  PROTOCOL_SCHEMA_VERSION,
+  PROTOCOL_SLUG,
+  PROTOCOL_SUBGRAPH_VERSION,
+  RewardTokenType,
+  SECONDS_PER_DAY,
+  SECONDS_PER_HOUR,
 } from "../common/constants";
+import { BI_ZERO } from "./../utils/helper";
+import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
 
 export function getOrCreateProtocol(): Protocol {
   let protocol = Protocol.load(FACTORY_ADDRESS);
@@ -175,28 +174,28 @@ export function getOrCreateRTokenDailySnapshot(
   let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
   let dayId = day.toString();
   let rTokenMetrics = RTokenDailySnapshot.load(
-    event.address
-      .toHexString()
-      .concat("-")
-      .concat(dayId)
+    rTokenAddress.concat("-").concat(dayId)
   );
 
   if (!rTokenMetrics) {
     rTokenMetrics = new RTokenDailySnapshot(
-      event.address
-        .toHexString()
-        .concat("-")
-        .concat(dayId)
+      rTokenAddress.concat("-").concat(dayId)
     );
     rTokenMetrics.protocol = FACTORY_ADDRESS;
     rTokenMetrics.rToken = rTokenAddress;
 
+    rTokenMetrics.insurance = BI_ZERO;
     rTokenMetrics.tokenSupply = BI_ZERO;
-    // TODO: Fetch from rToken
-    rTokenMetrics.tokenPriceUSD = BIGDECIMAL_ONE;
+    rTokenMetrics.tokenPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.rewardTokenSupply = BI_ZERO;
-    // TODO: Oracle price
-    rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ONE;
+
+    rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.dailyRSRStaked = BI_ZERO;
+    rTokenMetrics.cumulativeRSRStaked = BI_ZERO;
+    rTokenMetrics.dailyRSRUnstaked = BI_ZERO;
+    rTokenMetrics.cumulativeRSRUnstaked = BI_ZERO;
+    rTokenMetrics.rsrExchangeRate = BI_ZERO;
+    rTokenMetrics.basketUnits = BI_ZERO;
 
     rTokenMetrics.blockNumber = event.block.number;
     rTokenMetrics.timestamp = event.block.timestamp;
@@ -208,49 +207,45 @@ export function getOrCreateRTokenDailySnapshot(
 }
 
 export function getOrCreateRTokenHourlySnapshot(
+  rTokenAddress: string,
   event: ethereum.Event
-): LiquidityPoolHourlySnapshot {
+): RTokenHourlySnapshot {
   let hour = event.block.timestamp.toI32() / SECONDS_PER_HOUR;
-
   let hourId = hour.toString();
-  let poolMetrics = LiquidityPoolHourlySnapshot.load(
-    event.address
-      .toHexString()
-      .concat("-")
-      .concat(hourId)
+  let rTokenMetrics = RTokenHourlySnapshot.load(
+    rTokenAddress.concat("-").concat(hourId)
   );
 
-  if (!poolMetrics) {
-    poolMetrics = new LiquidityPoolHourlySnapshot(
-      event.address
-        .toHexString()
-        .concat("-")
-        .concat(hourId)
+  if (!rTokenMetrics) {
+    rTokenMetrics = new RTokenHourlySnapshot(
+      rTokenAddress.concat("-").concat(hourId)
     );
-    poolMetrics.protocol = FACTORY_ADDRESS;
-    poolMetrics.pool = event.address.toHexString();
-    poolMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
-    poolMetrics.hourlyVolumeUSD = BIGDECIMAL_ZERO;
-    poolMetrics.hourlyVolumeByTokenAmount = [BIGINT_ZERO, BIGINT_ZERO];
-    poolMetrics.hourlyVolumeByTokenUSD = [BIGDECIMAL_ZERO, BIGDECIMAL_ZERO];
-    poolMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
-    poolMetrics.inputTokenBalances = [BIGINT_ZERO, BIGINT_ZERO];
-    poolMetrics.inputTokenWeights = [BIGDECIMAL_ZERO, BIGDECIMAL_ZERO];
+    rTokenMetrics.protocol = FACTORY_ADDRESS;
+    rTokenMetrics.rToken = rTokenAddress;
 
-    poolMetrics.blockNumber = event.block.number;
-    poolMetrics.timestamp = event.block.timestamp;
+    rTokenMetrics.insurance = BI_ZERO;
+    rTokenMetrics.tokenSupply = BI_ZERO;
+    rTokenMetrics.tokenPriceUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.rewardTokenSupply = BI_ZERO;
 
-    poolMetrics.save();
+    rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.hourlyRSRStaked = BI_ZERO;
+    rTokenMetrics.cumulativeRSRStaked = BI_ZERO;
+    rTokenMetrics.hourlyRSRUnstaked = BI_ZERO;
+    rTokenMetrics.cumulativeRSRUnstaked = BI_ZERO;
+    rTokenMetrics.rsrExchangeRate = BI_ZERO;
+    rTokenMetrics.basketUnits = BI_ZERO;
+
+    rTokenMetrics.blockNumber = event.block.number;
+    rTokenMetrics.timestamp = event.block.timestamp;
+
+    rTokenMetrics.save();
   }
 
-  return poolMetrics;
+  return rTokenMetrics;
 }
 
-export function getOrCreateToken(
-  tokenAddress: Address,
-  type: string = TokenType.GENERIC,
-  rTokenAddress?: string
-): Token {
+export function getOrCreateToken(tokenAddress: Address): Token {
   let token = Token.load(tokenAddress.toHexString());
   // fetch info if null
   if (!token) {
@@ -263,16 +258,165 @@ export function getOrCreateToken(
     token.mintCount = BI_ZERO;
     token.burnCount = BI_ZERO;
     token.totalSupply = BIGDECIMAL_ZERO;
-
-    token.type = type;
-
-    if (rTokenAddress) {
-      token.rToken = rTokenAddress;
-    }
+    token.lastPriceBlockNumber = BI_ZERO;
+    token.lastPriceUSD = BIGDECIMAL_ZERO;
 
     token.save();
   }
   return token;
+}
+
+export function getOrCreateRewardToken(tokenAddress: Address): RewardToken {
+  let id = RewardTokenType.DEPOSIT.concat("-").concat(
+    tokenAddress.toHexString()
+  );
+  let rewardToken = RewardToken.load(id);
+
+  if (!rewardToken) {
+    rewardToken = new RewardToken(id);
+    let token = getOrCreateToken(tokenAddress);
+    rewardToken.token = token.id;
+    rewardToken.type = RewardTokenType.DEPOSIT;
+
+    rewardToken.save();
+  }
+
+  return rewardToken;
+}
+
+export function getOrCreateTokenDailySnapshot(
+  tokenAddress: string,
+  event: ethereum.Event
+): TokenDailySnapshot {
+  let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
+  let dayId = day.toString();
+  let tokenMetrics = TokenDailySnapshot.load(
+    tokenAddress.concat("-").concat(dayId)
+  );
+
+  if (!tokenMetrics) {
+    tokenMetrics = new TokenDailySnapshot(
+      tokenAddress.concat("-").concat(dayId)
+    );
+    tokenMetrics.token = tokenAddress;
+    tokenMetrics.dailyTotalSupply = BI_ZERO;
+    tokenMetrics.dailyHolderCount = BI_ZERO;
+    tokenMetrics.dailyActiveUsers = INT_ZERO;
+    tokenMetrics.cumulativeUniqueUsers = INT_ZERO;
+    tokenMetrics.dailyEventCount = INT_ZERO;
+    tokenMetrics.dailyMintCount = INT_ZERO;
+    tokenMetrics.dailyMintAmount = BI_ZERO;
+    tokenMetrics.dailyBurnCount = INT_ZERO;
+    tokenMetrics.dailyBurnAmount = BI_ZERO;
+    tokenMetrics.priceUSD = BIGDECIMAL_ZERO;
+    tokenMetrics.blockNumber = event.block.number;
+    tokenMetrics.timestamp = event.block.timestamp;
+
+    tokenMetrics.save();
+  }
+
+  return tokenMetrics;
+}
+
+export function getOrCreateTokenHourlySnapshot(
+  tokenAddress: string,
+  event: ethereum.Event
+): TokenHourlySnapshot {
+  let hour = event.block.timestamp.toI32() / SECONDS_PER_HOUR;
+  let hourId = hour.toString();
+  let tokenMetrics = TokenHourlySnapshot.load(
+    tokenAddress.concat("-").concat(hourId)
+  );
+
+  if (!tokenMetrics) {
+    tokenMetrics = new TokenHourlySnapshot(
+      tokenAddress.concat("-").concat(hourId)
+    );
+    tokenMetrics.token = tokenAddress;
+    tokenMetrics.hourlyTotalSupply = BI_ZERO;
+    tokenMetrics.hourlyHolderCount = BI_ZERO;
+    tokenMetrics.hourlyActiveUsers = INT_ZERO;
+    tokenMetrics.cumulativeUniqueUsers = INT_ZERO;
+    tokenMetrics.hourlyEventCount = INT_ZERO;
+    tokenMetrics.hourlyMintCount = INT_ZERO;
+    tokenMetrics.hourlyMintAmount = BI_ZERO;
+    tokenMetrics.hourlyBurnCount = INT_ZERO;
+    tokenMetrics.hourlyBurnAmount = BI_ZERO;
+    tokenMetrics.priceUSD = BIGDECIMAL_ZERO;
+    tokenMetrics.blockNumber = event.block.number;
+    tokenMetrics.timestamp = event.block.timestamp;
+
+    tokenMetrics.save();
+  }
+
+  return tokenMetrics;
+}
+
+export function getOrCreateAccount(address: Address): Account {
+  let account = Account.load(address.toHexString());
+
+  if (!account) {
+    account = new Account(address.toHexString());
+    account.save();
+  }
+
+  return account;
+}
+
+export function getOrCreateAccountBalance(
+  accountAddress: Address,
+  tokenAddress: Address
+): AccountBalance {
+  let id = accountAddress
+    .toHexString()
+    .concat("-")
+    .concat(tokenAddress.toHexString());
+  let accountBalance = AccountBalance.load(id);
+
+  if (!accountBalance) {
+    accountBalance = new AccountBalance(id);
+    let account = getOrCreateAccount(accountAddress);
+    let token = getOrCreateToken(tokenAddress);
+    accountBalance.account = account.id;
+    accountBalance.token = token.id;
+    accountBalance.amount = BIGDECIMAL_ZERO;
+    accountBalance.blockNumber = BI_ZERO;
+    accountBalance.timestamp = BI_ZERO;
+
+    accountBalance.save();
+  }
+
+  return accountBalance;
+}
+
+export function getOrCreateAccountBalanceDailySnapshot(
+  accountAddress: Address,
+  tokenAddress: Address,
+  event: ethereum.Event
+): AccountBalanceDailySnapshot {
+  let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
+  let dayId = day.toString();
+  let id = accountAddress
+    .toHexString()
+    .concat("-")
+    .concat(tokenAddress.toHexString())
+    .concat("-")
+    .concat(dayId);
+  let accountMetric = AccountBalanceDailySnapshot.load(id);
+
+  if (!accountMetric) {
+    accountMetric = new AccountBalanceDailySnapshot(id);
+    accountMetric.account = accountAddress.toHexString();
+    accountMetric.token = tokenAddress.toHexString();
+    accountMetric.amount = BIGDECIMAL_ZERO;
+    accountMetric.amountUSD = BIGDECIMAL_ZERO;
+    accountMetric.blockNumber = event.block.number;
+    accountMetric.timestamp = event.block.timestamp;
+
+    accountMetric.save();
+  }
+
+  return accountMetric;
 }
 
 export function getDaysSinceEpoch(secondsSinceEpoch: number): string {

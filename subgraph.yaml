@@ -167,33 +167,6 @@ dataSources:
           handler: handleTransfer
       file: ./src/mapping.ts
 templates:
-  # Track RToken basket events (initial basket is set through this)
-  - name: BasketHandler
-    kind: ethereum/contract
-    network: localhost
-    source:
-      abi: BasketHandler
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - BasketHandler
-        - Token
-        - Main
-        - Basket
-        - Collateral
-      abis:
-        - name: BasketHandler
-          file: ./abis/BasketHandler.json
-        - name: Facade
-          file: ./abis/Facade.json
-        - name: ERC20
-          file: ./abis/ERC20.json
-      eventHandlers:
-        - event: BasketSet(address[],uint192[],bool)
-          handler: handleBasketChange
-      file: ./src/mapping.ts
   # Track RToken ERC20 events
   - name: RToken
     kind: ethereum/contract
