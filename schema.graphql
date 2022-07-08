@@ -297,6 +297,9 @@ type RToken @entity {
   " stRSR Token "
   rewardToken: RewardToken!
 
+  " RToken owner, should be a governance contract "
+  owner: Account!
+
   " Creation timestamp "
   createdTimestamp: BigInt!
 
