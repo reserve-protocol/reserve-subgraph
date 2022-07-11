@@ -114,6 +114,8 @@ export namespace EntryType {
   export const STAKE = "STAKE";
   export const UNSTAKE = "UNSTAKE";
   export const WITHDRAW = "WITHDRAW";
+  export const BURN = "BURN";
+  export const MINT = "MINT";
 }
 
 export namespace TokenType {
