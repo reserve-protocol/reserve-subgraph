@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 
 ////////////////////
 ///// Versions /////
@@ -132,8 +132,9 @@ export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 export const RSR_ADDRESS = "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"; // TODO: Created block
-export const RSV_ADDRESS = "0x196f4727526ea7fb1e17b2071b3d8eaa38486988"; // TODO: Created block
-export const RSV_MANAGER_ADDRESS = "0x4b481872f31bab47c6780d5488c84d309b1b8bb6"; // TODO: Created block
+export const RSV_ADDRESS = Address.fromString(
+  "0x196f4727526ea7fb1e17b2071b3d8eaa38486988"
+); // TODO: Created block
 
 ////////////////////////
 ///// Type Helpers /////

@@ -260,6 +260,8 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.mintCount = BIGINT_ZERO;
     token.burnCount = BIGINT_ZERO;
     token.totalSupply = BIGDECIMAL_ZERO;
+    token.totalBurned = BIGDECIMAL_ZERO;
+    token.totalMinted = BIGDECIMAL_ZERO;
     token.lastPriceBlockNumber = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
 

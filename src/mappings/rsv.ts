@@ -1,4 +1,3 @@
-import { Address } from "@graphprotocol/graph-ts";
 import {
   Issuance as RSVIssuance,
   Redemption as RSVRedemption,
@@ -9,11 +8,7 @@ import {
   getOrCreateEntry,
   getOrCreateToken,
 } from "../common/getters";
-import { EntryType, ZERO_ADDRESS } from "./../common/constants";
-
-const RSV_ADDRESS = Address.fromString(
-  "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
-);
+import { EntryType, ZERO_ADDRESS, RSV_ADDRESS } from "./../common/constants";
 
 /**
  * * RSV specific mappings
