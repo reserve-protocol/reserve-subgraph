@@ -1,6 +1,7 @@
 import {
   AccountBalance,
   AccountBalanceDailySnapshot,
+  Entry,
 } from "./../../generated/schema";
 import { Address, ethereum } from "@graphprotocol/graph-ts";
 import {
@@ -417,6 +418,36 @@ export function getOrCreateAccountBalanceDailySnapshot(
   }
 
   return accountMetric;
+}
+
+export function getOrCreateEntry(
+  event: ethereum.Event,
+  tokenId: string,
+  accountId: string,
+  type: string
+): Entry {
+  let id = tokenId
+    .concat("-")
+    .concat(event.transaction.hash.toHexString())
+    .concat("-")
+    .concat(event.transactionLogIndex.toHexString());
+  let entry = Entry.load(id);
+
+  if (!entry) {
+    entry = new Entry(id);
+    entry.hash = event.transaction.hash.toHexString();
+    entry.logIndex = event.transactionLogIndex.toI32();
+    entry.token = tokenId;
+    entry.nonce = event.transaction.nonce.toI32();
+    entry.from = accountId;
+    entry.blockNumber = event.block.number;
+    entry.timestamp = event.block.timestamp;
+    entry.type = type;
+
+    entry.save();
+  }
+
+  return entry;
 }
 
 export function getDaysSinceEpoch(secondsSinceEpoch: number): string {

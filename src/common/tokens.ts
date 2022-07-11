@@ -127,6 +127,7 @@ class StaticTokenDefinition {
       "Reserve",
       18 as i32
     );
+    staticDefinitions.push(tokenRSV);
 
     return staticDefinitions;
   }
