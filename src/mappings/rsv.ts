@@ -1,4 +1,4 @@
-import { RSV_ADDRESS } from "./../common/constants";
+import { RSV_ADDRESS, ZERO_ADDRESS } from "./../common/constants";
 import { Address } from "@graphprotocol/graph-ts";
 import { Token } from "../../generated/schema";
 import { Transfer as TransferEvent } from "../../generated/templates/RToken/RToken";
@@ -15,7 +15,11 @@ import {
 } from "../utils/helper";
 import { handleRTokenRedemption, handleTransfer } from "../mapping";
 import { getMain, getTransaction, getUser } from "../utils/getters";
-import { getOrCreateAccount, getOrCreateToken } from "../common/getters";
+import {
+  getOrCreateAccount,
+  getOrCreateEntry,
+  getOrCreateToken,
+} from "../common/getters";
 
 const RSV_ADDRESS = "0x196f4727526eA7FB1e17b2071B3d8eAA38486988";
 
@@ -25,56 +29,52 @@ const RSV_ADDRESS = "0x196f4727526eA7FB1e17b2071B3d8eAA38486988";
 
 // Handles token issuance
 export function handleIssuance(event: RSVIssuance): void {
-  let main = getMain(Address.fromString(RSVInfo.main));
-  let user = getUser(event.params.user);
-  let token = Token.load(main.token)!;
-
-  // Create entry
-  let trx = getTransaction(event);
-  let entry = new Entry(
-    getConcatenatedId("Issuance", event.transaction.hash.toHexString())
-  );
-  entry.createdAt = event.block.timestamp;
-  entry.token = token.id;
-  entry.main = token.main!;
-  entry.user = user.id;
-  entry.transaction = trx.id;
-  entry.amount = event.params.amount;
-  entry.type = EntryType.Issuance;
-  entry.status = EntryStatus.Completed;
-  entry.save();
-}
-
-// Handles RSV redemption
-export function handleRTokenRedemption(event: RSVRedemption): void {
   let account = getOrCreateAccount(event.params.user);
   let token = getOrCreateToken(Address.fromString(RSV_ADDRESS));
 
   // Create entry
-  let trx = getTransaction(event);
-  let entry = new Entry(
-    getConcatenatedId("Redeem", event.transaction.hash.toHexString())
+  let entry = getOrCreateEntry(
+    event,
+    token.id,
+    account.id,
+    EntryType.Redemption
   );
-  entry.createdAt = event.block.timestamp;
-  entry.token = tokenAddress;
-  entry.main = mainAddress;
-  entry.user = user.id;
-  entry.transaction = trx.id;
-  entry.amount = amount;
-  entry.type = EntryType.Redemption;
-  entry.status = EntryStatus.Completed;
+  entry.amount = event.params.amount;
   entry.save();
 }
 
-// Handle token redemption
+// Handles RSV redemption
 export function handleRedemption(event: RSVRedemption): void {
-  handleRTokenRedemption(
+  let account = getOrCreateAccount(event.params.user);
+  let token = getOrCreateToken(Address.fromString(RSV_ADDRESS));
+
+  // Create entry
+  let entry = getOrCreateEntry(
     event,
-    Address.fromString(RSVInfo.main),
-    event.params.user,
-    event.params.amount,
-    true
+    token.id,
+    account.id,
+    EntryType.Redemption
   );
+  entry.amount = event.params.amount;
+  entry.save();
+  // TODO: Update analytics
+}
+
+export function handleTransfer(event: TransferEvent): void {
+  let fromAccount = getOrCreateAccount(event.params.from);
+  let toAccount = getOrCreateAccount(event.params.to);
+  let token = getOrCreateToken(Address.fromString(RSV_ADDRESS));
+
+  let entryType = EntryType.Transfer;
+
+  if (ZERO_ADDRESS == event.params.to.toHexString()) {
+    entryType = EntryType.Burn;
+  } else if (ZERO_ADDRESS == event.params.from.toHexString()) {
+    entryType = EntryType.Mint;
+  }
+
+  let entry = getOrCreateEntry(event, token.id, fromAccount.id, entryType);
+  // TODO: Update analytics
 }
 
 // Handles transfer, override token hash to match the current token hash

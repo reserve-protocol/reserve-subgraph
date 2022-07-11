@@ -19,6 +19,7 @@ import {
 } from "../../generated/schema";
 import {
   BIGDECIMAL_ZERO,
+  BIGINT_ZERO,
   FACTORY_ADDRESS,
   INT_ZERO,
   Network,
@@ -32,7 +33,7 @@ import {
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
 } from "../common/constants";
-import { BI_ZERO } from "./../utils/helper";
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
 
 export function getOrCreateProtocol(): Protocol {
@@ -54,10 +55,10 @@ export function getOrCreateProtocol(): Protocol {
     protocol.network = Network.MAINNET;
     protocol.type = ProtocolType.GENERIC;
 
-    protocol.insurance = BI_ZERO;
-    protocol.rsrStaked = BI_ZERO;
+    protocol.insurance = BIGINT_ZERO;
+    protocol.rsrStaked = BIGINT_ZERO;
     protocol.rsrStakedUSD = BIGDECIMAL_ZERO;
-    protocol.rsrUnstaked = BI_ZERO;
+    protocol.rsrUnstaked = BIGINT_ZERO;
     protocol.rsrUnstakedUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
     protocol.totalRTokenUSD = BIGDECIMAL_ZERO; // Maybe duplicated from cumulative volume
@@ -85,13 +86,13 @@ export function getOrCreateUsageMetricDailySnapshot(
     usageMetrics.cumulativeUniqueUsers = INT_ZERO;
     usageMetrics.dailyTransactionCount = INT_ZERO;
 
-    usageMetrics.dailyRSRStaked = BI_ZERO;
+    usageMetrics.dailyRSRStaked = BIGINT_ZERO;
     usageMetrics.dailyRSRStakedUSD = BIGDECIMAL_ZERO;
-    usageMetrics.cumulativeRSRStaked = BI_ZERO;
+    usageMetrics.cumulativeRSRStaked = BIGINT_ZERO;
     usageMetrics.cumulativeRSRStakedUSD = BIGDECIMAL_ZERO;
-    usageMetrics.dailyRSRUnstaked = BI_ZERO;
+    usageMetrics.dailyRSRUnstaked = BIGINT_ZERO;
     usageMetrics.dailyRSRUnstakedUSD = BIGDECIMAL_ZERO;
-    usageMetrics.cumulativeRSRUnstaked = BI_ZERO;
+    usageMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
     usageMetrics.cumulativeRSRUnstakedUSD = BIGDECIMAL_ZERO;
 
     usageMetrics.blockNumber = event.block.number;
@@ -120,13 +121,13 @@ export function getOrCreateUsageMetricHourlySnapshot(
     usageMetrics.cumulativeUniqueUsers = INT_ZERO;
     usageMetrics.hourlyTransactionCount = INT_ZERO;
 
-    usageMetrics.hourlyRSRStaked = BI_ZERO;
+    usageMetrics.hourlyRSRStaked = BIGINT_ZERO;
     usageMetrics.hourlyRSRStakedValueUSD = BIGDECIMAL_ZERO;
-    usageMetrics.cumulativeRSRStaked = BI_ZERO;
+    usageMetrics.cumulativeRSRStaked = BIGINT_ZERO;
     usageMetrics.cumulativeRSRStakedValueUSD = BIGDECIMAL_ZERO;
-    usageMetrics.hourlyRSRUnstaked = BI_ZERO;
+    usageMetrics.hourlyRSRUnstaked = BIGINT_ZERO;
     usageMetrics.hourlyRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
-    usageMetrics.cumulativeRSRUnstaked = BI_ZERO;
+    usageMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
     usageMetrics.cumulativeRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
 
     usageMetrics.blockNumber = event.block.number;
@@ -185,18 +186,18 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics.protocol = FACTORY_ADDRESS;
     rTokenMetrics.rToken = rTokenAddress;
 
-    rTokenMetrics.insurance = BI_ZERO;
-    rTokenMetrics.tokenSupply = BI_ZERO;
+    rTokenMetrics.insurance = BIGINT_ZERO;
+    rTokenMetrics.tokenSupply = BIGINT_ZERO;
     rTokenMetrics.tokenPriceUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.rewardTokenSupply = BI_ZERO;
+    rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
 
     rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.dailyRSRStaked = BI_ZERO;
-    rTokenMetrics.cumulativeRSRStaked = BI_ZERO;
-    rTokenMetrics.dailyRSRUnstaked = BI_ZERO;
-    rTokenMetrics.cumulativeRSRUnstaked = BI_ZERO;
-    rTokenMetrics.rsrExchangeRate = BI_ZERO;
-    rTokenMetrics.basketUnits = BI_ZERO;
+    rTokenMetrics.dailyRSRStaked = BIGINT_ZERO;
+    rTokenMetrics.cumulativeRSRStaked = BIGINT_ZERO;
+    rTokenMetrics.dailyRSRUnstaked = BIGINT_ZERO;
+    rTokenMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
+    rTokenMetrics.rsrExchangeRate = BIGINT_ZERO;
+    rTokenMetrics.basketUnits = BIGINT_ZERO;
 
     rTokenMetrics.blockNumber = event.block.number;
     rTokenMetrics.timestamp = event.block.timestamp;
@@ -224,18 +225,18 @@ export function getOrCreateRTokenHourlySnapshot(
     rTokenMetrics.protocol = FACTORY_ADDRESS;
     rTokenMetrics.rToken = rTokenAddress;
 
-    rTokenMetrics.insurance = BI_ZERO;
-    rTokenMetrics.tokenSupply = BI_ZERO;
+    rTokenMetrics.insurance = BIGINT_ZERO;
+    rTokenMetrics.tokenSupply = BIGINT_ZERO;
     rTokenMetrics.tokenPriceUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.rewardTokenSupply = BI_ZERO;
+    rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
 
     rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.hourlyRSRStaked = BI_ZERO;
-    rTokenMetrics.cumulativeRSRStaked = BI_ZERO;
-    rTokenMetrics.hourlyRSRUnstaked = BI_ZERO;
-    rTokenMetrics.cumulativeRSRUnstaked = BI_ZERO;
-    rTokenMetrics.rsrExchangeRate = BI_ZERO;
-    rTokenMetrics.basketUnits = BI_ZERO;
+    rTokenMetrics.hourlyRSRStaked = BIGINT_ZERO;
+    rTokenMetrics.cumulativeRSRStaked = BIGINT_ZERO;
+    rTokenMetrics.hourlyRSRUnstaked = BIGINT_ZERO;
+    rTokenMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
+    rTokenMetrics.rsrExchangeRate = BIGINT_ZERO;
+    rTokenMetrics.basketUnits = BIGINT_ZERO;
 
     rTokenMetrics.blockNumber = event.block.number;
     rTokenMetrics.timestamp = event.block.timestamp;
@@ -254,12 +255,12 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.symbol = fetchTokenSymbol(tokenAddress);
     token.name = fetchTokenName(tokenAddress);
     token.decimals = fetchTokenDecimals(tokenAddress);
-    token.holderCount = BI_ZERO;
-    token.transferCount = BI_ZERO;
-    token.mintCount = BI_ZERO;
-    token.burnCount = BI_ZERO;
+    token.holderCount = BIGINT_ZERO;
+    token.transferCount = BIGINT_ZERO;
+    token.mintCount = BIGINT_ZERO;
+    token.burnCount = BIGINT_ZERO;
     token.totalSupply = BIGDECIMAL_ZERO;
-    token.lastPriceBlockNumber = BI_ZERO;
+    token.lastPriceBlockNumber = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
 
     token.save();
@@ -300,15 +301,15 @@ export function getOrCreateTokenDailySnapshot(
       tokenAddress.concat("-").concat(dayId)
     );
     tokenMetrics.token = tokenAddress;
-    tokenMetrics.dailyTotalSupply = BI_ZERO;
-    tokenMetrics.dailyHolderCount = BI_ZERO;
+    tokenMetrics.dailyTotalSupply = BIGINT_ZERO;
+    tokenMetrics.dailyHolderCount = BIGINT_ZERO;
     tokenMetrics.dailyActiveUsers = INT_ZERO;
     tokenMetrics.cumulativeUniqueUsers = INT_ZERO;
     tokenMetrics.dailyEventCount = INT_ZERO;
     tokenMetrics.dailyMintCount = INT_ZERO;
-    tokenMetrics.dailyMintAmount = BI_ZERO;
+    tokenMetrics.dailyMintAmount = BIGINT_ZERO;
     tokenMetrics.dailyBurnCount = INT_ZERO;
-    tokenMetrics.dailyBurnAmount = BI_ZERO;
+    tokenMetrics.dailyBurnAmount = BIGINT_ZERO;
     tokenMetrics.priceUSD = BIGDECIMAL_ZERO;
     tokenMetrics.blockNumber = event.block.number;
     tokenMetrics.timestamp = event.block.timestamp;
@@ -334,15 +335,15 @@ export function getOrCreateTokenHourlySnapshot(
       tokenAddress.concat("-").concat(hourId)
     );
     tokenMetrics.token = tokenAddress;
-    tokenMetrics.hourlyTotalSupply = BI_ZERO;
-    tokenMetrics.hourlyHolderCount = BI_ZERO;
+    tokenMetrics.hourlyTotalSupply = BIGINT_ZERO;
+    tokenMetrics.hourlyHolderCount = BIGINT_ZERO;
     tokenMetrics.hourlyActiveUsers = INT_ZERO;
     tokenMetrics.cumulativeUniqueUsers = INT_ZERO;
     tokenMetrics.hourlyEventCount = INT_ZERO;
     tokenMetrics.hourlyMintCount = INT_ZERO;
-    tokenMetrics.hourlyMintAmount = BI_ZERO;
+    tokenMetrics.hourlyMintAmount = BIGINT_ZERO;
     tokenMetrics.hourlyBurnCount = INT_ZERO;
-    tokenMetrics.hourlyBurnAmount = BI_ZERO;
+    tokenMetrics.hourlyBurnAmount = BIGINT_ZERO;
     tokenMetrics.priceUSD = BIGDECIMAL_ZERO;
     tokenMetrics.blockNumber = event.block.number;
     tokenMetrics.timestamp = event.block.timestamp;
@@ -381,8 +382,8 @@ export function getOrCreateAccountBalance(
     accountBalance.account = account.id;
     accountBalance.token = token.id;
     accountBalance.amount = BIGDECIMAL_ZERO;
-    accountBalance.blockNumber = BI_ZERO;
-    accountBalance.timestamp = BI_ZERO;
+    accountBalance.blockNumber = BIGINT_ZERO;
+    accountBalance.timestamp = BIGINT_ZERO;
 
     accountBalance.save();
   }
@@ -424,6 +425,7 @@ export function getOrCreateEntry(
   event: ethereum.Event,
   tokenId: string,
   accountId: string,
+  amount: BigInt,
   type: string
 ): Entry {
   let id = tokenId
@@ -442,6 +444,8 @@ export function getOrCreateEntry(
     entry.from = accountId;
     entry.blockNumber = event.block.number;
     entry.timestamp = event.block.timestamp;
+    entry.amount = amount;
+    // TODO: USD Amount
     entry.type = type;
 
     entry.save();
