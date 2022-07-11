@@ -5,14 +5,93 @@ import {
 import { Transfer as TransferEvent } from "../../generated/templates/RToken/RToken";
 import {
   getOrCreateAccount,
+  getOrCreateAccountBalance,
+  getOrCreateAccountBalanceDailySnapshot,
   getOrCreateEntry,
   getOrCreateToken,
+  getOrCreateTokenDailySnapshot,
+  getOrCreateTokenHourlySnapshot,
 } from "../common/getters";
-import { EntryType, ZERO_ADDRESS, RSV_ADDRESS } from "./../common/constants";
+import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import {
+  EntryType,
+  ZERO_ADDRESS,
+  RSV_ADDRESS,
+  BIGINT_ZERO,
+  INT_ONE,
+  BIGDECIMAL_ZERO,
+  INT_NEGATIVE_ONE,
+  BIGINT_ONE,
+} from "./../common/constants";
+import { Account, Token } from "../../generated/schema";
 
 /**
  * * RSV specific mappings
  */
+
+function updateAccountBalance(
+  accountAddress: Address,
+  tokenAddress: Address,
+  amount: BigInt,
+  event: ethereum.Event
+): void {
+  // update balance
+  let accountBalance = getOrCreateAccountBalance(accountAddress, tokenAddress);
+  let token = getOrCreateToken(tokenAddress);
+  let balance = accountBalance.amount.plus(amount.toBigDecimal());
+
+  if (accountBalance.amount.le(BIGDECIMAL_ZERO) && amount.gt(BIGINT_ZERO)) {
+    token.holderCount = token.holderCount.plus(BIGINT_ONE);
+    token.save();
+  } else if (balance.le(BIGDECIMAL_ZERO)) {
+    token.holderCount = token.holderCount.minus(BIGINT_ONE);
+    token.save();
+  }
+
+  accountBalance.transferCount += INT_ONE;
+  accountBalance.amount = balance;
+  accountBalance.blockNumber = event.block.number;
+  accountBalance.timestamp = event.block.timestamp;
+  accountBalance.save();
+
+  // update snapshot
+  let accountBalanceSnapshot = getOrCreateAccountBalanceDailySnapshot(
+    accountAddress,
+    tokenAddress,
+    event
+  );
+  accountBalanceSnapshot.amount = accountBalance.amount;
+  accountBalanceSnapshot.blockNumber = accountBalance.blockNumber;
+  accountBalanceSnapshot.timestamp = accountBalance.timestamp;
+  accountBalanceSnapshot.transferCount = accountBalance.transferCount;
+  accountBalanceSnapshot.save();
+}
+
+function updateTokenMetrics(token: Token, event: ethereum.Event): void {
+  let dailyMetrics = getOrCreateTokenDailySnapshot(token.id, event);
+  dailyMetrics.dailyTotalSupply = token.totalSupply;
+  dailyMetrics.dailyHolderCount = token.holderCount;
+  dailyMetrics.dailyMintCount = token.mintCount;
+  dailyMetrics.dailyMintAmount = token.totalMinted;
+  dailyMetrics.dailyBurnCount = token.burnCount;
+  dailyMetrics.dailyBurnAmount = token.totalBurned;
+  dailyMetrics.dailyEventCount = token.transferCount;
+  dailyMetrics.blockNumber = event.block.number;
+  dailyMetrics.timestamp = event.block.timestamp;
+  dailyMetrics.save();
+
+  let hourlyMetrics = getOrCreateTokenHourlySnapshot(token.id, event);
+  hourlyMetrics.hourlyTotalSupply = token.totalSupply;
+  hourlyMetrics.hourlyHolderCount = token.holderCount;
+  hourlyMetrics.hourlyMintCount = token.mintCount;
+  hourlyMetrics.hourlyMintAmount = token.totalMinted;
+  hourlyMetrics.hourlyBurnCount = token.burnCount;
+  hourlyMetrics.hourlyBurnAmount = token.totalBurned;
+  hourlyMetrics.hourlyEventCount = token.transferCount;
+  hourlyMetrics.blockNumber = event.block.number;
+  hourlyMetrics.timestamp = event.block.timestamp;
+  hourlyMetrics.save();
+}
 
 // Handles token issuance
 export function handleIssuance(event: RSVIssuance): void {
@@ -27,8 +106,6 @@ export function handleIssuance(event: RSVIssuance): void {
     event.params.amount,
     EntryType.ISSUE
   );
-
-  // TODO: Update analytics
 }
 
 // Handles RSV redemption
@@ -44,22 +121,29 @@ export function handleRedemption(event: RSVRedemption): void {
     event.params.amount,
     EntryType.REDEEM
   );
-
-  // TODO: Update analytics
 }
 
 export function handleTransfer(event: TransferEvent): void {
   let fromAccount = getOrCreateAccount(event.params.from);
   let toAccount = getOrCreateAccount(event.params.to);
-  let token = getOrCreateToken(RSV_ADDRESS);
+  let token = getOrCreateToken(event.address);
+  // Update transfer count
+  token.transferCount = token.transferCount.plus(BIGINT_ONE);
 
   let entryType = EntryType.TRANSFER;
 
   if (ZERO_ADDRESS == event.params.to.toHexString()) {
     entryType = EntryType.BURN;
+    token.burnCount = token.burnCount.plus(BIGINT_ONE);
+    token.totalBurned = token.totalBurned.plus(event.params.value);
+    token.totalSupply = token.totalSupply.minus(event.params.value);
   } else if (ZERO_ADDRESS == event.params.from.toHexString()) {
     entryType = EntryType.MINT;
+    token.mintCount = token.mintCount.plus(BIGINT_ONE);
+    token.totalMinted = token.totalMinted.plus(event.params.value);
+    token.totalSupply = token.totalSupply.plus(event.params.value);
   }
+  token.save();
 
   let entry = getOrCreateEntry(
     event,
@@ -68,10 +152,29 @@ export function handleTransfer(event: TransferEvent): void {
     event.params.value,
     entryType
   );
-
   // Transfer specific
   entry.to = toAccount.id;
   entry.save();
 
-  // TODO: Update analytics
+  // dont update zero address
+  if (entryType !== EntryType.MINT) {
+    updateAccountBalance(
+      event.params.from,
+      event.address,
+      BIGINT_ZERO.minus(event.params.value),
+      event
+    );
+  }
+
+  if (entryType !== EntryType.BURN) {
+    updateAccountBalance(
+      event.params.to,
+      event.address,
+      BIGINT_ZERO.minus(event.params.value),
+      event
+    );
+  }
+
+  // Update token analytics
+  updateTokenMetrics(token, event);
 }

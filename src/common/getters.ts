@@ -259,9 +259,9 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.transferCount = BIGINT_ZERO;
     token.mintCount = BIGINT_ZERO;
     token.burnCount = BIGINT_ZERO;
-    token.totalSupply = BIGDECIMAL_ZERO;
-    token.totalBurned = BIGDECIMAL_ZERO;
-    token.totalMinted = BIGDECIMAL_ZERO;
+    token.totalSupply = BIGINT_ZERO;
+    token.totalBurned = BIGINT_ZERO;
+    token.totalMinted = BIGINT_ZERO;
     token.lastPriceBlockNumber = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
 
@@ -383,6 +383,7 @@ export function getOrCreateAccountBalance(
     let token = getOrCreateToken(tokenAddress);
     accountBalance.account = account.id;
     accountBalance.token = token.id;
+    accountBalance.transferCount = INT_ZERO;
     accountBalance.amount = BIGDECIMAL_ZERO;
     accountBalance.blockNumber = BIGINT_ZERO;
     accountBalance.timestamp = BIGINT_ZERO;

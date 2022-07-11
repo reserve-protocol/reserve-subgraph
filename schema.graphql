@@ -511,13 +511,13 @@ type Token @entity {
   burnCount: BigInt!
 
   " Total token supply "
-  totalSupply: BigDecimal!
+  totalSupply: BigInt!
 
   " Total token burned "
-  totalBurned: BigDecimal!
+  totalBurned: BigInt!
 
   " Total token minted "
-  totalMinted: BigDecimal!
+  totalMinted: BigInt!
 
   " USD Price "
   lastPriceUSD: BigDecimal
@@ -742,6 +742,9 @@ type AccountBalance @entity {
   " Current account balance "
   amount: BigDecimal!
 
+  " Transfer count "
+  transferCount: Int!
+
   " Block number in which the balance was last modified "
   blockNumber: BigInt!
 
@@ -771,6 +774,9 @@ type AccountBalanceDailySnapshot @entity {
 
   " Current account balance "
   amount: BigDecimal!
+
+  " Transfer count "
+  transferCount: Int!
 
   " Account balance USD "
   amountUSD: BigDecimal
