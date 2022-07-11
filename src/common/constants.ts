@@ -133,8 +133,8 @@ export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 export const RSR_ADDRESS = "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"; // TODO: Created block
 export const RSV_ADDRESS = Address.fromString(
-  "0x196f4727526ea7fb1e17b2071b3d8eaa38486988"
-); // TODO: Created block
+  "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
+);
 
 ////////////////////////
 ///// Type Helpers /////

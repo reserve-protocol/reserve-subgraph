@@ -13,22 +13,11 @@ export function fetchTokenSymbol(tokenAddress: Address): string {
   let symbolResult = contract.try_symbol();
   if (!symbolResult.reverted) {
     return symbolResult.value;
-  }
-
-  // non-standard ERC20 implementation
-  let symbol = contract.try_symbol();
-  if (!symbol.reverted) {
-    // for broken pairs that have no symbol function exposed
-    if (!isNullEthValue(symbol.value)) {
-      symbolValue = symbol.value.toString();
-    } else {
-      // try with the static definition
-      let staticTokenDefinition = StaticTokenDefinition.fromAddress(
-        tokenAddress
-      );
-      if (staticTokenDefinition != null) {
-        symbolValue = staticTokenDefinition.symbol;
-      }
+  } else {
+    // try with the static definition
+    let staticTokenDefinition = StaticTokenDefinition.fromAddress(tokenAddress);
+    if (staticTokenDefinition != null) {
+      symbolValue = staticTokenDefinition.symbol;
     }
   }
 
@@ -43,22 +32,11 @@ export function fetchTokenName(tokenAddress: Address): string {
   let nameResult = contract.try_name();
   if (!nameResult.reverted) {
     return nameResult.value;
-  }
-
-  // non-standard ERC20 implementation
-  let nameResultBytes = contract.try_name();
-  if (!nameResultBytes.reverted) {
-    // for broken exchanges that have no name function exposed
-    if (!isNullEthValue(nameResultBytes.value)) {
-      nameValue = nameResultBytes.value.toString();
-    } else {
-      // try with the static definition
-      let staticTokenDefinition = StaticTokenDefinition.fromAddress(
-        tokenAddress
-      );
-      if (staticTokenDefinition != null) {
-        nameValue = staticTokenDefinition.name;
-      }
+  } else {
+    // try with the static definition
+    let staticTokenDefinition = StaticTokenDefinition.fromAddress(tokenAddress);
+    if (staticTokenDefinition != null) {
+      nameValue = staticTokenDefinition.name;
     }
   }
 
