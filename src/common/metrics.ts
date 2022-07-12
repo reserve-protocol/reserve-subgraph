@@ -1,6 +1,8 @@
-import { BigDecimal, Address, ethereum } from "@graphprotocol/graph-ts";
-import { Account, ActiveAccount } from "../../generated/schema";
+import { BigInt, Address, ethereum } from "@graphprotocol/graph-ts";
+import { Account, ActiveAccount, RToken } from "../../generated/schema";
 import {
+  BIGINT_ONE,
+  EntryType,
   INT_ONE,
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
@@ -11,6 +13,12 @@ import {
   getOrCreateFinancialsDailySnapshot,
   getOrCreateUsageMetricDailySnapshot,
   getOrCreateUsageMetricHourlySnapshot,
+  getOrCreateToken,
+  getOrCreateTokenDailySnapshot,
+  getOrCreateTokenHourlySnapshot,
+  getOrCreateRTokenDailySnapshot,
+  getOrCreateRTokenHourlySnapshot,
+  getOrCreateAccountBalance,
 } from "./getters";
 
 // These are meant more as boilerplates that'll be filled out depending on the
@@ -40,38 +48,29 @@ export function updateFinancials(event: ethereum.Event): void {
   financialMetricsDaily.save();
 }
 
+export function updateInsuranceMetrics(
+  event: ethereum.Event,
+  rTokenAddress: Address,
+  accountAddress: Address
+): void {
+  const protocol = getOrCreateProtocol();
+  const rToken = RToken.load(rTokenAddress.toHexString())!;
+}
+
 // Update usage metrics entities
 export function updateUsageMetrics(
   event: ethereum.Event,
+  tokenAddress: Address,
   fromAddress: Address,
-  usageType: string
+  amount: BigInt,
+  entryType: string
 ): void {
   let from = fromAddress.toHexString();
+  let token = getOrCreateToken(tokenAddress);
+  let userBalance = getOrCreateAccountBalance(fromAddress, tokenAddress);
 
-  let usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
-  let usageMetricsHourly = getOrCreateUsageMetricHourlySnapshot(event);
-
-  let protocol = getOrCreateProtocol();
-
-  // Update the block number and timestamp to that of the last transaction of that day
-  usageMetricsDaily.blockNumber = event.block.number;
-  usageMetricsDaily.timestamp = event.block.timestamp;
-  usageMetricsDaily.dailyTransactionCount += INT_ONE;
-
-  usageMetricsHourly.blockNumber = event.block.number;
-  usageMetricsHourly.timestamp = event.block.timestamp;
-  usageMetricsHourly.hourlyTransactionCount += INT_ONE;
-
-  // if (usageType == UsageType.DEPOSIT) {
-  //   usageMetricsDaily.dailyDepositCount += INT_ONE;
-  //   usageMetricsHourly.hourlyDepositCount += INT_ONE;
-  // } else if (usageType == UsageType.WITHDRAW) {
-  //   usageMetricsDaily.dailyWithdrawCount += INT_ONE;
-  //   usageMetricsHourly.hourlyWithdrawCount += INT_ONE;
-  // } else if (usageType == UsageType.SWAP) {
-  //   usageMetricsDaily.dailySwapCount += INT_ONE;
-  //   usageMetricsHourly.hourlySwapCount += INT_ONE;
-  // }
+  let tokenDaily = getOrCreateTokenDailySnapshot(token.id, event);
+  let tokenHourly = getOrCreateTokenHourlySnapshot(token.id, event);
 
   // Number of days since Unix epoch
   let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
@@ -80,35 +79,93 @@ export function updateUsageMetrics(
   let dayId = day.toString();
   let hourId = hour.toString();
 
+  // User data
   // Combine the id and the user address to generate a unique user id for the day
   let dailyActiveAccountId = from.concat("-").concat(dayId);
   let dailyActiveAccount = ActiveAccount.load(dailyActiveAccountId);
-  if (!dailyActiveAccount) {
-    dailyActiveAccount = new ActiveAccount(dailyActiveAccountId);
-    usageMetricsDaily.dailyActiveUsers += INT_ONE;
-    dailyActiveAccount.save();
-  }
 
   let hourlyActiveAccountId = from.concat("-").concat(hourId);
   let hourlyActiveAccount = ActiveAccount.load(hourlyActiveAccountId);
+
+  // let account = Account.load(from);
+  // if (!account) {
+  //   account = new Account(from);
+  //   protocol.cumulativeUniqueUsers += INT_ONE;
+  //   account.save();
+  // }
+
+  // Update token supply and counts
+  if (entryType === EntryType.MINT) {
+    token.mintCount = token.mintCount.plus(BIGINT_ONE);
+    token.totalMinted = token.totalMinted.plus(amount);
+    token.totalSupply = token.totalSupply.plus(amount);
+
+    tokenDaily.dailyBurnCount += INT_ONE;
+    tokenDaily.dailyBurnAmount = tokenDaily.dailyBurnAmount.plus(amount);
+    tokenDaily.dailyTotalSupply = tokenDaily.dailyTotalSupply.minus(amount);
+  } else if (entryType === EntryType.BURN) {
+    token.burnCount = token.burnCount.plus(BIGINT_ONE);
+    token.totalBurned = token.totalBurned.plus(amount);
+    token.totalSupply = token.totalSupply.minus(amount);
+  }
+
+  // Update token transfers
+  if (
+    entryType === EntryType.MINT ||
+    entryType === EntryType.BURN ||
+    entryType === EntryType.TRANSFER
+  ) {
+    token.transferCount = token.transferCount.plus(BIGINT_ONE);
+  }
+
+  // rToken specific mappings, RSV is the only case where this does not apply
+  if (token.rToken) {
+    let protocol = getOrCreateProtocol();
+    let rToken = RToken.load(token.rToken)!;
+
+    let usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
+    let usageMetricsHourly = getOrCreateUsageMetricHourlySnapshot(event);
+
+    let rTokenDaily = getOrCreateRTokenDailySnapshot(rToken.id, event);
+    let rTokenHourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
+
+    if (entryType === EntryType.STAKE) {
+    } else if (entryType === EntryType.UNSTAKE) {
+    }
+
+    // New user
+    if (userBalance.transferCount === INT_ONE) {
+      protocol.cumulativeUniqueUsers += INT_ONE;
+    }
+
+    // Update the block number and timestamp to that of the last transaction of that day
+    usageMetricsDaily.blockNumber = event.block.number;
+    usageMetricsDaily.timestamp = event.block.timestamp;
+    usageMetricsDaily.dailyTransactionCount += INT_ONE;
+
+    usageMetricsHourly.blockNumber = event.block.number;
+    usageMetricsHourly.timestamp = event.block.timestamp;
+    usageMetricsHourly.hourlyTransactionCount += INT_ONE;
+
+    usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+    usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+
+    protocol.save();
+    usageMetricsDaily.save();
+    usageMetricsHourly.save();
+  }
+
   if (!hourlyActiveAccount) {
     hourlyActiveAccount = new ActiveAccount(hourlyActiveAccountId);
-    usageMetricsHourly.hourlyActiveUsers += INT_ONE;
     hourlyActiveAccount.save();
   }
 
-  let account = Account.load(from);
-  if (!account) {
-    account = new Account(from);
-    protocol.cumulativeUniqueUsers += INT_ONE;
-    account.save();
+  if (!dailyActiveAccount) {
+    dailyActiveAccount = new ActiveAccount(dailyActiveAccountId);
+    dailyActiveAccount.save();
   }
-  usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
-  usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
 
-  usageMetricsDaily.save();
-  usageMetricsHourly.save();
-  protocol.save();
+  token.save();
 }
 
 // Update Pool Snapshots entities

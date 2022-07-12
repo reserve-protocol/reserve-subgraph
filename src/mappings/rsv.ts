@@ -29,6 +29,25 @@ import { Account, Token } from "../../generated/schema";
  * * RSV specific mappings
  */
 
+function updateTokenHolder(
+  tokenAddress: Address,
+  newHolder: boolean,
+  event: ethereum.Event
+): void {
+  let token = getOrCreateToken(tokenAddress);
+  let dailyMetrics = getOrCreateTokenDailySnapshot(token.id, event);
+  let hourlyMetrics = getOrCreateTokenHourlySnapshot(token.id, event);
+
+  if (newHolder) {
+    token.holderCount = token.holderCount.plus(BIGINT_ONE);
+    dailyMetrics.dailyHolderCount += INT_ONE;
+    hourlyMetrics.hourlyHolderCount += INT_ONE;
+  } else {
+    token.holderCount = token.holderCount.minus(BIGINT_ONE);
+  }
+  token.save();
+}
+
 function updateAccountBalance(
   accountAddress: Address,
   tokenAddress: Address,
@@ -37,15 +56,12 @@ function updateAccountBalance(
 ): void {
   // update balance
   let accountBalance = getOrCreateAccountBalance(accountAddress, tokenAddress);
-  let token = getOrCreateToken(tokenAddress);
   let balance = accountBalance.amount.plus(amount.toBigDecimal());
 
   if (accountBalance.amount.le(BIGDECIMAL_ZERO) && amount.gt(BIGINT_ZERO)) {
-    token.holderCount = token.holderCount.plus(BIGINT_ONE);
-    token.save();
+    updateTokenHolder(tokenAddress, true, event);
   } else if (balance.le(BIGDECIMAL_ZERO)) {
-    token.holderCount = token.holderCount.minus(BIGINT_ONE);
-    token.save();
+    updateTokenHolder(tokenAddress, false, event);
   }
 
   accountBalance.transferCount += INT_ONE;
@@ -134,16 +150,9 @@ export function handleTransfer(event: TransferEvent): void {
 
   if (ZERO_ADDRESS == event.params.to.toHexString()) {
     entryType = EntryType.BURN;
-    token.burnCount = token.burnCount.plus(BIGINT_ONE);
-    token.totalBurned = token.totalBurned.plus(event.params.value);
-    token.totalSupply = token.totalSupply.minus(event.params.value);
   } else if (ZERO_ADDRESS == event.params.from.toHexString()) {
     entryType = EntryType.MINT;
-    token.mintCount = token.mintCount.plus(BIGINT_ONE);
-    token.totalMinted = token.totalMinted.plus(event.params.value);
-    token.totalSupply = token.totalSupply.plus(event.params.value);
   }
-  token.save();
 
   let entry = getOrCreateEntry(
     event,

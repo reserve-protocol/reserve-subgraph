@@ -308,16 +308,10 @@ type RToken @entity {
 
   ##### Quantitative Data ####
 
-  " Total token supply "
-  tokenSupply: BigInt!
-
-  " Price per share of output token in USD "
-  tokenPriceUSD: BigDecimal!
-
   " Total supply of rewardToken (stRSR) "
   rewardTokenSupply: BigInt!
 
-  " RSR token price (stRSR) "
+  " RSR token price "
   rsrPriceUSD: BigDecimal!
 
   " Reward token exchange rate "
@@ -375,12 +369,6 @@ type RTokenDailySnapshot @entity {
   " How much RSR is currently held for insurance "
   insurance: BigInt!
 
-  " Total token supply "
-  tokenSupply: BigInt!
-
-  " Price per share of output token in USD "
-  tokenPriceUSD: BigDecimal!
-
   " Total supply of rewardToken "
   rewardTokenSupply: BigInt!
 
@@ -431,12 +419,6 @@ type RTokenHourlySnapshot @entity {
   timestamp: BigInt!
 
   ##### Quantitative Data #####
-
-  " Total token supply "
-  tokenSupply: BigInt
-
-  " Price per share of output token in USD "
-  tokenPriceUSD: BigDecimal
 
   " Total supply of rewardToken "
   rewardTokenSupply: BigInt
@@ -727,6 +709,29 @@ type Account @entity {
   " Token balances snapshot that this account holds "
   balancesSnapshot: [AccountBalanceDailySnapshot!]!
     @derivedFrom(field: "account")
+}
+
+type AccountRToken @entity {
+  " { Address Of the Account }-{ Address of the stRSRToken } "
+  id: ID!
+
+  " Account address "
+  account: Account!
+
+  " rToken address "
+  rToken: RToken!
+
+  " Token balance "
+  balance: AccountBalance!
+
+  " Stake stRSR balance "
+  stake: BigInt!
+
+  " Block number in which the stake was last modified "
+  blockNumber: BigInt!
+
+  " Timestamp in which the stake was last modified "
+  timestamp: BigInt!
 }
 
 type AccountBalance @entity {
