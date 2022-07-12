@@ -107,6 +107,7 @@ export namespace UsageType {
 // CUSTOM
 export namespace EntryType {
   export const TRANSFER = "TRANSFER";
+  export const ISSUE_START = "ISSUE_START";
   export const ISSUE = "ISSUE";
   export const REDEEM = "REDEEM";
   export const CLAIM = "CLAIM";

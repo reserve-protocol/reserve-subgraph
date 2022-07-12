@@ -9,9 +9,6 @@ import {
 } from "../common/getters";
 import { EntryType, RSV_ADDRESS } from "./../common/constants";
 
-/**
- * * RSV specific mappings
- */
 // Handles token issuance
 export function handleIssuance(event: RSVIssuance): void {
   let account = getTokenAccount(event.params.user, RSV_ADDRESS);

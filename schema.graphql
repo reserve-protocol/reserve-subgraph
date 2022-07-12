@@ -297,9 +297,6 @@ type RToken @entity {
   " stRSR Token "
   rewardToken: RewardToken!
 
-  " RToken owner, should be a governance contract "
-  owner: Account!
-
   " Creation timestamp "
   createdTimestamp: BigInt!
 
@@ -315,7 +312,7 @@ type RToken @entity {
   rewardTokenSupply: BigInt!
 
   " RSR token price "
-  rsrPriceUSD: BigDecimal!
+  rsrPriceUSD: BigDecimal
 
   " Reward token exchange rate "
   rsrExchangeRate: BigInt!
@@ -478,6 +475,8 @@ type RewardToken @entity {
   id: ID!
   " Reference to the actual token "
   token: Token!
+  " RToken relation "
+  rToken: RToken @derivedFrom(field: "rewardToken")
   " The type of the reward token "
   type: RewardTokenType!
 }

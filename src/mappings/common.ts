@@ -1,4 +1,3 @@
-import { Address } from "@graphprotocol/graph-ts";
 import { Account } from "../../generated/schema";
 import { Transfer as TransferEvent } from "../../generated/templates/RToken/RToken";
 import {
@@ -6,17 +5,8 @@ import {
   getOrCreateToken,
   getTokenAccount,
 } from "../common/getters";
-import {
-  updateAccountBalance,
-  updateRTokenUniqueUsers,
-  updateTokenMetrics,
-} from "../common/metrics";
-import {
-  BIGINT_ZERO,
-  EntryType,
-  INT_ONE,
-  ZERO_ADDRESS,
-} from "./../common/constants";
+import { updateAccountBalance, updateTokenMetrics } from "../common/metrics";
+import { BIGINT_ZERO, EntryType, ZERO_ADDRESS } from "./../common/constants";
 
 /**
  * Tracks ERC20 token transfer
@@ -25,6 +15,7 @@ import {
  */
 export function handleTransfer(event: TransferEvent): void {
   let token = getOrCreateToken(event.address);
+  let rTokenId = token.rToken;
   let fromAccount = getTokenAccount(event.params.from, event.address);
   let toAccount = getTokenAccount(event.params.to, event.address);
   let entryType = EntryType.TRANSFER;
@@ -48,6 +39,9 @@ export function handleTransfer(event: TransferEvent): void {
   );
   // Transfer specific
   entry.to = toAccount.id;
+  if (rTokenId) {
+    entry.rToken = rTokenId;
+  }
   entry.save();
 
   // dont update zero address
