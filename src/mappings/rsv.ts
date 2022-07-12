@@ -24,6 +24,7 @@ import {
   BIGINT_ONE,
 } from "./../common/constants";
 import { Account, Token } from "../../generated/schema";
+import { updateTokenMetrics } from "../common/metrics";
 
 /**
  * * RSV specific mappings
@@ -81,32 +82,6 @@ function updateAccountBalance(
   accountBalanceSnapshot.timestamp = accountBalance.timestamp;
   accountBalanceSnapshot.transferCount = accountBalance.transferCount;
   accountBalanceSnapshot.save();
-}
-
-function updateTokenMetrics(token: Token, event: ethereum.Event): void {
-  let dailyMetrics = getOrCreateTokenDailySnapshot(token.id, event);
-  dailyMetrics.dailyTotalSupply = token.totalSupply;
-  dailyMetrics.dailyHolderCount = token.holderCount;
-  dailyMetrics.dailyMintCount = token.mintCount;
-  dailyMetrics.dailyMintAmount = token.totalMinted;
-  dailyMetrics.dailyBurnCount = token.burnCount;
-  dailyMetrics.dailyBurnAmount = token.totalBurned;
-  dailyMetrics.dailyEventCount = token.transferCount;
-  dailyMetrics.blockNumber = event.block.number;
-  dailyMetrics.timestamp = event.block.timestamp;
-  dailyMetrics.save();
-
-  let hourlyMetrics = getOrCreateTokenHourlySnapshot(token.id, event);
-  hourlyMetrics.hourlyTotalSupply = token.totalSupply;
-  hourlyMetrics.hourlyHolderCount = token.holderCount;
-  hourlyMetrics.hourlyMintCount = token.mintCount;
-  hourlyMetrics.hourlyMintAmount = token.totalMinted;
-  hourlyMetrics.hourlyBurnCount = token.burnCount;
-  hourlyMetrics.hourlyBurnAmount = token.totalBurned;
-  hourlyMetrics.hourlyEventCount = token.transferCount;
-  hourlyMetrics.blockNumber = event.block.number;
-  hourlyMetrics.timestamp = event.block.timestamp;
-  hourlyMetrics.save();
 }
 
 // Handles token issuance
@@ -184,5 +159,11 @@ export function handleTransfer(event: TransferEvent): void {
   }
 
   // Update token analytics
-  updateTokenMetrics(token, event);
+  updateTokenMetrics(
+    event,
+    event.address,
+    event.params.from,
+    event.params.value,
+    entryType
+  );
 }

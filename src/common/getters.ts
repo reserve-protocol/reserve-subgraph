@@ -187,8 +187,6 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics.rToken = rTokenAddress;
 
     rTokenMetrics.insurance = BIGINT_ZERO;
-    rTokenMetrics.tokenSupply = BIGINT_ZERO;
-    rTokenMetrics.tokenPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
 
     rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
@@ -226,8 +224,6 @@ export function getOrCreateRTokenHourlySnapshot(
     rTokenMetrics.rToken = rTokenAddress;
 
     rTokenMetrics.insurance = BIGINT_ZERO;
-    rTokenMetrics.tokenSupply = BIGINT_ZERO;
-    rTokenMetrics.tokenPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
 
     rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
@@ -304,7 +300,7 @@ export function getOrCreateTokenDailySnapshot(
     );
     tokenMetrics.token = tokenAddress;
     tokenMetrics.dailyTotalSupply = BIGINT_ZERO;
-    tokenMetrics.dailyHolderCount = BIGINT_ZERO;
+    tokenMetrics.dailyHolderCount = INT_ZERO;
     tokenMetrics.dailyActiveUsers = INT_ZERO;
     tokenMetrics.cumulativeUniqueUsers = INT_ZERO;
     tokenMetrics.dailyEventCount = INT_ZERO;
@@ -338,7 +334,7 @@ export function getOrCreateTokenHourlySnapshot(
     );
     tokenMetrics.token = tokenAddress;
     tokenMetrics.hourlyTotalSupply = BIGINT_ZERO;
-    tokenMetrics.hourlyHolderCount = BIGINT_ZERO;
+    tokenMetrics.hourlyHolderCount = INT_ZERO;
     tokenMetrics.hourlyActiveUsers = INT_ZERO;
     tokenMetrics.cumulativeUniqueUsers = INT_ZERO;
     tokenMetrics.hourlyEventCount = INT_ZERO;
@@ -413,6 +409,7 @@ export function getOrCreateAccountBalanceDailySnapshot(
     accountMetric = new AccountBalanceDailySnapshot(id);
     accountMetric.account = accountAddress.toHexString();
     accountMetric.token = tokenAddress.toHexString();
+    accountMetric.transferCount = INT_ZERO;
     accountMetric.amount = BIGDECIMAL_ZERO;
     accountMetric.amountUSD = BIGDECIMAL_ZERO;
     accountMetric.blockNumber = event.block.number;
