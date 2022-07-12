@@ -762,7 +762,7 @@ type AccountBalance @entity {
 
 # Helper entity for calculating daily/hourly active users
 type ActiveAccount @entity {
-  " { Address of the account }-{ Days since Unix epoch }-{ [Optional] HH: hour of the day } "
+  " { Address of the account }-{ [Optional] token address }-{ Days since Unix epoch }-{ [Optional] HH: hour of the day } "
   id: ID!
 }
 
