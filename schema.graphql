@@ -308,6 +308,9 @@ type RToken @entity {
 
   ##### Quantitative Data ####
 
+  " Number of cumulative unique users "
+  cumulativeUniqueUsers: Int!
+
   " Total supply of rewardToken (stRSR) "
   rewardTokenSupply: BigInt!
 
@@ -366,6 +369,12 @@ type RTokenDailySnapshot @entity {
 
   ##### Quantitative Data #####
 
+  " Number of unique daily active users "
+  dailyActiveUsers: Int!
+
+  " Number of cumulative unique users "
+  cumulativeUniqueUsers: Int!
+
   " How much RSR is currently held for insurance "
   insurance: BigInt!
 
@@ -419,6 +428,12 @@ type RTokenHourlySnapshot @entity {
   timestamp: BigInt!
 
   ##### Quantitative Data #####
+
+  " Number of unique daily active users "
+  hourlyActiveUsers: Int!
+
+  " Number of cumulative unique users "
+  cumulativeUniqueUsers: Int!
 
   " Total supply of rewardToken "
   rewardTokenSupply: BigInt
@@ -482,6 +497,9 @@ type Token @entity {
 
   " Number of unique token holders "
   holderCount: BigInt!
+
+  " Number of unique token users "
+  userCount: Int!
 
   " Total number of token transfer events "
   transferCount: BigInt!

@@ -1,11 +1,5 @@
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
-  AccountBalance,
-  AccountBalanceDailySnapshot,
-  Entry,
-} from "./../../generated/schema";
-import { Address, ethereum } from "@graphprotocol/graph-ts";
-import {
-  Account,
   FinancialsDailySnapshot,
   Protocol,
   RewardToken,
@@ -33,7 +27,11 @@ import {
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
 } from "../common/constants";
-import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
+import {
+  AccountBalance,
+  AccountBalanceDailySnapshot,
+  Entry,
+} from "./../../generated/schema";
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
 
 export function getOrCreateProtocol(): Protocol {
@@ -252,6 +250,7 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.name = fetchTokenName(tokenAddress);
     token.decimals = fetchTokenDecimals(tokenAddress);
     token.holderCount = BIGINT_ZERO;
+    token.userCount = INT_ZERO;
     token.transferCount = BIGINT_ZERO;
     token.mintCount = BIGINT_ZERO;
     token.burnCount = BIGINT_ZERO;
@@ -352,17 +351,6 @@ export function getOrCreateTokenHourlySnapshot(
   return tokenMetrics;
 }
 
-export function getOrCreateAccount(address: Address): Account {
-  let account = Account.load(address.toHexString());
-
-  if (!account) {
-    account = new Account(address.toHexString());
-    account.save();
-  }
-
-  return account;
-}
-
 export function getOrCreateAccountBalance(
   accountAddress: Address,
   tokenAddress: Address
@@ -375,10 +363,8 @@ export function getOrCreateAccountBalance(
 
   if (!accountBalance) {
     accountBalance = new AccountBalance(id);
-    let account = getOrCreateAccount(accountAddress);
-    let token = getOrCreateToken(tokenAddress);
-    accountBalance.account = account.id;
-    accountBalance.token = token.id;
+    accountBalance.account = accountAddress.toHexString();
+    accountBalance.token = tokenAddress.toHexString();
     accountBalance.transferCount = INT_ZERO;
     accountBalance.amount = BIGDECIMAL_ZERO;
     accountBalance.blockNumber = BIGINT_ZERO;

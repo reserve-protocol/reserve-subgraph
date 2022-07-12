@@ -45,13 +45,6 @@ export function updateFinancials(event: ethereum.Event): void {
   financialMetricsDaily.save();
 }
 
-// export function updateRTokenMetrics(
-//   event: ethereum.Event,
-//   rTokenId: string,
-//   amount: BigInt,
-//   entryType
-// );
-
 function updateTokenHolder(
   tokenAddress: Address,
   newHolder: boolean,
@@ -71,6 +64,17 @@ function updateTokenHolder(
   token.save();
 }
 
+export function updateRTokenUniqueUsers(rTokenId: string): void {
+  let protocol = getOrCreateProtocol();
+  let rToken = RToken.load(rTokenId)!;
+
+  rToken.cumulativeUniqueUsers += INT_ONE;
+  protocol.cumulativeUniqueUsers += INT_ONE;
+
+  protocol.save();
+  rToken.save();
+}
+
 export function updateAccountBalance(
   accountAddress: Address,
   tokenAddress: Address,
@@ -79,6 +83,11 @@ export function updateAccountBalance(
 ): void {
   // update balance
   let accountBalance = getOrCreateAccountBalance(accountAddress, tokenAddress);
+  let accountBalanceSnapshot = getOrCreateAccountBalanceDailySnapshot(
+    accountAddress,
+    tokenAddress,
+    event
+  );
   let balance = accountBalance.amount.plus(amount.toBigDecimal());
 
   if (accountBalance.amount.le(BIGDECIMAL_ZERO) && amount.gt(BIGINT_ZERO)) {
@@ -87,23 +96,17 @@ export function updateAccountBalance(
     updateTokenHolder(tokenAddress, false, event);
   }
 
-  accountBalance.transferCount += INT_ONE;
   accountBalance.amount = balance;
+  accountBalance.transferCount += INT_ONE;
   accountBalance.blockNumber = event.block.number;
   accountBalance.timestamp = event.block.timestamp;
-  accountBalance.save();
 
-  // update snapshot
-  let accountBalanceSnapshot = getOrCreateAccountBalanceDailySnapshot(
-    accountAddress,
-    tokenAddress,
-    event
-  );
   accountBalanceSnapshot.amount = accountBalance.amount;
   accountBalanceSnapshot.transferCount = accountBalance.transferCount;
   accountBalanceSnapshot.blockNumber = accountBalance.blockNumber;
   accountBalanceSnapshot.timestamp = accountBalance.timestamp;
-  accountBalanceSnapshot.transferCount = accountBalance.transferCount;
+
+  accountBalance.save();
   accountBalanceSnapshot.save();
 }
 
@@ -270,11 +273,13 @@ export function updateTokenMetrics(
     tokenHourly.hourlyTotalSupply = tokenHourly.hourlyTotalSupply.plus(amount);
   }
 
+  tokenHourly.cumulativeUniqueUsers = token.userCount;
   tokenHourly.hourlyEventCount += INT_ONE;
   tokenHourly.blockNumber = event.block.number;
   tokenHourly.timestamp = event.block.timestamp;
   tokenHourly.save();
 
+  tokenDaily.cumulativeUniqueUsers = token.userCount;
   tokenDaily.dailyEventCount += INT_ONE;
   tokenDaily.blockNumber = event.block.number;
   tokenDaily.timestamp = event.block.timestamp;

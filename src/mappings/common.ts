@@ -1,11 +1,40 @@
+import { Address } from "@graphprotocol/graph-ts";
+import { Account } from "../../generated/schema";
 import { Transfer as TransferEvent } from "../../generated/templates/RToken/RToken";
+import { getOrCreateEntry, getOrCreateToken } from "../common/getters";
 import {
-  getOrCreateAccount,
-  getOrCreateEntry,
-  getOrCreateToken,
-} from "../common/getters";
-import { updateAccountBalance, updateTokenMetrics } from "../common/metrics";
-import { BIGINT_ZERO, EntryType, ZERO_ADDRESS } from "./../common/constants";
+  updateAccountBalance,
+  updateRTokenUniqueUsers,
+  updateTokenMetrics,
+} from "../common/metrics";
+import {
+  BIGINT_ZERO,
+  EntryType,
+  INT_ONE,
+  ZERO_ADDRESS,
+} from "./../common/constants";
+
+function getTokenAccount(
+  accountAddress: Address,
+  tokenAddress: Address
+): Account {
+  let account = Account.load(accountAddress.toHexString());
+
+  if (!account) {
+    account = new Account(accountAddress.toHexString());
+
+    // Update token analytics
+    let token = getOrCreateToken(tokenAddress);
+    token.userCount += INT_ONE;
+    token.save();
+
+    if (token.rToken) {
+      updateRTokenUniqueUsers(token.rToken);
+    }
+  }
+
+  return account;
+}
 
 /**
  * Tracks ERC20 token transfer
@@ -13,10 +42,14 @@ import { BIGINT_ZERO, EntryType, ZERO_ADDRESS } from "./../common/constants";
  * RSV and RToken output ERC20
  */
 export function handleTransfer(event: TransferEvent): void {
-  let fromAccount = getOrCreateAccount(event.params.from);
-  let toAccount = getOrCreateAccount(event.params.to);
   let token = getOrCreateToken(event.address);
+  let fromAccount = getTokenAccount(event.params.from, event.address);
+  let toAccount = getTokenAccount(event.params.to, event.address);
   let entryType = EntryType.TRANSFER;
+
+  if (!fromAccount) {
+    fromAccount = new Account(event.params.from.toHexString());
+  }
 
   if (ZERO_ADDRESS == event.params.to.toHexString()) {
     entryType = EntryType.BURN;
