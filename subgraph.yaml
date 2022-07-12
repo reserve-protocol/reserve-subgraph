@@ -51,7 +51,7 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-      file: ./src/mappings/rsv.ts
+      file: ./src/mappings/common.ts
   # RSV Manager tracks issue and redeem
   - name: RSVManager
     kind: ethereum/contract

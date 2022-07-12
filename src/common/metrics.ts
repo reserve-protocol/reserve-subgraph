@@ -1,7 +1,9 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { ActiveAccount, RToken } from "../../generated/schema";
 import {
+  BIGDECIMAL_ZERO,
   BIGINT_ONE,
+  BIGINT_ZERO,
   EntryType,
   INT_ONE,
   SECONDS_PER_DAY,
@@ -9,6 +11,7 @@ import {
 } from "./constants";
 import {
   getOrCreateAccountBalance,
+  getOrCreateAccountBalanceDailySnapshot,
   getOrCreateFinancialsDailySnapshot,
   getOrCreateProtocol,
   getOrCreateRTokenDailySnapshot,
@@ -42,43 +45,6 @@ export function updateFinancials(event: ethereum.Event): void {
   financialMetricsDaily.save();
 }
 
-export function updateInsuranceMetrics(
-  event: ethereum.Event,
-  rTokenAddress: Address,
-  accountAddress: Address
-): void {
-  const protocol = getOrCreateProtocol();
-  const rToken = RToken.load(rTokenAddress.toHexString())!;
-
-  // let protocol = getOrCreateProtocol();
-
-  // let usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
-  // let usageMetricsHourly = getOrCreateUsageMetricHourlySnapshot(event);
-
-  // let rTokenDaily = getOrCreateRTokenDailySnapshot(rToken.id, event);
-  // let rTokenHourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
-
-  // if (entryType === EntryType.STAKE) {
-  // } else if (entryType === EntryType.UNSTAKE) {
-  // }
-
-  // // Update the block number and timestamp to that of the last transaction of that day
-  // usageMetricsDaily.blockNumber = event.block.number;
-  // usageMetricsDaily.timestamp = event.block.timestamp;
-  // usageMetricsDaily.dailyTransactionCount += INT_ONE;
-
-  // usageMetricsHourly.blockNumber = event.block.number;
-  // usageMetricsHourly.timestamp = event.block.timestamp;
-  // usageMetricsHourly.hourlyTransactionCount += INT_ONE;
-
-  // usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
-  // usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
-
-  // protocol.save();
-  // usageMetricsDaily.save();
-  // usageMetricsHourly.save();
-}
-
 // export function updateRTokenMetrics(
 //   event: ethereum.Event,
 //   rTokenId: string,
@@ -86,7 +52,156 @@ export function updateInsuranceMetrics(
 //   entryType
 // );
 
-// Update usage metrics entities
+function updateTokenHolder(
+  tokenAddress: Address,
+  newHolder: boolean,
+  event: ethereum.Event
+): void {
+  let token = getOrCreateToken(tokenAddress);
+  let dailyMetrics = getOrCreateTokenDailySnapshot(token.id, event);
+  let hourlyMetrics = getOrCreateTokenHourlySnapshot(token.id, event);
+
+  if (newHolder) {
+    token.holderCount = token.holderCount.plus(BIGINT_ONE);
+    dailyMetrics.dailyHolderCount += INT_ONE;
+    hourlyMetrics.hourlyHolderCount += INT_ONE;
+  } else {
+    token.holderCount = token.holderCount.minus(BIGINT_ONE);
+  }
+  token.save();
+}
+
+export function updateAccountBalance(
+  accountAddress: Address,
+  tokenAddress: Address,
+  amount: BigInt,
+  event: ethereum.Event
+): void {
+  // update balance
+  let accountBalance = getOrCreateAccountBalance(accountAddress, tokenAddress);
+  let balance = accountBalance.amount.plus(amount.toBigDecimal());
+
+  if (accountBalance.amount.le(BIGDECIMAL_ZERO) && amount.gt(BIGINT_ZERO)) {
+    updateTokenHolder(tokenAddress, true, event);
+  } else if (balance.le(BIGDECIMAL_ZERO)) {
+    updateTokenHolder(tokenAddress, false, event);
+  }
+
+  accountBalance.transferCount += INT_ONE;
+  accountBalance.amount = balance;
+  accountBalance.blockNumber = event.block.number;
+  accountBalance.timestamp = event.block.timestamp;
+  accountBalance.save();
+
+  // update snapshot
+  let accountBalanceSnapshot = getOrCreateAccountBalanceDailySnapshot(
+    accountAddress,
+    tokenAddress,
+    event
+  );
+  accountBalanceSnapshot.amount = accountBalance.amount;
+  accountBalanceSnapshot.transferCount = accountBalance.transferCount;
+  accountBalanceSnapshot.blockNumber = accountBalance.blockNumber;
+  accountBalanceSnapshot.timestamp = accountBalance.timestamp;
+  accountBalanceSnapshot.transferCount = accountBalance.transferCount;
+  accountBalanceSnapshot.save();
+}
+
+export function updateRTokenMetrics(
+  event: ethereum.Event,
+  rTokenAddress: Address,
+  amount: BigInt,
+  entryType: string
+): void {
+  let protocol = getOrCreateProtocol();
+  let rToken = RToken.load(rTokenAddress.toHexString())!;
+
+  // protocol metrics
+  let usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
+  let usageMetricsHourly = getOrCreateUsageMetricHourlySnapshot(event);
+
+  // rToken metrics
+  let rTokenDaily = getOrCreateRTokenDailySnapshot(rToken.id, event);
+  let rTokenHourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
+
+  // TODO: Total value lock
+  // TODO: Revenue
+  switch (entryType) {
+    case EntryType.MINT:
+      // TODO: TVL
+      // TODO: Value USD
+      // TODO: Volume
+      break;
+    case EntryType.BURN:
+      // TODO: Volume
+      // TODO: Value USD
+      break;
+    case EntryType.TRANSFER:
+      // TODO: Volume
+      // TODO: Volume USD
+      break;
+    case EntryType.STAKE:
+      protocol.insurance = protocol.insurance.plus(amount);
+      protocol.rsrStaked = protocol.rsrStaked.plus(amount);
+      // TODO: rsrStakedUSD
+
+      usageMetricsDaily.dailyRSRStaked = usageMetricsDaily.dailyRSRStaked.plus(
+        amount
+      );
+      usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
+      // rToken
+      rToken.insurance = rToken.insurance.plus(amount);
+      rTokenDaily.insurance = rToken.insurance;
+      rTokenHourly.insurance = rToken.insurance;
+      break;
+    case EntryType.UNSTAKE:
+      // Protocol
+      protocol.rsrUnstaked = protocol.rsrUnstaked.plus(amount);
+      usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRStaked.plus(
+        amount
+      );
+      usageMetricsDaily.cumulativeRSRUnstaked = protocol.rsrStaked;
+      // rToken
+      rToken.rsrUnstaked = rToken.rsrUnstaked.plus(amount);
+      rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
+      rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
+      break;
+    case EntryType.WITHDRAW:
+      protocol.insurance = protocol.insurance.minus(amount);
+      // rToken
+      rToken.insurance = rToken.insurance.minus(amount);
+      rTokenDaily.insurance = rToken.insurance;
+      rTokenHourly.insurance = rToken.insurance;
+      break;
+  }
+
+  // Update the block number and timestamp to that of the last transaction of that day
+  usageMetricsDaily.blockNumber = event.block.number;
+  usageMetricsDaily.timestamp = event.block.timestamp;
+  usageMetricsDaily.dailyTransactionCount += INT_ONE;
+
+  usageMetricsHourly.blockNumber = event.block.number;
+  usageMetricsHourly.timestamp = event.block.timestamp;
+  usageMetricsHourly.hourlyTransactionCount += INT_ONE;
+
+  rTokenDaily.blockNumber = event.block.number;
+  rTokenDaily.timestamp = event.block.timestamp;
+
+  rTokenHourly.blockNumber = event.block.number;
+  rTokenHourly.timestamp = event.block.timestamp;
+
+  usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+  usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+
+  protocol.save();
+  usageMetricsDaily.save();
+  usageMetricsHourly.save();
+
+  // Update protocol financial metrics snapshot
+  updateFinancials(event);
+}
+
+// Update token metrics and snapshots
 export function updateTokenMetrics(
   event: ethereum.Event,
   tokenAddress: Address,
@@ -104,12 +219,7 @@ export function updateTokenMetrics(
   let tokenDaily = getOrCreateTokenDailySnapshot(token.id, event);
   let tokenHourly = getOrCreateTokenHourlySnapshot(token.id, event);
 
-  // Number of days since Unix epoch
-  let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
-  let hour = event.block.timestamp.toI32() / SECONDS_PER_HOUR;
-
-  let dayId = day.toString();
-  let hourId = hour.toString();
+  let [dayId, hourId] = getTimeIds(event);
 
   // User data
   // Combine the id and the user address to generate a unique user id for the day
@@ -172,4 +282,22 @@ export function updateTokenMetrics(
 
   token.transferCount = token.transferCount.plus(BIGINT_ONE);
   token.save();
+
+  // For tokens that are not RSV
+  if (token.rToken) {
+    updateRTokenMetrics(
+      event,
+      Address.fromString(token.rToken),
+      amount,
+      entryType
+    );
+  }
+}
+
+function getTimeIds(event: ethereum.Event): [string, string] {
+  // Number of days since Unix epoch
+  let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
+  let hour = event.block.timestamp.toI32() / SECONDS_PER_HOUR;
+
+  return [day.toString(), hour.toString()];
 }
