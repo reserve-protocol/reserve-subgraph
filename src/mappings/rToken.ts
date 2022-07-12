@@ -1,28 +1,22 @@
-import { hour } from "./../common/utils/datetime";
-import {
-  BIGINT_ONE,
-  BIGINT_ZERO,
-  EntryType,
-  INT_ONE,
-} from "./../common/constants";
+import { BigInt } from "@graphprotocol/graph-ts";
 import { Account, RewardToken, RToken } from "../../generated/schema";
 import {
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
 } from "../../generated/templates";
 import {
-  Transfer as TransferEvent,
-  IssuanceStarted,
+  BasketsNeededChanged,
   IssuancesCanceled,
   IssuancesCompleted,
+  IssuanceStarted,
   Redemption,
-  BasketsNeededChanged,
+  Transfer as TransferEvent,
 } from "../../generated/templates/RToken/RToken";
 import {
-  Staked,
-  UnstakingStarted,
-  UnstakingCompleted,
   ExchangeRateSet,
+  Staked,
+  UnstakingCompleted,
+  UnstakingStarted,
 } from "../../generated/templates/stRSR/stRSR";
 import {
   getOrCreateEntry,
@@ -33,13 +27,18 @@ import {
   getOrCreateToken,
   getTokenAccount,
 } from "../common/getters";
-import { RTokenCreated } from "./../../generated/Deployer/Deployer";
-import { BigInt } from "@graphprotocol/graph-ts";
-import { handleTransfer } from "./common";
 import {
   updateRTokenMetrics,
   updateRTokenUniqueUsers,
 } from "../common/metrics";
+import { RTokenCreated } from "./../../generated/Deployer/Deployer";
+import {
+  BIGINT_ONE,
+  BIGINT_ZERO,
+  EntryType,
+  INT_ONE,
+} from "./../common/constants";
+import { handleTransfer } from "./common";
 
 // * Deployer events
 export function handleCreateToken(event: RTokenCreated): void {
@@ -142,8 +141,7 @@ export function handleRedemption(event: Redemption): void {
 
 // * stRSR Events
 export function handleStake(event: Staked): void {
-  let rewardToken = RewardToken.load(event.address.toHexString());
-  let rTokenId = rewardToken.rToken;
+  let rTokenId = getRTokenId(event.address.toHexString());
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
@@ -176,8 +174,7 @@ export function handleStake(event: Staked): void {
 }
 
 export function handleUnstakeStarted(event: UnstakingStarted): void {
-  let rewardToken = RewardToken.load(event.address.toHexString());
-  let rTokenId = rewardToken.rToken;
+  let rTokenId = getRTokenId(event.address.toHexString());
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
@@ -202,8 +199,7 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
 }
 
 export function handleUnstake(event: UnstakingCompleted): void {
-  let rewardToken = RewardToken.load(event.address.toHexString());
-  let rTokenId = rewardToken.rToken;
+  let rTokenId = getRTokenId(event.address.toHexString());
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
@@ -250,10 +246,10 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
 }
 
 export function handleExchangeRate(event: ExchangeRateSet): void {
-  let rewardToken = getOrCreateRewardToken(event.address);
-  let rToken = RToken.load(rewardToken.rToken);
+  let rTokenId = getRTokenId(event.address.toHexString());
 
-  if (rToken) {
+  if (rTokenId) {
+    let rToken = RToken.load(rTokenId)!;
     let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
     let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
@@ -265,4 +261,15 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
     daily.save();
     hourly.save();
   }
+}
+
+function getRTokenId(rewardTokenId: string): string | null {
+  let id: string | null = null;
+  let rewardToken = RewardToken.load(rewardTokenId);
+
+  if (rewardToken) {
+    id = rewardToken.rToken;
+  }
+
+  return id;
 }
