@@ -55,6 +55,8 @@ export function updateInsuranceMetrics(
 ): void {
   const protocol = getOrCreateProtocol();
   const rToken = RToken.load(rTokenAddress.toHexString())!;
+
+  
 }
 
 // Update usage metrics entities

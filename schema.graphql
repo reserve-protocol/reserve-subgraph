@@ -727,6 +727,9 @@ type AccountRToken @entity {
   " Stake stRSR balance "
   stake: BigInt!
 
+  " Withdraw stRSR balance "
+  withdraw: BigInt!
+
   " Block number in which the stake was last modified "
   blockNumber: BigInt!
 
@@ -790,6 +793,32 @@ type AccountBalanceDailySnapshot @entity {
   blockNumber: BigInt!
 
   " Timestamp in which the balance was last modified "
+  timestamp: BigInt!
+}
+
+type AccountRTokenDailySnapshot @entity {
+  " { Address Of the Account }-{ Address of the RToken }-{ # of hours since Unix epoch time } "
+  id: ID!
+
+  " Account address "
+  account: Account!
+
+  " rToken address "
+  rToken: RToken!
+
+  " Token balance snapshot "
+  balance: AccountBalanceDailySnapshot!
+
+  " Stake stRSR balance "
+  stake: BigInt!
+
+  " Withdraw stRSR balance "
+  withdraw: BigInt!
+
+  " Block number in which the stake was last modified "
+  blockNumber: BigInt!
+
+  " Timestamp in which the stake was last modified "
   timestamp: BigInt!
 }
 

@@ -144,7 +144,6 @@ export function handleTransfer(event: TransferEvent): void {
   let toAccount = getOrCreateAccount(event.params.to);
   let token = getOrCreateToken(event.address);
   // Update transfer count
-  token.transferCount = token.transferCount.plus(BIGINT_ONE);
 
   let entryType = EntryType.TRANSFER;
 
