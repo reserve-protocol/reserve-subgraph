@@ -1,5 +1,6 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
+  Account,
   FinancialsDailySnapshot,
   Protocol,
   RewardToken,
@@ -15,6 +16,7 @@ import {
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
   FACTORY_ADDRESS,
+  INT_ONE,
   INT_ZERO,
   Network,
   ProtocolType,
@@ -32,6 +34,7 @@ import {
   AccountBalanceDailySnapshot,
   Entry,
 } from "./../../generated/schema";
+import { updateRTokenUniqueUsers } from "./metrics";
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
 
 export function getOrCreateProtocol(): Protocol {
@@ -438,6 +441,29 @@ export function getOrCreateEntry(
   }
 
   return entry;
+}
+
+export function getTokenAccount(
+  accountAddress: Address,
+  tokenAddress: Address
+): Account {
+  let account = Account.load(accountAddress.toHexString());
+
+  if (!account) {
+    account = new Account(accountAddress.toHexString());
+
+    // Update token analytics
+    let token = getOrCreateToken(tokenAddress);
+    let rTokenId = token.rToken;
+    token.userCount += INT_ONE;
+    token.save();
+
+    if (rTokenId) {
+      updateRTokenUniqueUsers(rTokenId);
+    }
+  }
+
+  return account;
 }
 
 export function getDaysSinceEpoch(secondsSinceEpoch: number): string {

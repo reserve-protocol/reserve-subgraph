@@ -3,9 +3,9 @@ import {
   Redemption as RSVRedemption,
 } from "../../generated/RSVManager/RSVManager";
 import {
-  getOrCreateAccount,
   getOrCreateEntry,
   getOrCreateToken,
+  getTokenAccount,
 } from "../common/getters";
 import { EntryType, RSV_ADDRESS } from "./../common/constants";
 
@@ -14,7 +14,7 @@ import { EntryType, RSV_ADDRESS } from "./../common/constants";
  */
 // Handles token issuance
 export function handleIssuance(event: RSVIssuance): void {
-  let account = getOrCreateAccount(event.params.user);
+  let account = getTokenAccount(event.params.user, RSV_ADDRESS);
   let token = getOrCreateToken(RSV_ADDRESS);
 
   // Create entry
@@ -29,7 +29,7 @@ export function handleIssuance(event: RSVIssuance): void {
 
 // Handles RSV redemption
 export function handleRedemption(event: RSVRedemption): void {
-  let account = getOrCreateAccount(event.params.user);
+  let account = getTokenAccount(event.params.user, RSV_ADDRESS);
   let token = getOrCreateToken(RSV_ADDRESS);
 
   // Create entry

@@ -129,53 +129,45 @@ export function updateRTokenMetrics(
 
   // TODO: Total value lock
   // TODO: Revenue
-  switch (entryType) {
-    case EntryType.MINT:
-      // TODO: TVL
-      // TODO: Value USD
-      // TODO: Volume
-      break;
-    case EntryType.BURN:
-      // TODO: Volume
-      // TODO: Value USD
-      break;
-    case EntryType.TRANSFER:
-      // TODO: Volume
-      // TODO: Volume USD
-      break;
-    case EntryType.STAKE:
-      protocol.insurance = protocol.insurance.plus(amount);
-      protocol.rsrStaked = protocol.rsrStaked.plus(amount);
-      // TODO: rsrStakedUSD
+  if (entryType === EntryType.MINT) {
+    // TODO: TVL
+    // TODO: Value USD
+    // TODO: Volume
+  } else if (entryType === EntryType.BURN) {
+    // TODO: Volume
+    // TODO: Value USD
+  } else if (entryType === EntryType.TRANSFER) {
+    // TODO: Volume
+    // TODO: Volume USD
+  } else if (entryType === EntryType.STAKE) {
+    protocol.insurance = protocol.insurance.plus(amount);
+    protocol.rsrStaked = protocol.rsrStaked.plus(amount);
+    // TODO: rsrStakedUSD
 
-      usageMetricsDaily.dailyRSRStaked = usageMetricsDaily.dailyRSRStaked.plus(
-        amount
-      );
-      usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
-      // rToken
-      rToken.insurance = rToken.insurance.plus(amount);
-      rTokenDaily.insurance = rToken.insurance;
-      rTokenHourly.insurance = rToken.insurance;
-      break;
-    case EntryType.UNSTAKE:
-      // Protocol
-      protocol.rsrUnstaked = protocol.rsrUnstaked.plus(amount);
-      usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRStaked.plus(
-        amount
-      );
-      usageMetricsDaily.cumulativeRSRUnstaked = protocol.rsrStaked;
-      // rToken
-      rToken.rsrUnstaked = rToken.rsrUnstaked.plus(amount);
-      rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
-      rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
-      break;
-    case EntryType.WITHDRAW:
-      protocol.insurance = protocol.insurance.minus(amount);
-      // rToken
-      rToken.insurance = rToken.insurance.minus(amount);
-      rTokenDaily.insurance = rToken.insurance;
-      rTokenHourly.insurance = rToken.insurance;
-      break;
+    usageMetricsDaily.dailyRSRStaked = usageMetricsDaily.dailyRSRStaked.plus(
+      amount
+    );
+    usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
+    // rToken
+    rToken.insurance = rToken.insurance.plus(amount);
+    rTokenDaily.insurance = rToken.insurance;
+    rTokenHourly.insurance = rToken.insurance;
+  } else if (entryType === EntryType.UNSTAKE) {
+    protocol.rsrUnstaked = protocol.rsrUnstaked.plus(amount);
+    usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRStaked.plus(
+      amount
+    );
+    usageMetricsDaily.cumulativeRSRUnstaked = protocol.rsrStaked;
+    // rToken
+    rToken.rsrUnstaked = rToken.rsrUnstaked.plus(amount);
+    rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
+    rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
+  } else if (entryType === EntryType.WITHDRAW) {
+    protocol.insurance = protocol.insurance.minus(amount);
+    // rToken
+    rToken.insurance = rToken.insurance.minus(amount);
+    rTokenDaily.insurance = rToken.insurance;
+    rTokenHourly.insurance = rToken.insurance;
   }
 
   // Update the block number and timestamp to that of the last transaction of that day
@@ -222,11 +214,9 @@ export function updateTokenMetrics(
   let tokenDaily = getOrCreateTokenDailySnapshot(token.id, event);
   let tokenHourly = getOrCreateTokenHourlySnapshot(token.id, event);
 
-  let [dayId, hourId] = getTimeIds(event);
-
   // User data
   // Combine the id and the user address to generate a unique user id for the day
-  let dailyActiveAccountId = from.concat("-").concat(dayId);
+  let dailyActiveAccountId = from.concat("-").concat(getDayId(event));
   let dailyActiveAccount = ActiveAccount.load(dailyActiveAccountId);
 
   if (!dailyActiveAccount) {
@@ -235,7 +225,7 @@ export function updateTokenMetrics(
     dailyActiveAccount.save();
   }
 
-  let hourlyActiveAccountId = from.concat("-").concat(hourId);
+  let hourlyActiveAccountId = from.concat("-").concat(getHourId(event));
   let hourlyActiveAccount = ActiveAccount.load(hourlyActiveAccountId);
 
   if (!hourlyActiveAccount) {
@@ -288,21 +278,21 @@ export function updateTokenMetrics(
   token.transferCount = token.transferCount.plus(BIGINT_ONE);
   token.save();
 
+  let rTokenId = token.rToken;
+
   // For tokens that are not RSV
-  if (token.rToken) {
-    updateRTokenMetrics(
-      event,
-      Address.fromString(token.rToken),
-      amount,
-      entryType
-    );
+  if (rTokenId) {
+    updateRTokenMetrics(event, Address.fromString(rTokenId), amount, entryType);
   }
 }
 
-function getTimeIds(event: ethereum.Event): [string, string] {
-  // Number of days since Unix epoch
+function getDayId(event: ethereum.Event): string {
   let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
-  let hour = event.block.timestamp.toI32() / SECONDS_PER_HOUR;
+  return day.toString();
+}
 
-  return [day.toString(), hour.toString()];
+function getHourId(event: ethereum.Event): string {
+  // Number of days since Unix epoch
+  let hour = event.block.timestamp.toI32() / SECONDS_PER_HOUR;
+  return hour.toString();
 }

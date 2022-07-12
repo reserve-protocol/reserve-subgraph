@@ -1,7 +1,11 @@
 import { Address } from "@graphprotocol/graph-ts";
 import { Account } from "../../generated/schema";
 import { Transfer as TransferEvent } from "../../generated/templates/RToken/RToken";
-import { getOrCreateEntry, getOrCreateToken } from "../common/getters";
+import {
+  getOrCreateEntry,
+  getOrCreateToken,
+  getTokenAccount,
+} from "../common/getters";
 import {
   updateAccountBalance,
   updateRTokenUniqueUsers,
@@ -13,28 +17,6 @@ import {
   INT_ONE,
   ZERO_ADDRESS,
 } from "./../common/constants";
-
-function getTokenAccount(
-  accountAddress: Address,
-  tokenAddress: Address
-): Account {
-  let account = Account.load(accountAddress.toHexString());
-
-  if (!account) {
-    account = new Account(accountAddress.toHexString());
-
-    // Update token analytics
-    let token = getOrCreateToken(tokenAddress);
-    token.userCount += INT_ONE;
-    token.save();
-
-    if (token.rToken) {
-      updateRTokenUniqueUsers(token.rToken);
-    }
-  }
-
-  return account;
-}
 
 /**
  * Tracks ERC20 token transfer
