@@ -26,6 +26,7 @@ import {
   PROTOCOL_SLUG,
   PROTOCOL_SUBGRAPH_VERSION,
   RewardTokenType,
+  RSV_ADDRESS,
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
 } from "../common/constants";
@@ -262,6 +263,13 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.totalMinted = BIGINT_ZERO;
     token.lastPriceBlockNumber = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
+
+    // Inherit RSV-v1 metrics
+    if (tokenAddress === RSV_ADDRESS) {
+      token.transferCount = BigInt.fromI32("1933");
+      token.holderCount = BigInt.fromI32("220");
+      token.totalSupply = BigInt.fromString("314192e18");
+    }
 
     token.save();
   }

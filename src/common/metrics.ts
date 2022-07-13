@@ -100,13 +100,12 @@ export function updateAccountBalance(
   accountBalance.transferCount += INT_ONE;
   accountBalance.blockNumber = event.block.number;
   accountBalance.timestamp = event.block.timestamp;
+  accountBalance.save();
 
   accountBalanceSnapshot.amount = accountBalance.amount;
   accountBalanceSnapshot.transferCount = accountBalance.transferCount;
   accountBalanceSnapshot.blockNumber = accountBalance.blockNumber;
   accountBalanceSnapshot.timestamp = accountBalance.timestamp;
-
-  accountBalance.save();
   accountBalanceSnapshot.save();
 }
 
