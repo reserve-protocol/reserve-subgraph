@@ -266,8 +266,8 @@ export function getOrCreateToken(tokenAddress: Address): Token {
 
     // Inherit RSV-v1 metrics
     if (tokenAddress === RSV_ADDRESS) {
-      token.transferCount = BigInt.fromI32("1933");
-      token.holderCount = BigInt.fromI32("220");
+      token.transferCount = BigInt.fromI32(1933);
+      token.holderCount = BigInt.fromI32(220);
       token.totalSupply = BigInt.fromString("314192e18");
     }
 

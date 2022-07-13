@@ -58,7 +58,7 @@ export function handleTransfer(event: TransferEvent): void {
     updateAccountBalance(
       event.params.to,
       event.address,
-      BIGINT_ZERO.minus(event.params.value),
+      event.params.value,
       event
     );
   }

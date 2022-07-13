@@ -191,5 +191,5 @@ export const ETH_NAME = "Ether";
 ///// Protocol Specific /////
 /////////////////////////////
 
-export const FACTORY_ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"; // Deployer address
-// TODO: Facade address
+export const FACTORY_ADDRESS = "0x70bDA08DBe07363968e9EE53d899dFE48560605B"; // Deployer address
+export const FACADE_ADDRESS = "0xaca81583840B1bf2dDF6CDe824ada250C1936B4D";
