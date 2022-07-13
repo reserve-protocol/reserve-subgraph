@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, BigDecimal, ethereum } from "@graphprotocol/graph-ts";
 import { ActiveAccount, RToken } from "../../generated/schema";
 import {
   BIGDECIMAL_ZERO,
@@ -22,10 +22,14 @@ import {
   getOrCreateUsageMetricDailySnapshot,
   getOrCreateUsageMetricHourlySnapshot,
 } from "./getters";
-import { bigIntToBigDecimal } from "./utils/numbers";
+import { getRSRPrice } from "./tokens";
+import { bigIntToBigDecimal, getUsdValue } from "./utils/numbers";
 
 // Update FinancialsDailySnapshots entity
-export function updateFinancials(event: ethereum.Event): void {
+export function updateFinancials(
+  event: ethereum.Event,
+  amountUSD: BigDecimal
+): void {
   let financialMetricsDaily = getOrCreateFinancialsDailySnapshot(event);
 
   let protocol = getOrCreateProtocol();
@@ -33,14 +37,22 @@ export function updateFinancials(event: ethereum.Event): void {
   // Update the block number and timestamp to that of the last transaction of that day
   financialMetricsDaily.blockNumber = event.block.number;
   financialMetricsDaily.timestamp = event.block.timestamp;
-  financialMetricsDaily.totalValueLockedUSD = protocol.totalValueLockedUSD;
-  financialMetricsDaily.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD;
 
+  financialMetricsDaily.totalValueLockedUSD = protocol.totalValueLockedUSD;
+  financialMetricsDaily.dailyVolumeUSD = financialMetricsDaily.dailyVolumeUSD.plus(
+    amountUSD
+  );
+  financialMetricsDaily.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD;
   financialMetricsDaily.insurance = protocol.insurance;
+  financialMetricsDaily.insuranceUSD = protocol.insuranceUSD;
+
   financialMetricsDaily.cumulativeTotalRevenueUSD =
     protocol.cumulativeRTokenRevenueUSD;
-  financialMetricsDaily.cumulativeTotalRevenueUSD =
-    protocol.cumulativeTotalRevenueUSD;
+  financialMetricsDaily.cumulativeRTokenRevenueUSD =
+    protocol.cumulativeRTokenRevenueUSD;
+  financialMetricsDaily.cumulativeInsuranceRevenueUSD =
+    protocol.cumulativeInsuranceRevenueUSD;
+  financialMetricsDaily.totalRTokenUSD = protocol.totalRTokenUSD;
 
   // TODO: Daily metrics
   financialMetricsDaily.save();
@@ -118,6 +130,14 @@ export function updateRTokenMetrics(
 ): void {
   let protocol = getOrCreateProtocol();
   let rToken = RToken.load(rTokenAddress.toHexString())!;
+  let rsrPrice = rToken.rsrPriceUSD;
+
+  if (rToken.rsrPriceLastBlock.lt(event.block.number)) {
+    rsrPrice = getRSRPrice();
+    rToken.rsrPriceLastBlock = event.block.number;
+  }
+
+  let amountUSD = getUsdValue(amount, rsrPrice);
 
   // protocol metrics
   let usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
@@ -141,29 +161,45 @@ export function updateRTokenMetrics(
     // TODO: Volume USD
   } else if (entryType === EntryType.STAKE) {
     protocol.insurance = protocol.insurance.plus(amount);
+    protocol.rsrStakedUSD = getUsdValue(protocol.insurance, rsrPrice);
     protocol.rsrStaked = protocol.rsrStaked.plus(amount);
-    // TODO: rsrStakedUSD
+    protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsrPrice);
 
     usageMetricsDaily.dailyRSRStaked = usageMetricsDaily.dailyRSRStaked.plus(
       amount
     );
+    usageMetricsDaily.dailyRSRStakedUSD = getUsdValue(
+      usageMetricsDaily.dailyRSRStaked,
+      rsrPrice
+    );
     usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
+    usageMetricsDaily.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
+
     // rToken
     rToken.insurance = rToken.insurance.plus(amount);
+
     rTokenDaily.insurance = rToken.insurance;
     rTokenHourly.insurance = rToken.insurance;
   } else if (entryType === EntryType.UNSTAKE) {
     protocol.rsrUnstaked = protocol.rsrUnstaked.plus(amount);
+    protocol.rsrUnstakedUSD = getUsdValue(protocol.rsrUnstaked, rsrPrice);
+
     usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRStaked.plus(
       amount
     );
+    usageMetricsDaily.dailyRSRStakedUSD = usageMetricsDaily.dailyRSRUnstakedUSD.plus(
+      amountUSD
+    );
     usageMetricsDaily.cumulativeRSRUnstaked = protocol.rsrStaked;
+    usageMetricsDaily.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
     // rToken
     rToken.rsrUnstaked = rToken.rsrUnstaked.plus(amount);
+
     rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
     rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
   } else if (entryType === EntryType.WITHDRAW) {
     protocol.insurance = protocol.insurance.minus(amount);
+    protocol.insuranceUSD = getUsdValue(protocol.insurance, rsrPrice);
     // rToken
     rToken.insurance = rToken.insurance.minus(amount);
     rTokenDaily.insurance = rToken.insurance;
@@ -188,12 +224,13 @@ export function updateRTokenMetrics(
   usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
   usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
 
+  rToken.save();
   protocol.save();
   usageMetricsDaily.save();
   usageMetricsHourly.save();
 
   // Update protocol financial metrics snapshot
-  updateFinancials(event);
+  updateFinancials(event, amountUSD);
 }
 
 // Update token metrics and snapshots

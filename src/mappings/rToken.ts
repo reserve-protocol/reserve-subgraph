@@ -64,7 +64,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.insurance = BIGINT_ZERO;
   rToken.rsrStaked = BIGINT_ZERO;
   rToken.rsrUnstaked = BIGINT_ZERO;
-  rToken.basketUnits = BigInt.fromString("100");
+  rToken.basketUnits = BIGINT_ZERO;
   rToken.save();
 
   // Initialize dynamic mappings for the new RToken system

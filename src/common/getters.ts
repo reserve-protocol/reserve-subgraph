@@ -38,7 +38,6 @@ import {
 } from "./../../generated/schema";
 import { updateRTokenUniqueUsers } from "./metrics";
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
-import { getUsdPricePerToken } from "../prices";
 
 export function getOrCreateProtocol(): Protocol {
   let protocol = Protocol.load(FACTORY_ADDRESS);
@@ -50,6 +49,9 @@ export function getOrCreateProtocol(): Protocol {
     protocol.schemaVersion = PROTOCOL_SCHEMA_VERSION;
     protocol.subgraphVersion = PROTOCOL_SUBGRAPH_VERSION;
     protocol.methodologyVersion = PROTOCOL_METHODOLOGY_VERSION;
+
+    protocol.insurance = BIGINT_ZERO;
+    protocol.insuranceUSD = BIGDECIMAL_ZERO;
     protocol.totalValueLockedUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
@@ -59,12 +61,10 @@ export function getOrCreateProtocol(): Protocol {
     protocol.network = Network.MAINNET;
     protocol.type = ProtocolType.GENERIC;
 
-    protocol.insurance = BIGINT_ZERO;
     protocol.rsrStaked = BIGINT_ZERO;
     protocol.rsrStakedUSD = BIGDECIMAL_ZERO;
     protocol.rsrUnstaked = BIGINT_ZERO;
     protocol.rsrUnstakedUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
     protocol.totalRTokenUSD = BIGDECIMAL_ZERO; // Maybe duplicated from cumulative volume
     protocol.rTokenCount = INT_ZERO;
 
@@ -156,14 +156,17 @@ export function getOrCreateFinancialsDailySnapshot(
     financialMetrics = new FinancialsDailySnapshot(id);
     financialMetrics.protocol = FACTORY_ADDRESS;
 
+    financialMetrics.insurance = BIGINT_ZERO;
+    financialMetrics.insuranceUSD = BIGDECIMAL_ZERO;
+
     financialMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
     financialMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;
     financialMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
 
-    financialMetrics.dailyRTokenRevenueUSD = BIGDECIMAL_ZERO;
-    financialMetrics.dailyInsuranceRevenueUSD = BIGDECIMAL_ZERO;
-    financialMetrics.dailyTotalRevenueUSD = BIGDECIMAL_ZERO;
+    financialMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
+    financialMetrics.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
     financialMetrics.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
+    financialMetrics.totalRTokenUSD = BIGDECIMAL_ZERO;
 
     financialMetrics.blockNumber = event.block.number;
     financialMetrics.timestamp = event.block.timestamp;
