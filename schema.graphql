@@ -312,7 +312,10 @@ type RToken @entity {
   rewardTokenSupply: BigInt!
 
   " RSR token price "
-  rsrPriceUSD: BigDecimal
+  rsrPriceUSD: BigDecimal!
+
+  " RSR Price last updated block to avoid re-fetching"
+  rsrPriceLastBlock: BigInt!
 
   " Reward token exchange rate "
   rsrExchangeRate: BigInt!

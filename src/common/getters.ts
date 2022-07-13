@@ -1,4 +1,5 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { RSR_ADDRESS } from "./constants";
+import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   Account,
   FinancialsDailySnapshot,
@@ -37,6 +38,7 @@ import {
 } from "./../../generated/schema";
 import { updateRTokenUniqueUsers } from "./metrics";
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
+import { getUsdPricePerToken } from "../prices";
 
 export function getOrCreateProtocol(): Protocol {
   let protocol = Protocol.load(FACTORY_ADDRESS);

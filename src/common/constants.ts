@@ -132,7 +132,9 @@ export namespace TokenType {
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
-export const RSR_ADDRESS = "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"; // TODO: Created block
+export const RSR_ADDRESS = Address.fromString(
+  "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"
+); // TODO: Created block
 export const RSV_ADDRESS = Address.fromString(
   "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
 );

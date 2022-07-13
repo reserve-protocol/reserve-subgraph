@@ -11,6 +11,10 @@ export function bigIntToBigDecimal(
   );
 }
 
+export function getUsdValue(amount: BigInt, price: BigDecimal): BigDecimal {
+  return bigIntToBigDecimal(amount).times(price);
+}
+
 // returns 10^exp
 export function exponentToBigDecimal(exp: i32): BigDecimal {
   let bd = BigDecimal.fromString("1");

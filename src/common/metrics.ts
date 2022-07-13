@@ -22,6 +22,7 @@ import {
   getOrCreateUsageMetricDailySnapshot,
   getOrCreateUsageMetricHourlySnapshot,
 } from "./getters";
+import { bigIntToBigDecimal } from "./utils/numbers";
 
 // Update FinancialsDailySnapshots entity
 export function updateFinancials(event: ethereum.Event): void {
@@ -88,7 +89,7 @@ export function updateAccountBalance(
     tokenAddress,
     event
   );
-  let balance = accountBalance.amount.plus(amount.toBigDecimal());
+  let balance = accountBalance.amount.plus(bigIntToBigDecimal(amount));
 
   if (accountBalance.amount.le(BIGDECIMAL_ZERO) && amount.gt(BIGINT_ZERO)) {
     updateTokenHolder(tokenAddress, true, event);

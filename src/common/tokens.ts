@@ -1,6 +1,9 @@
-/* eslint-disable prefer-const */
+import { Address, BigDecimal } from "@graphprotocol/graph-ts";
 import { ERC20 } from "../../generated/Deployer/ERC20";
-import { Address } from "@graphprotocol/graph-ts";
+import { RToken } from "../../generated/templates/RToken/RToken";
+import { getUsdPricePerToken } from "../prices";
+import { BIGDECIMAL_ZERO, RSR_ADDRESS } from "./constants";
+import { bigIntToBigDecimal } from "./utils/numbers";
 
 export const INVALID_TOKEN_DECIMALS = 9999;
 export const UNKNOWN_TOKEN_VALUE = "unknown";
@@ -126,4 +129,29 @@ class StaticTokenDefinition {
     // If not found, return null
     return null;
   }
+}
+
+export function getRSRPrice(): BigDecimal {
+  let tokenPrice: BigDecimal;
+  let fetchPrice = getUsdPricePerToken(RSR_ADDRESS);
+  if (!fetchPrice.reverted) {
+    tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimals.toBigDecimal());
+  } else {
+    // default value of this variable, if reverted is BigDecimal Zero
+    tokenPrice = fetchPrice.usdPrice;
+  }
+
+  return tokenPrice;
+}
+
+export function getRTokenPrice(address: Address): BigDecimal {
+  let tokenPrice = BIGDECIMAL_ZERO;
+  let contract = RToken.bind(address);
+  let price = contract.try_price();
+
+  if (!price.reverted) {
+    tokenPrice = bigIntToBigDecimal(price.value);
+  }
+
+  return tokenPrice;
 }

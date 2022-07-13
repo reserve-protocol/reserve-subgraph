@@ -31,6 +31,7 @@ import {
   updateRTokenMetrics,
   updateRTokenUniqueUsers,
 } from "../common/metrics";
+import { getRSRPrice } from "../common/tokens";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import {
   BIGINT_ONE,
@@ -57,7 +58,8 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.createdBlockNumber = event.block.number;
   rToken.cumulativeUniqueUsers = INT_ONE;
   rToken.rewardTokenSupply = BIGINT_ZERO;
-  // TODO: RSR PRICE USD
+  rToken.rsrPriceUSD = getRSRPrice();
+  rToken.rsrPriceLastBlock = event.block.number;
   rToken.rsrExchangeRate = BIGINT_ONE;
   rToken.insurance = BIGINT_ZERO;
   rToken.rsrStaked = BIGINT_ZERO;
