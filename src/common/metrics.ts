@@ -1,4 +1,10 @@
-import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import {
+  Address,
+  BigDecimal,
+  BigInt,
+  ethereum,
+  log,
+} from "@graphprotocol/graph-ts";
 import { ActiveAccount, RToken } from "../../generated/schema";
 import {
   BIGDECIMAL_ZERO,
@@ -288,6 +294,7 @@ export function updateTokenMetrics(
 ): void {
   let token = getOrCreateToken(tokenAddress);
   let tokenPrice = token.lastPriceUSD;
+  log.info("Token price: {}", [tokenPrice.toString()]);
   // Update token price
   if (token.lastPriceBlockNumber.lt(event.block.number)) {
     tokenPrice = token.rToken
@@ -295,6 +302,7 @@ export function updateTokenMetrics(
       : getTokenPrice(tokenAddress);
     token.lastPriceUSD = tokenPrice;
     token.lastPriceBlockNumber = event.block.number;
+    log.info("Update token price: {}", [tokenPrice.toString()]);
   }
 
   let from = fromAddress

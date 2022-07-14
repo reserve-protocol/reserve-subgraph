@@ -1,5 +1,5 @@
 import * as constants from "../common/constants";
-import { Address } from "@graphprotocol/graph-ts";
+import { Address, log } from "@graphprotocol/graph-ts";
 import { CustomPriceType } from "../common/types";
 import { ChainLinkContract } from "../../../generated/Deployer//ChainLinkContract";
 
