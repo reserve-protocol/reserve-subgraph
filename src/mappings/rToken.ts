@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address } from "@graphprotocol/graph-ts";
 import { Account, RewardToken, RToken } from "../../generated/schema";
 import {
   RToken as RTokenTemplate,
@@ -28,6 +28,7 @@ import {
   getTokenAccount,
 } from "../common/getters";
 import {
+  updateRTokenAccountBalance,
   updateRTokenMetrics,
   updateRTokenUniqueUsers,
 } from "../common/metrics";
@@ -166,6 +167,13 @@ export function handleStake(event: Staked): void {
     entry.stAmount = event.params.stRSRAmount;
     entry.save();
 
+    updateRTokenAccountBalance(
+      event.params.staker,
+      Address.fromString(rTokenId),
+      BIGINT_ZERO.plus(event.params.stRSRAmount),
+      event
+    );
+
     updateRTokenMetrics(
       event,
       event.address,
@@ -222,6 +230,13 @@ export function handleUnstake(event: UnstakingCompleted): void {
     );
     entry.rToken = rTokenId;
     entry.save();
+
+    updateRTokenAccountBalance(
+      event.params.staker,
+      Address.fromString(rTokenId),
+      BIGINT_ZERO.minus(event.params.rsrAmount),
+      event
+    );
 
     updateRTokenMetrics(
       event,

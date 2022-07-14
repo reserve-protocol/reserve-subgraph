@@ -1,7 +1,8 @@
-import { RSR_ADDRESS } from "./constants";
-import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   Account,
+  AccountRToken,
+  AccountRTokenDailySnapshot,
   FinancialsDailySnapshot,
   Protocol,
   RewardToken,
@@ -365,6 +366,70 @@ export function getOrCreateTokenHourlySnapshot(
   }
 
   return tokenMetrics;
+}
+
+export function getOrCreateRTokenAccount(
+  accountAddress: Address,
+  rTokenAddress: Address
+): AccountRToken {
+  let id = accountAddress
+    .toHexString()
+    .concat("-")
+    .concat(rTokenAddress.toHexString());
+  let accountRToken = AccountRToken.load(id);
+
+  if (!accountRToken) {
+    // Create account-token balance record
+    let tokenBalance = getOrCreateAccountBalance(accountAddress, rTokenAddress);
+
+    accountRToken = new AccountRToken(id);
+    accountRToken.account = accountAddress.toHexString();
+    accountRToken.rToken = rTokenAddress.toHexString();
+    accountRToken.balance = tokenBalance.id;
+    accountRToken.stake = BIGDECIMAL_ZERO;
+    accountRToken.blockNumber = BIGINT_ZERO;
+    accountRToken.timestamp = BIGINT_ZERO;
+
+    accountRToken.save();
+  }
+
+  return accountRToken;
+}
+
+export function getOrCreateAccountRTokenDailySnapshot(
+  accountAddress: Address,
+  rTokenAddress: Address,
+  event: ethereum.Event
+): AccountRTokenDailySnapshot {
+  let day = event.block.timestamp.toI32() / SECONDS_PER_DAY;
+  let dayId = day.toString();
+  let id = accountAddress
+    .toHexString()
+    .concat("-")
+    .concat(rTokenAddress.toHexString())
+    .concat("-")
+    .concat(dayId);
+  let accountMetric = AccountRTokenDailySnapshot.load(id);
+
+  if (!accountMetric) {
+    let balanceSnapshot = getOrCreateAccountBalanceDailySnapshot(
+      accountAddress,
+      rTokenAddress,
+      event
+    );
+
+    accountMetric = new AccountRTokenDailySnapshot(id);
+    accountMetric.account = accountAddress.toHexString();
+    accountMetric.rToken = rTokenAddress.toHexString();
+    accountMetric.balance = balanceSnapshot.id;
+    accountMetric.stake = BIGDECIMAL_ZERO;
+    accountMetric.blockNumber = event.block.number;
+    accountMetric.timestamp = event.block.timestamp;
+
+    accountMetric.save();
+  }
+
+  return accountMetric;
 }
 
 export function getOrCreateAccountBalance(

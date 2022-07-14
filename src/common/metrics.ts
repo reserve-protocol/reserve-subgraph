@@ -1,4 +1,4 @@
-import { Address, BigInt, BigDecimal, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { ActiveAccount, RToken } from "../../generated/schema";
 import {
   BIGDECIMAL_ZERO,
@@ -12,8 +12,10 @@ import {
 import {
   getOrCreateAccountBalance,
   getOrCreateAccountBalanceDailySnapshot,
+  getOrCreateAccountRTokenDailySnapshot,
   getOrCreateFinancialsDailySnapshot,
   getOrCreateProtocol,
+  getOrCreateRTokenAccount,
   getOrCreateRTokenDailySnapshot,
   getOrCreateRTokenHourlySnapshot,
   getOrCreateToken,
@@ -54,7 +56,6 @@ export function updateFinancials(
     protocol.cumulativeInsuranceRevenueUSD;
   financialMetricsDaily.totalRTokenUSD = protocol.totalRTokenUSD;
 
-  // TODO: Daily metrics
   financialMetricsDaily.save();
 }
 
@@ -119,6 +120,30 @@ export function updateAccountBalance(
   accountBalanceSnapshot.transferCount = accountBalance.transferCount;
   accountBalanceSnapshot.blockNumber = accountBalance.blockNumber;
   accountBalanceSnapshot.timestamp = accountBalance.timestamp;
+  accountBalanceSnapshot.save();
+}
+
+export function updateRTokenAccountBalance(
+  accountAddress: Address,
+  rTokenAddress: Address,
+  amount: BigInt, // RewardToken amount
+  event: ethereum.Event
+): void {
+  let accountBalance = getOrCreateRTokenAccount(accountAddress, rTokenAddress);
+  let accountBalanceSnapshot = getOrCreateAccountRTokenDailySnapshot(
+    accountAddress,
+    rTokenAddress,
+    event
+  );
+
+  accountBalance.stake = accountBalance.stake.plus(bigIntToBigDecimal(amount));
+  accountBalance.blockNumber = event.block.number;
+  accountBalance.timestamp = event.block.timestamp;
+  accountBalance.save();
+
+  accountBalanceSnapshot.stake = accountBalance.stake;
+  accountBalanceSnapshot.blockNumber = event.block.number;
+  accountBalanceSnapshot.timestamp = event.block.timestamp;
   accountBalanceSnapshot.save();
 }
 
@@ -339,6 +364,8 @@ export function updateTokenMetrics(
 
   // For tokens that are not RSV
   if (rTokenId) {
+    // create AccountRToken relationship
+    getOrCreateRTokenAccount(fromAddress, tokenAddress);
     updateRTokenMetrics(event, Address.fromString(rTokenId), amount, entryType);
   }
 }

@@ -738,7 +738,7 @@ type Account @entity {
 }
 
 type AccountRToken @entity {
-  " { Address Of the Account }-{ Address of the stRSRToken } "
+  " { Address Of the Account }-{ Address of the rToken } "
   id: ID!
 
   " Account address "
@@ -751,10 +751,7 @@ type AccountRToken @entity {
   balance: AccountBalance!
 
   " Stake stRSR balance "
-  stake: BigInt!
-
-  " Withdraw stRSR balance "
-  withdraw: BigInt!
+  stake: BigDecimal!
 
   " Block number in which the stake was last modified "
   blockNumber: BigInt!
@@ -832,14 +829,11 @@ type AccountRTokenDailySnapshot @entity {
   " rToken address "
   rToken: RToken!
 
-  " Token balance snapshot "
+  " Token balance snapshot if exists "
   balance: AccountBalanceDailySnapshot!
 
   " Stake stRSR balance "
-  stake: BigInt!
-
-  " Withdraw stRSR balance "
-  withdraw: BigInt!
+  stake: BigDecimal!
 
   " Block number in which the stake was last modified "
   blockNumber: BigInt!
