@@ -24,7 +24,7 @@ import {
   getOrCreateUsageMetricDailySnapshot,
   getOrCreateUsageMetricHourlySnapshot,
 } from "./getters";
-import { getRSRPrice } from "./tokens";
+import { getRSRPrice, getRTokenPrice, getTokenPrice } from "./tokens";
 import { bigIntToBigDecimal, getUsdValue } from "./utils/numbers";
 
 // Update FinancialsDailySnapshots entity
@@ -287,6 +287,16 @@ export function updateTokenMetrics(
   entryType: string
 ): void {
   let token = getOrCreateToken(tokenAddress);
+  let tokenPrice = token.lastPriceUSD;
+  // Update token price
+  if (token.lastPriceBlockNumber.lt(event.block.number)) {
+    tokenPrice = token.rToken
+      ? getRTokenPrice(tokenAddress)
+      : getTokenPrice(tokenAddress);
+    token.lastPriceUSD = tokenPrice;
+    token.lastPriceBlockNumber = event.block.number;
+  }
+
   let from = fromAddress
     .toHexString()
     .concat("-")
@@ -349,11 +359,13 @@ export function updateTokenMetrics(
   tokenHourly.hourlyEventCount += INT_ONE;
   tokenHourly.blockNumber = event.block.number;
   tokenHourly.timestamp = event.block.timestamp;
+  tokenHourly.priceUSD = tokenPrice;
   tokenHourly.save();
 
   tokenDaily.cumulativeUniqueUsers = token.userCount;
   tokenDaily.dailyEventCount += INT_ONE;
   tokenDaily.blockNumber = event.block.number;
+  tokenDaily.priceUSD = tokenPrice;
   tokenDaily.timestamp = event.block.timestamp;
   tokenDaily.save();
 

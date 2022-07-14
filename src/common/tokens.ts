@@ -131,9 +131,9 @@ class StaticTokenDefinition {
   }
 }
 
-export function getRSRPrice(): BigDecimal {
+export function getTokenPrice(address: Address): BigDecimal {
   let tokenPrice: BigDecimal;
-  let fetchPrice = getUsdPricePerToken(RSR_ADDRESS);
+  let fetchPrice = getUsdPricePerToken(address);
   if (!fetchPrice.reverted) {
     tokenPrice = fetchPrice.usdPrice.div(
       BigInt.fromI32(fetchPrice.decimals).toBigDecimal()
@@ -144,6 +144,10 @@ export function getRSRPrice(): BigDecimal {
   }
 
   return tokenPrice;
+}
+
+export function getRSRPrice(): BigDecimal {
+  return getTokenPrice(RSR_ADDRESS);
 }
 
 export function getRTokenPrice(address: Address): BigDecimal {

@@ -528,10 +528,10 @@ type Token @entity {
   totalMinted: BigInt!
 
   " USD Price "
-  lastPriceUSD: BigDecimal
+  lastPriceUSD: BigDecimal!
 
   " Optional field to track the block number of the last token price "
-  lastPriceBlockNumber: BigInt
+  lastPriceBlockNumber: BigInt!
 
   " RToken relation "
   rToken: RToken @derivedFrom(field: "token")
@@ -590,7 +590,7 @@ type TokenDailySnapshot @entity {
   dailyBurnAmount: BigInt!
 
   " USD Price "
-  priceUSD: BigDecimal
+  priceUSD: BigDecimal!
 
   " Block number of this snapshot "
   blockNumber: BigInt!
@@ -634,7 +634,7 @@ type TokenHourlySnapshot @entity {
   hourlyBurnAmount: BigInt!
 
   " USD Price "
-  priceUSD: BigDecimal
+  priceUSD: BigDecimal!
 
   " Block number of this snapshot "
   blockNumber: BigInt!
