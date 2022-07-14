@@ -1,4 +1,4 @@
-import { Address, BigDecimal } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { ERC20 } from "../../generated/Deployer/ERC20";
 import { RToken } from "../../generated/templates/RToken/RToken";
 import { getUsdPricePerToken } from "../prices";
@@ -135,7 +135,9 @@ export function getRSRPrice(): BigDecimal {
   let tokenPrice: BigDecimal;
   let fetchPrice = getUsdPricePerToken(RSR_ADDRESS);
   if (!fetchPrice.reverted) {
-    tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimals.toBigDecimal());
+    tokenPrice = fetchPrice.usdPrice.div(
+      BigInt.fromI32(fetchPrice.decimals).toBigDecimal()
+    );
   } else {
     // default value of this variable, if reverted is BigDecimal Zero
     tokenPrice = fetchPrice.usdPrice;

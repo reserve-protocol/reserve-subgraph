@@ -126,13 +126,13 @@ export function getOrCreateUsageMetricHourlySnapshot(
     usageMetrics.hourlyTransactionCount = INT_ZERO;
 
     usageMetrics.hourlyRSRStaked = BIGINT_ZERO;
-    usageMetrics.hourlyRSRStakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.hourlyRSRStakedUSD = BIGDECIMAL_ZERO;
     usageMetrics.cumulativeRSRStaked = BIGINT_ZERO;
-    usageMetrics.cumulativeRSRStakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.cumulativeRSRStakedUSD = BIGDECIMAL_ZERO;
     usageMetrics.hourlyRSRUnstaked = BIGINT_ZERO;
-    usageMetrics.hourlyRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.hourlyRSRUnstakedUSD = BIGDECIMAL_ZERO;
     usageMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
-    usageMetrics.cumulativeRSRUnstakedValueUSD = BIGDECIMAL_ZERO;
+    usageMetrics.cumulativeRSRUnstakedUSD = BIGDECIMAL_ZERO;
 
     usageMetrics.blockNumber = event.block.number;
     usageMetrics.timestamp = event.block.timestamp;

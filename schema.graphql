@@ -218,25 +218,25 @@ type UsageMetricsHourlySnapshot @entity {
   hourlyRSRStaked: BigInt!
 
   " Total USD value of stake rsr from the day"
-  hourlyRSRStakedValueUSD: BigDecimal!
+  hourlyRSRStakedUSD: BigDecimal!
 
   " Cumulative Staked RSR "
   cumulativeRSRStaked: BigInt!
 
   " Cumulative Staked RSR USD"
-  cumulativeRSRStakedValueUSD: BigDecimal!
+  cumulativeRSRStakedUSD: BigDecimal!
 
   " All hourly RSR Unstaked "
   hourlyRSRUnstaked: BigInt!
 
   " Total USD value of stake rsr from the day"
-  hourlyRSRUnstakedValueUSD: BigDecimal!
+  hourlyRSRUnstakedUSD: BigDecimal!
 
   " Cumulative Staked RSR "
   cumulativeRSRUnstaked: BigInt!
 
   " Cumulative Staked RSR USD"
-  cumulativeRSRUnstakedValueUSD: BigDecimal!
+  cumulativeRSRUnstakedUSD: BigDecimal!
 
   " Block number of this snapshot "
   blockNumber: BigInt!

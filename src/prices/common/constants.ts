@@ -3,8 +3,8 @@ import * as FANTOM from "../config/fantom";
 import * as ARBITRUM_ONE from "../config/arbitrumOne";
 
 import { Address, BigDecimal, BigInt, TypedMap } from "@graphprotocol/graph-ts";
-import { UniswapPair__getReservesResult } from "../../../generated/UniswapV2Factory/UniswapPair";
-import { SushiSwapPair__getReservesResult } from "../../../generated/UniswapV2Factory/SushiSwapPair";
+import { UniswapPair__getReservesResult } from "../../../generated/Deployer/UniswapPair";
+import { SushiSwapPair__getReservesResult } from "../../../generated/Deployer/SushiSwapPair";
 
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// COMMON ////////////////////////////////
@@ -94,8 +94,11 @@ CURVE_POOL_REGISTRY_ADDRESS_MAP.set(
 ///////////////////////////// SUSHISWAP CONTRACT //////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-export const SUSHISWAP_DEFAULT_RESERVE_CALL =
-  new SushiSwapPair__getReservesResult(BIGINT_ZERO, BIGINT_ZERO, BIGINT_ZERO);
+export const SUSHISWAP_DEFAULT_RESERVE_CALL = new SushiSwapPair__getReservesResult(
+  BIGINT_ZERO,
+  BIGINT_ZERO,
+  BIGINT_ZERO
+);
 
 export const SUSHISWAP_CALCULATIONS_ADDRESS_MAP = new TypedMap<
   string,

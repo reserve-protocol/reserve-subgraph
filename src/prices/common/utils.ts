@@ -1,15 +1,22 @@
+import { ERC20 } from "./../../../generated/Deployer/ERC20";
 import * as constants from "./constants";
-import { _ERC20 } from "../../../generated/UniswapV2Factory/_ERC20";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 
-export function readValue<T>(callResult: ethereum.CallResult<T>, defaultValue: T): T {
+export function readValue<T>(
+  callResult: ethereum.CallResult<T>,
+  defaultValue: T
+): T {
   return callResult.reverted ? defaultValue : callResult.value;
 }
 
 export function getTokenDecimals(tokenAddr: Address): BigInt {
-  const token = _ERC20.bind(tokenAddr);
+  const token = ERC20.bind(tokenAddr);
+  let decimals = constants.DEFAULT_DECIMALS;
+  let result = token.try_decimals();
 
-  let decimals = readValue<BigInt>(token.try_decimals(), constants.DEFAULT_DECIMALS);
+  if (!result.reverted) {
+    decimals = BigInt.fromI32(result.value);
+  }
 
   return decimals;
 }
