@@ -199,6 +199,13 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
     entry.stAmount = event.params.stRSRAmount;
     entry.save();
 
+    updateRTokenAccountBalance(
+      event.params.staker,
+      Address.fromString(rTokenId),
+      BIGINT_ZERO.minus(event.params.stRSRAmount),
+      event
+    );
+
     updateRTokenMetrics(
       event,
       event.address,
@@ -230,13 +237,6 @@ export function handleUnstake(event: UnstakingCompleted): void {
     );
     entry.rToken = rTokenId;
     entry.save();
-
-    updateRTokenAccountBalance(
-      event.params.staker,
-      Address.fromString(rTokenId),
-      BIGINT_ZERO.minus(event.params.rsrAmount),
-      event
-    );
 
     updateRTokenMetrics(
       event,
