@@ -32,6 +32,11 @@
         "type": "address"
       },
       {
+        "internalType": "contract IFacade",
+        "name": "facade_",
+        "type": "address"
+      },
+      {
         "components": [
           {
             "internalType": "contract IMain",
@@ -99,26 +104,6 @@
             "internalType": "contract ITrade",
             "name": "trade",
             "type": "address"
-          },
-          {
-            "internalType": "contract IAsset",
-            "name": "rTokenAsset",
-            "type": "address"
-          },
-          {
-            "internalType": "contract IAsset",
-            "name": "aavePricedAsset",
-            "type": "address"
-          },
-          {
-            "internalType": "contract IAsset",
-            "name": "compoundPricedAsset",
-            "type": "address"
-          },
-          {
-            "internalType": "contract IFacade",
-            "name": "facade",
-            "type": "address"
           }
         ],
         "internalType": "struct Implementations",
@@ -148,12 +133,6 @@
         "indexed": false,
         "internalType": "contract IStRSR",
         "name": "stRSR",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "contract IFacade",
-        "name": "facade",
         "type": "address"
       },
       {
@@ -245,7 +224,7 @@
       },
       {
         "internalType": "string",
-        "name": "constitutionURI",
+        "name": "manifestoURI",
         "type": "string"
       },
       {
@@ -261,9 +240,9 @@
             "type": "uint32"
           },
           {
-            "internalType": "int192",
+            "internalType": "uint192",
             "name": "maxTradeVolume",
-            "type": "int192"
+            "type": "uint192"
           },
           {
             "components": [
@@ -288,9 +267,9 @@
             "type": "uint32"
           },
           {
-            "internalType": "int192",
+            "internalType": "uint192",
             "name": "rewardRatio",
-            "type": "int192"
+            "type": "uint192"
           },
           {
             "internalType": "uint32",
@@ -308,24 +287,29 @@
             "type": "uint32"
           },
           {
-            "internalType": "int192",
+            "internalType": "uint192",
             "name": "backingBuffer",
-            "type": "int192"
+            "type": "uint192"
           },
           {
-            "internalType": "int192",
+            "internalType": "uint192",
             "name": "maxTradeSlippage",
-            "type": "int192"
+            "type": "uint192"
           },
           {
-            "internalType": "int192",
+            "internalType": "uint192",
             "name": "dustAmount",
-            "type": "int192"
+            "type": "uint192"
           },
           {
-            "internalType": "int192",
+            "internalType": "uint192",
             "name": "issuanceRate",
-            "type": "int192"
+            "type": "uint192"
+          },
+          {
+            "internalType": "uint192",
+            "name": "minBidSize",
+            "type": "uint192"
           }
         ],
         "internalType": "struct DeploymentParams",
@@ -342,6 +326,19 @@
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "facade",
+    "outputs": [
+      {
+        "internalType": "contract IFacade",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -426,26 +423,6 @@
       {
         "internalType": "contract ITrade",
         "name": "trade",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IAsset",
-        "name": "rTokenAsset",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IAsset",
-        "name": "aavePricedAsset",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IAsset",
-        "name": "compoundPricedAsset",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IFacade",
-        "name": "facade",
         "type": "address"
       }
     ],
