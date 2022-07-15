@@ -193,20 +193,21 @@ export function getOrCreateRTokenDailySnapshot(
     );
     rTokenMetrics.protocol = FACTORY_ADDRESS;
     rTokenMetrics.rToken = rTokenAddress;
+    rTokenMetrics.blockNumber = event.block.number;
+    rTokenMetrics.timestamp = event.block.timestamp;
 
+    rTokenMetrics.dailyActiveUsers = INT_ZERO;
+    rTokenMetrics.cumulativeUniqueUsers = INT_ZERO;
     rTokenMetrics.insurance = BIGINT_ZERO;
     rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
-
     rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.dailyRSRStaked = BIGINT_ZERO;
+    rTokenMetrics.dailyActiveUsers = INT_ZERO;
     rTokenMetrics.cumulativeRSRStaked = BIGINT_ZERO;
     rTokenMetrics.dailyRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.rsrExchangeRate = BIGINT_ZERO;
     rTokenMetrics.basketUnits = BIGINT_ZERO;
-
-    rTokenMetrics.blockNumber = event.block.number;
-    rTokenMetrics.timestamp = event.block.timestamp;
 
     rTokenMetrics.save();
   }
@@ -230,20 +231,21 @@ export function getOrCreateRTokenHourlySnapshot(
     );
     rTokenMetrics.protocol = FACTORY_ADDRESS;
     rTokenMetrics.rToken = rTokenAddress;
+    rTokenMetrics.blockNumber = event.block.number;
+    rTokenMetrics.timestamp = event.block.timestamp;
 
+    rTokenMetrics.hourlyActiveUsers = INT_ZERO;
+    rTokenMetrics.cumulativeUniqueUsers = INT_ZERO;
     rTokenMetrics.insurance = BIGINT_ZERO;
     rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
-
     rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.hourlyRSRStaked = BIGINT_ZERO;
+    rTokenMetrics.hourlyActiveUsers = INT_ZERO;
     rTokenMetrics.cumulativeRSRStaked = BIGINT_ZERO;
     rTokenMetrics.hourlyRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.rsrExchangeRate = BIGINT_ZERO;
     rTokenMetrics.basketUnits = BIGINT_ZERO;
-
-    rTokenMetrics.blockNumber = event.block.number;
-    rTokenMetrics.timestamp = event.block.timestamp;
 
     rTokenMetrics.save();
   }

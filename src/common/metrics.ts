@@ -294,7 +294,11 @@ export function updateTokenMetrics(
 ): void {
   let token = getOrCreateToken(tokenAddress);
   let tokenPrice = token.lastPriceUSD;
-  log.info("Token price: {}", [tokenPrice.toString()]);
+  let rTokenAddress = token.rToken;
+  if (!rTokenAddress) {
+    rTokenAddress = "NO ADDRESS";
+  }
+  log.info("Token rToken address: {}", [rTokenAddress!]);
   // Update token price
   if (token.lastPriceBlockNumber.lt(event.block.number)) {
     tokenPrice = token.rToken

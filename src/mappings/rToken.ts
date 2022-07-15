@@ -1,5 +1,5 @@
 import { Address } from "@graphprotocol/graph-ts";
-import { Account, RewardToken, RToken } from "../../generated/schema";
+import { Account, RewardToken, RToken, Token } from "../../generated/schema";
 import {
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
@@ -49,6 +49,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   // Create related tokens
   let token = getOrCreateToken(event.params.rToken);
   let rewardToken = getOrCreateRewardToken(event.params.stRSR);
+  let stToken = Token.load(event.params.stRSR.toHexString())!;
 
   // Create new RToken
   let rToken = new RToken(event.params.rToken.toHexString());
@@ -67,6 +68,15 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.rsrUnstaked = BIGINT_ZERO;
   rToken.basketUnits = BIGINT_ZERO;
   rToken.save();
+
+  token.rToken = rToken.id;
+  token.save();
+
+  rewardToken.rToken = rToken.id;
+  rewardToken.save();
+
+  stToken.rToken = rToken.id;
+  stToken.save();
 
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
@@ -254,10 +264,11 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
   rToken.basketUnits = event.params.newBasketsNeeded;
+  rToken.save();
+
   daily.basketUnits = rToken.basketUnits;
   hourly.basketUnits = rToken.basketUnits;
 
-  rToken.save();
   daily.save();
   hourly.save();
 }

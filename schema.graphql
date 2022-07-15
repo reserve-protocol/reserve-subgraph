@@ -485,7 +485,7 @@ type RewardToken @entity {
   " Reference to the actual token "
   token: Token!
   " RToken relation "
-  rToken: RToken @derivedFrom(field: "rewardToken")
+  rToken: RToken
   " The type of the reward token "
   type: RewardTokenType!
 }
@@ -534,7 +534,7 @@ type Token @entity {
   lastPriceBlockNumber: BigInt!
 
   " RToken relation "
-  rToken: RToken @derivedFrom(field: "token")
+  rToken: RToken
 
   " List of token entries "
   records: [Entry!]! @derivedFrom(field: "token")
