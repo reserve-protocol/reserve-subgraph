@@ -385,8 +385,8 @@ export function getOrCreateRTokenAccount(
     let tokenBalance = getOrCreateAccountBalance(accountAddress, rTokenAddress);
 
     accountRToken = new AccountRToken(id);
-    accountRToken.account = accountAddress.toHexString();
-    accountRToken.rToken = rTokenAddress.toHexString();
+    accountRToken.account = tokenBalance.account;
+    accountRToken.rToken = tokenBalance.token;
     accountRToken.balance = tokenBalance.id;
     accountRToken.stake = BIGDECIMAL_ZERO;
     accountRToken.blockNumber = BIGINT_ZERO;
@@ -531,6 +531,7 @@ export function getTokenAccount(
 
   if (!account) {
     account = new Account(accountAddress.toHexString());
+    account.save();
 
     // Update token analytics
     let token = getOrCreateToken(tokenAddress);

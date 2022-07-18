@@ -22,6 +22,7 @@ export function handleTransfer(event: TransferEvent): void {
 
   if (!fromAccount) {
     fromAccount = new Account(event.params.from.toHexString());
+    fromAccount.save();
   }
 
   if (ZERO_ADDRESS == event.params.to.toHexString()) {
