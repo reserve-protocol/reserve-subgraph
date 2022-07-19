@@ -1,5 +1,5 @@
-import { Address } from "@graphprotocol/graph-ts";
-import { Account, RewardToken, RToken, Token } from "../../generated/schema";
+import { Address, log } from "@graphprotocol/graph-ts";
+import { Account, RToken, Token } from "../../generated/schema";
 import {
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
@@ -154,7 +154,7 @@ export function handleRedemption(event: Redemption): void {
 
 // * stRSR Events
 export function handleStake(event: Staked): void {
-  let rTokenId = getRTokenId(event.address.toHexString());
+  let rTokenId = getRTokenId(event.address);
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
@@ -186,7 +186,7 @@ export function handleStake(event: Staked): void {
 
     updateRTokenMetrics(
       event,
-      event.address,
+      Address.fromString(rTokenId),
       event.params.rsrAmount,
       EntryType.STAKE
     );
@@ -194,7 +194,7 @@ export function handleStake(event: Staked): void {
 }
 
 export function handleUnstakeStarted(event: UnstakingStarted): void {
-  let rTokenId = getRTokenId(event.address.toHexString());
+  let rTokenId = getRTokenId(event.address);
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
@@ -218,7 +218,7 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
 
     updateRTokenMetrics(
       event,
-      event.address,
+      Address.fromString(rTokenId),
       event.params.rsrAmount,
       EntryType.UNSTAKE
     );
@@ -226,33 +226,27 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
 }
 
 export function handleUnstake(event: UnstakingCompleted): void {
-  let rTokenId = getRTokenId(event.address.toHexString());
+  let rTokenId = getRTokenId(event.address);
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
-    let account = Account.load(event.params.staker.toHexString());
-
-    if (!account) {
-      account = new Account(event.params.staker.toHexString());
-      account.save();
-      updateRTokenUniqueUsers(rTokenId);
-    }
+    let account = Account.load(event.params.staker.toHexString())!;
 
     let entry = getOrCreateEntry(
       event,
       rTokenId,
       account.id,
       event.params.rsrAmount,
-      EntryType.STAKE
+      EntryType.WITHDRAW
     );
     entry.rToken = rTokenId;
     entry.save();
 
     updateRTokenMetrics(
       event,
-      event.address,
+      Address.fromString(rTokenId),
       event.params.rsrAmount,
-      EntryType.STAKE
+      EntryType.WITHDRAW
     );
   }
 }
@@ -274,7 +268,7 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
 }
 
 export function handleExchangeRate(event: ExchangeRateSet): void {
-  let rTokenId = getRTokenId(event.address.toHexString());
+  let rTokenId = getRTokenId(event.address);
 
   if (rTokenId) {
     let rToken = RToken.load(rTokenId)!;
@@ -291,13 +285,7 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
   }
 }
 
-function getRTokenId(rewardTokenId: string): string | null {
-  let id: string | null = null;
-  let rewardToken = RewardToken.load(rewardTokenId);
-
-  if (rewardToken) {
-    id = rewardToken.rToken;
-  }
-
-  return id;
+function getRTokenId(rewardTokenAddress: Address): string | null {
+  let rewardToken = getOrCreateRewardToken(rewardTokenAddress);
+  return rewardToken.rToken;
 }

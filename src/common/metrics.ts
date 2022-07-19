@@ -147,6 +147,8 @@ export function updateRTokenAccountBalance(
   accountBalance.timestamp = event.block.timestamp;
   accountBalance.save();
 
+  log.info("Staked amount {}", [accountBalance.stake.toString()]);
+
   accountBalanceSnapshot.stake = accountBalance.stake;
   accountBalanceSnapshot.blockNumber = event.block.number;
   accountBalanceSnapshot.timestamp = event.block.timestamp;
