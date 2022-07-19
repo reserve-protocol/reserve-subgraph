@@ -714,7 +714,7 @@ type Entry implements Event @entity {
   amount: BigInt
 
   " Transaction amount USD"
-  amountUSD: BigInt
+  amountUSD: BigDecimal
 }
 
 ##################################
@@ -726,8 +726,14 @@ type Account @entity {
   " Address of the account "
   id: ID!
 
-  " Token transfers from this account "
+  " rToken/RSV related transactions from this account "
   records: [Entry!]! @derivedFrom(field: "from")
+
+  " rTokens related to this account "
+  rTokens: [AccountRToken!]! @derivedFrom(field: "account")
+
+  " rToken snapshots that this account holds "
+  rTokensSnapshot: [AccountRTokenDailySnapshot!]! @derivedFrom(field: "account")
 
   " Token balances that this account holds "
   balances: [AccountBalance!]! @derivedFrom(field: "account")

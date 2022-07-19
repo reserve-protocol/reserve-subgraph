@@ -6,6 +6,7 @@ import {
   getTokenAccount,
 } from "../common/getters";
 import { updateAccountBalance, updateTokenMetrics } from "../common/metrics";
+import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { BIGINT_ZERO, EntryType, ZERO_ADDRESS } from "./../common/constants";
 
 /**
@@ -30,20 +31,6 @@ export function handleTransfer(event: TransferEvent): void {
   } else if (ZERO_ADDRESS == event.params.from.toHexString()) {
     entryType = EntryType.MINT;
   }
-
-  let entry = getOrCreateEntry(
-    event,
-    token.id,
-    fromAccount.id,
-    event.params.value,
-    entryType
-  );
-  // Transfer specific
-  entry.to = toAccount.id;
-  if (rTokenId) {
-    entry.rToken = rTokenId;
-  }
-  entry.save();
 
   // dont update zero address
   if (entryType !== EntryType.MINT) {
@@ -72,4 +59,21 @@ export function handleTransfer(event: TransferEvent): void {
     event.params.value,
     entryType
   );
+
+  let entry = getOrCreateEntry(
+    event,
+    token.id,
+    fromAccount.id,
+    event.params.value,
+    entryType
+  );
+  // Transfer specific
+  entry.to = toAccount.id;
+  if (rTokenId) {
+    entry.amountUSD = token.lastPriceUSD.plus(
+      bigIntToBigDecimal(event.params.value)
+    );
+    entry.rToken = rTokenId;
+  }
+  entry.save();
 }

@@ -33,6 +33,7 @@ import {
   updateRTokenUniqueUsers,
 } from "../common/metrics";
 import { getRSRPrice } from "../common/tokens";
+import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import {
   BIGINT_ONE,
@@ -90,6 +91,7 @@ export function handleTokenTransfer(event: TransferEvent): void {
 // * rToken Events
 export function handleIssuanceStart(event: IssuanceStarted): void {
   let account = getTokenAccount(event.params.issuer, event.address);
+  let token = getOrCreateToken(event.address);
 
   let entry = getOrCreateEntry(
     event,
@@ -97,6 +99,9 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
     account.id,
     event.params.amount,
     EntryType.ISSUE_START
+  );
+  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
+    token.lastPriceUSD
   );
   entry.rToken = event.address.toHexString();
   entry.save();
@@ -106,6 +111,7 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
 
 export function handleIssuanceCancel(event: IssuancesCanceled): void {
   let account = getTokenAccount(event.params.issuer, event.address);
+  let token = getOrCreateToken(event.address);
 
   let entry = getOrCreateEntry(
     event,
@@ -115,6 +121,7 @@ export function handleIssuanceCancel(event: IssuancesCanceled): void {
     EntryType.CANCEL_ISSUANCE
   );
   entry.rToken = event.address.toHexString();
+  entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
   entry.save();
 
   updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.ISSUE);
@@ -122,6 +129,7 @@ export function handleIssuanceCancel(event: IssuancesCanceled): void {
 
 export function handleIssuance(event: IssuancesCompleted): void {
   let account = getTokenAccount(event.params.issuer, event.address);
+  let token = getOrCreateToken(event.address);
 
   let entry = getOrCreateEntry(
     event,
@@ -131,6 +139,7 @@ export function handleIssuance(event: IssuancesCompleted): void {
     EntryType.ISSUE
   );
   entry.rToken = event.address.toHexString();
+  entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
   entry.save();
 
   updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.ISSUE);
@@ -138,6 +147,7 @@ export function handleIssuance(event: IssuancesCompleted): void {
 
 export function handleRedemption(event: Redemption): void {
   let account = getTokenAccount(event.params.redeemer, event.address);
+  let token = getOrCreateToken(event.address);
 
   let entry = getOrCreateEntry(
     event,
@@ -147,6 +157,7 @@ export function handleRedemption(event: Redemption): void {
     EntryType.ISSUE
   );
   entry.rToken = event.address.toHexString();
+  entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
   entry.save();
 
   updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.ISSUE);
@@ -173,9 +184,6 @@ export function handleStake(event: Staked): void {
       event.params.rsrAmount,
       EntryType.STAKE
     );
-    entry.rToken = rTokenId;
-    entry.stAmount = event.params.stRSRAmount;
-    entry.save();
 
     updateRTokenAccountBalance(
       event.params.staker,
@@ -190,6 +198,16 @@ export function handleStake(event: Staked): void {
       event.params.rsrAmount,
       EntryType.STAKE
     );
+
+    // Load rToken to get RSR price
+    let rToken = RToken.load(rTokenId)!;
+
+    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
+      rToken.rsrPriceUSD
+    );
+    entry.rToken = rTokenId;
+    entry.stAmount = event.params.stRSRAmount;
+    entry.save();
   }
 }
 
@@ -198,17 +216,6 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      event.params.staker.toHexString(),
-      event.params.rsrAmount,
-      EntryType.UNSTAKE
-    );
-    entry.rToken = rTokenId;
-    entry.stAmount = event.params.stRSRAmount;
-    entry.save();
-
     updateRTokenAccountBalance(
       event.params.staker,
       Address.fromString(rTokenId),
@@ -222,6 +229,24 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
       event.params.rsrAmount,
       EntryType.UNSTAKE
     );
+
+    // Load rToken to get RSR price
+    let rToken = RToken.load(rTokenId)!;
+
+    let entry = getOrCreateEntry(
+      event,
+      rTokenId,
+      event.params.staker.toHexString(),
+      event.params.rsrAmount,
+      EntryType.UNSTAKE
+    );
+
+    entry.rToken = rTokenId;
+    entry.stAmount = event.params.stRSRAmount;
+    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
+      rToken.rsrPriceUSD
+    );
+    entry.save();
   }
 }
 
@@ -231,7 +256,6 @@ export function handleUnstake(event: UnstakingCompleted): void {
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
     let account = Account.load(event.params.staker.toHexString())!;
-
     let entry = getOrCreateEntry(
       event,
       rTokenId,
@@ -239,8 +263,6 @@ export function handleUnstake(event: UnstakingCompleted): void {
       event.params.rsrAmount,
       EntryType.WITHDRAW
     );
-    entry.rToken = rTokenId;
-    entry.save();
 
     updateRTokenMetrics(
       event,
@@ -248,6 +270,15 @@ export function handleUnstake(event: UnstakingCompleted): void {
       event.params.rsrAmount,
       EntryType.WITHDRAW
     );
+
+    // Load rToken to get RSR price
+    let rToken = RToken.load(rTokenId)!;
+
+    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
+      rToken.rsrPriceUSD
+    );
+    entry.rToken = rTokenId;
+    entry.save();
   }
 }
 

@@ -141,15 +141,14 @@ export function updateRTokenAccountBalance(
     rTokenAddress,
     event
   );
+  let stakeAmount = accountBalance.stake.plus(bigIntToBigDecimal(amount));
 
-  accountBalance.stake = accountBalance.stake.plus(bigIntToBigDecimal(amount));
+  accountBalance.stake = stakeAmount;
   accountBalance.blockNumber = event.block.number;
   accountBalance.timestamp = event.block.timestamp;
   accountBalance.save();
 
-  log.info("Staked amount {}", [accountBalance.stake.toString()]);
-
-  accountBalanceSnapshot.stake = accountBalance.stake;
+  accountBalanceSnapshot.stake = stakeAmount;
   accountBalanceSnapshot.blockNumber = event.block.number;
   accountBalanceSnapshot.timestamp = event.block.timestamp;
   accountBalanceSnapshot.save();
