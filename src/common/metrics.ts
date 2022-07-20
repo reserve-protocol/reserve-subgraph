@@ -359,7 +359,6 @@ export function updateTokenMetrics(
     token.mintCount = token.mintCount.plus(BIGINT_ONE);
     token.totalMinted = token.totalMinted.plus(amount);
     token.totalSupply = token.totalSupply.plus(amount);
-    token.transferCount = token.transferCount.plus(BIGINT_ONE);
 
     tokenDaily.dailyMintCount += INT_ONE;
     tokenDaily.dailyMintAmount = tokenDaily.dailyBurnAmount.plus(amount);
@@ -372,7 +371,6 @@ export function updateTokenMetrics(
     token.burnCount = token.burnCount.plus(BIGINT_ONE);
     token.totalBurned = token.totalBurned.plus(amount);
     token.totalSupply = token.totalSupply.minus(amount);
-    token.transferCount = token.transferCount.plus(BIGINT_ONE);
 
     tokenDaily.dailyBurnCount += INT_ONE;
     tokenDaily.dailyBurnAmount = tokenDaily.dailyBurnAmount.plus(amount);
