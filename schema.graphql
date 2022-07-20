@@ -530,6 +530,9 @@ type Token @entity {
   " Total token minted "
   totalMinted: BigInt!
 
+  " Cumulative all time token transfers volume "
+  cumulativeVolume: BigInt!
+
   " USD Price "
   lastPriceUSD: BigDecimal!
 
@@ -592,6 +595,9 @@ type TokenDailySnapshot @entity {
   " Total number of token burnt in a day "
   dailyBurnAmount: BigInt!
 
+  " Daily transfer volume "
+  dailyVolume: BigInt!
+
   " USD Price "
   priceUSD: BigDecimal!
 
@@ -635,6 +641,9 @@ type TokenHourlySnapshot @entity {
 
   " Total number of token burnt in a hour "
   hourlyBurnAmount: BigInt!
+
+  " Hourly transfer volume "
+  hourlyVolume: BigInt!
 
   " USD Price "
   priceUSD: BigDecimal!

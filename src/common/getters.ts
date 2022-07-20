@@ -270,6 +270,7 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.totalSupply = BIGINT_ZERO;
     token.totalBurned = BIGINT_ZERO;
     token.totalMinted = BIGINT_ZERO;
+    token.cumulativeVolume = BIGINT_ZERO;
     token.lastPriceBlockNumber = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
 
@@ -327,6 +328,7 @@ export function getOrCreateTokenDailySnapshot(
     tokenMetrics.dailyMintAmount = BIGINT_ZERO;
     tokenMetrics.dailyBurnCount = INT_ZERO;
     tokenMetrics.dailyBurnAmount = BIGINT_ZERO;
+    tokenMetrics.dailyVolume = BIGINT_ZERO;
     tokenMetrics.priceUSD = BIGDECIMAL_ZERO;
     tokenMetrics.blockNumber = event.block.number;
     tokenMetrics.timestamp = event.block.timestamp;
@@ -362,6 +364,7 @@ export function getOrCreateTokenHourlySnapshot(
     tokenMetrics.hourlyBurnCount = INT_ZERO;
     tokenMetrics.hourlyBurnAmount = BIGINT_ZERO;
     tokenMetrics.priceUSD = BIGDECIMAL_ZERO;
+    tokenMetrics.hourlyVolume = BIGINT_ZERO;
     tokenMetrics.blockNumber = event.block.number;
     tokenMetrics.timestamp = event.block.timestamp;
 

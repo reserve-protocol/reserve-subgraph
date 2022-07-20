@@ -316,7 +316,6 @@ export function updateTokenMetrics(
   if (!rTokenAddress) {
     rTokenAddress = "NO ADDRESS";
   }
-  log.info("Token rToken address: {}", [rTokenAddress!]);
   // Update token price
   if (token.lastPriceBlockNumber.lt(event.block.number)) {
     tokenPrice = token.rToken
@@ -324,7 +323,6 @@ export function updateTokenMetrics(
       : getTokenPrice(tokenAddress);
     token.lastPriceUSD = tokenPrice;
     token.lastPriceBlockNumber = event.block.number;
-    log.info("Update token price: {}", [tokenPrice.toString()]);
   }
 
   let from = fromAddress
@@ -385,6 +383,7 @@ export function updateTokenMetrics(
     tokenHourly.hourlyTotalSupply = tokenHourly.hourlyTotalSupply.plus(amount);
   }
 
+  tokenHourly.hourlyVolume = tokenHourly.hourlyVolume.plus(amount);
   tokenHourly.cumulativeUniqueUsers = token.userCount;
   tokenHourly.hourlyEventCount += INT_ONE;
   tokenHourly.blockNumber = event.block.number;
@@ -392,6 +391,7 @@ export function updateTokenMetrics(
   tokenHourly.priceUSD = tokenPrice;
   tokenHourly.save();
 
+  tokenDaily.dailyVolume = tokenDaily.dailyVolume.plus(amount);
   tokenDaily.cumulativeUniqueUsers = token.userCount;
   tokenDaily.dailyEventCount += INT_ONE;
   tokenDaily.blockNumber = event.block.number;
@@ -399,6 +399,7 @@ export function updateTokenMetrics(
   tokenDaily.timestamp = event.block.timestamp;
   tokenDaily.save();
 
+  token.cumulativeVolume = token.cumulativeVolume.plus(amount);
   token.transferCount = token.transferCount.plus(BIGINT_ONE);
   token.save();
 
