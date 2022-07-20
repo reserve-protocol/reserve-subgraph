@@ -57,6 +57,7 @@ export function getOrCreateProtocol(): Protocol {
     protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+    protocol.transactionCount = BIGINT_ZERO;
     protocol.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeUniqueUsers = INT_ZERO;
     protocol.network = Network.MAINNET;

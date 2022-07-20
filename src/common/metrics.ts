@@ -5,7 +5,7 @@ import {
   ethereum,
   log,
 } from "@graphprotocol/graph-ts";
-import { ActiveAccount, RToken } from "../../generated/schema";
+import { ActiveAccount, RToken, Token } from "../../generated/schema";
 import {
   BIGDECIMAL_ZERO,
   BIGINT_ONE,
@@ -162,6 +162,7 @@ export function updateRTokenMetrics(
 ): void {
   let protocol = getOrCreateProtocol();
   let rToken = RToken.load(rTokenAddress.toHexString())!;
+  let token = Token.load(rToken.token)!;
   let rsrPrice = rToken.rsrPriceUSD;
 
   if (rToken.rsrPriceLastBlock.lt(event.block.number)) {
@@ -169,7 +170,17 @@ export function updateRTokenMetrics(
     rToken.rsrPriceLastBlock = event.block.number;
   }
 
-  let amountUSD = getUsdValue(amount, rsrPrice);
+  let amountUSD = BIGDECIMAL_ZERO;
+
+  if (
+    entryType === EntryType.MINT ||
+    entryType === EntryType.BURN ||
+    entryType === EntryType.TRANSFER
+  ) {
+    amountUSD = bigIntToBigDecimal(amount).times(token.lastPriceUSD);
+  } else {
+    amountUSD = getUsdValue(amount, rsrPrice);
+  }
 
   // protocol metrics
   let usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
@@ -194,6 +205,7 @@ export function updateRTokenMetrics(
   } else if (entryType === EntryType.TRANSFER) {
     protocol.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD.plus(amountUSD);
   } else if (entryType === EntryType.STAKE) {
+    protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
     protocol.insurance = protocol.insurance.plus(amount);
     protocol.rsrStakedUSD = getUsdValue(protocol.insurance, rsrPrice);
     protocol.rsrStaked = protocol.rsrStaked.plus(amount);
@@ -252,11 +264,16 @@ export function updateRTokenMetrics(
   } else if (entryType === EntryType.WITHDRAW) {
     protocol.insurance = protocol.insurance.minus(amount);
     protocol.insuranceUSD = getUsdValue(protocol.insurance, rsrPrice);
+    protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.minus(
+      amountUSD
+    );
     // rToken
     rToken.insurance = rToken.insurance.minus(amount);
     rTokenDaily.insurance = rToken.insurance;
     rTokenHourly.insurance = rToken.insurance;
   }
+
+  protocol.transactionCount = protocol.transactionCount.plus(BIGINT_ONE);
 
   // Update the block number and timestamp to that of the last transaction of that day
   usageMetricsDaily.blockNumber = event.block.number;

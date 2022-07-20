@@ -160,7 +160,7 @@ export function handleRedemption(event: Redemption): void {
   entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
   entry.save();
 
-  updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.ISSUE);
+  updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.REDEEM);
 }
 
 // * stRSR Events

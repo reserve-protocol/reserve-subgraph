@@ -128,6 +128,9 @@ type Protocol @entity {
   " Total number of rTokens "
   rTokenCount: Int!
 
+  " Total number of transactions across all rTokens "
+  transactionCount: BigInt!
+
   ##### Snapshots #####
 
   " Daily usage metrics for this protocol "
