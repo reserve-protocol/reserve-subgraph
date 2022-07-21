@@ -70,7 +70,7 @@ export function handleTransfer(event: TransferEvent): void {
   // Transfer specific
   entry.to = toAccount.id;
   if (rTokenId) {
-    entry.amountUSD = token.lastPriceUSD.plus(
+    entry.amountUSD = token.lastPriceUSD.times(
       bigIntToBigDecimal(event.params.value)
     );
     entry.rToken = rTokenId;
