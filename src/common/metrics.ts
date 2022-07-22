@@ -233,8 +233,15 @@ export function updateRTokenMetrics(
 
     // rToken
     rToken.insurance = rToken.insurance.plus(amount);
+    rToken.rsrStaked = rToken.rsrStaked.plus(amount);
+
     rTokenDaily.insurance = rToken.insurance;
+    rTokenDaily.dailyRSRStaked = rTokenDaily.dailyRSRStaked.plus(amount);
+    rTokenDaily.cumulativeRSRStaked = rToken.rsrStaked;
+
     rTokenHourly.insurance = rToken.insurance;
+    rTokenHourly.cumulativeRSRStaked = rToken.rsrStaked;
+    rTokenHourly.hourlyRSRUnstaked = rTokenHourly.hourlyRSRStaked.plus(amount);
   } else if (entryType === EntryType.UNSTAKE) {
     protocol.rsrUnstaked = protocol.rsrUnstaked.plus(amount);
     protocol.rsrUnstakedUSD = getUsdValue(protocol.rsrUnstaked, rsrPrice);
@@ -261,6 +268,11 @@ export function updateRTokenMetrics(
 
     rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
     rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
+
+    rTokenHourly.hourlyRSRUnstaked = rTokenHourly.hourlyRSRUnstaked.plus(
+      amount
+    );
+    rTokenHourly.cumulativeRSRUnstaked = rToken.rsrUnstaked;
   } else if (entryType === EntryType.WITHDRAW) {
     protocol.insurance = protocol.insurance.minus(amount);
     protocol.insuranceUSD = getUsdValue(protocol.insurance, rsrPrice);
@@ -274,29 +286,30 @@ export function updateRTokenMetrics(
   }
 
   protocol.transactionCount = protocol.transactionCount.plus(BIGINT_ONE);
+  protocol.save();
 
   // Update the block number and timestamp to that of the last transaction of that day
   usageMetricsDaily.blockNumber = event.block.number;
   usageMetricsDaily.timestamp = event.block.timestamp;
   usageMetricsDaily.dailyTransactionCount += INT_ONE;
+  usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+  usageMetricsDaily.save();
 
   usageMetricsHourly.blockNumber = event.block.number;
   usageMetricsHourly.timestamp = event.block.timestamp;
   usageMetricsHourly.hourlyTransactionCount += INT_ONE;
+  usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+  usageMetricsHourly.save();
 
   rTokenDaily.blockNumber = event.block.number;
   rTokenDaily.timestamp = event.block.timestamp;
+  rTokenDaily.save();
 
   rTokenHourly.blockNumber = event.block.number;
   rTokenHourly.timestamp = event.block.timestamp;
-
-  usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
-  usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+  rTokenHourly.save();
 
   rToken.save();
-  protocol.save();
-  usageMetricsDaily.save();
-  usageMetricsHourly.save();
 
   // Update protocol financial metrics snapshot
   updateFinancials(event, amountUSD);
