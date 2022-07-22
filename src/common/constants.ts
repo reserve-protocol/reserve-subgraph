@@ -50,58 +50,9 @@ export namespace ProtocolType {
   export const GENERIC = "GENERIC";
 }
 
-export namespace VaultFeeType {
-  export const MANAGEMENT_FEE = "MANAGEMENT_FEE";
-  export const PERFORMANCE_FEE = "PERFORMANCE_FEE";
-  export const DEPOSIT_FEE = "DEPOSIT_FEE";
-  export const WITHDRAWAL_FEE = "WITHDRAWAL_FEE";
-}
-
-export namespace LiquidityPoolFeeType {
-  export const FIXED_TRADING_FEE = "FIXED_TRADING_FEE";
-  export const TIERED_TRADING_FEE = "TIERED_TRADING_FEE";
-  export const DYNAMIC_TRADING_FEE = "DYNAMIC_TRADING_FEE";
-  export const FIXED_LP_FEE = "FIXED_LP_FEE";
-  export const DYNAMIC_LP_FEE = "DYNAMIC_LP_FEE";
-  export const FIXED_PROTOCOL_FEE = "FIXED_PROTOCOL_FEE";
-  export const DYNAMIC_PROTOCOL_FEE = "DYNAMIC_PROTOCOL_FEE";
-}
-
 export namespace RewardTokenType {
   export const DEPOSIT = "DEPOSIT";
   export const BORROW = "BORROW";
-}
-
-export namespace LendingType {
-  export const CDP = "CDP";
-  export const POOLED = "POOLED";
-}
-
-export namespace RiskType {
-  export const GLOBAL = "GLOBAL";
-  export const ISOLATED = "ISOLATED";
-}
-
-export namespace InterestRateType {
-  export const STABLE = "STABLE";
-  export const VARIABLE = "VARIABLE";
-  export const FIXED = "FIXED";
-}
-
-export namespace InterestRateSide {
-  export const LENDER = "LENDER";
-  export const BORROWER = "BORROWER";
-}
-
-export namespace PositionSide {
-  export const LENDER = "LENDER";
-  export const BORROWER = "BORROWER";
-}
-
-export namespace UsageType {
-  export const DEPOSIT = "DEPOSIT";
-  export const WITHDRAW = "WITHDRAW";
-  export const SWAP = "SWAP";
 }
 
 // CUSTOM
@@ -117,12 +68,6 @@ export namespace EntryType {
   export const WITHDRAW = "WITHDRAW";
   export const BURN = "BURN";
   export const MINT = "MINT";
-}
-
-export namespace TokenType {
-  export const RTOKEN = "RTOKEN";
-  export const REWARD_TOKEN = "REWARD_TOKEN";
-  export const GENERIC = "GENERIC";
 }
 
 //////////////////////////////
@@ -181,13 +126,6 @@ export const DAYS_PER_YEAR = new BigDecimal(BigInt.fromI32(365));
 export const MS_PER_YEAR = DAYS_PER_YEAR.times(
   new BigDecimal(BigInt.fromI32(24 * 60 * 60 * 1000))
 );
-
-////////////////
-///// Misc /////
-////////////////
-
-export const ETH_SYMBOL = "ETH";
-export const ETH_NAME = "Ether";
 
 /////////////////////////////
 ///// Protocol Specific /////
