@@ -33,7 +33,6 @@ import {
 import { getRSRPrice, getRTokenPrice, getTokenPrice } from "./tokens";
 import { bigIntToBigDecimal, getUsdValue } from "./utils/numbers";
 
-// Update FinancialsDailySnapshots entity
 export function updateFinancials(
   event: ethereum.Event,
   amountUSD: BigDecimal
@@ -65,34 +64,15 @@ export function updateFinancials(
   financialMetricsDaily.save();
 }
 
-function updateTokenHolder(
-  tokenAddress: Address,
-  newHolder: boolean,
-  event: ethereum.Event
-): void {
-  let token = getOrCreateToken(tokenAddress);
-  let dailyMetrics = getOrCreateTokenDailySnapshot(token.id, event);
-  let hourlyMetrics = getOrCreateTokenHourlySnapshot(token.id, event);
-
-  if (newHolder) {
-    token.holderCount = token.holderCount.plus(BIGINT_ONE);
-    dailyMetrics.dailyHolderCount += INT_ONE;
-    hourlyMetrics.hourlyHolderCount += INT_ONE;
-  } else {
-    token.holderCount = token.holderCount.minus(BIGINT_ONE);
-  }
-  token.save();
-}
-
 export function updateRTokenUniqueUsers(rTokenId: string): void {
   let protocol = getOrCreateProtocol();
   let rToken = RToken.load(rTokenId)!;
 
   rToken.cumulativeUniqueUsers += INT_ONE;
-  protocol.cumulativeUniqueUsers += INT_ONE;
-
-  protocol.save();
   rToken.save();
+
+  protocol.cumulativeUniqueUsers += INT_ONE;
+  protocol.save();
 }
 
 export function updateAccountBalance(
@@ -324,17 +304,15 @@ export function updateTokenMetrics(
   entryType: string
 ): void {
   let token = getOrCreateToken(tokenAddress);
-  let tokenPrice = token.lastPriceUSD;
-  let rTokenAddress = token.rToken;
-  if (!rTokenAddress) {
-    rTokenAddress = "NO ADDRESS";
-  }
+  // Token snapshots
+  let tokenDaily = getOrCreateTokenDailySnapshot(token.id, event);
+  let tokenHourly = getOrCreateTokenHourlySnapshot(token.id, event);
+
   // Update token price
   if (token.lastPriceBlockNumber.lt(event.block.number)) {
-    tokenPrice = token.rToken
+    token.lastPriceUSD = token.rToken
       ? getRTokenPrice(tokenAddress)
       : getTokenPrice(tokenAddress);
-    token.lastPriceUSD = tokenPrice;
     token.lastPriceBlockNumber = event.block.number;
   }
 
@@ -342,10 +320,6 @@ export function updateTokenMetrics(
     .toHexString()
     .concat("-")
     .concat(token.id);
-
-  // Token snapshots
-  let tokenDaily = getOrCreateTokenDailySnapshot(token.id, event);
-  let tokenHourly = getOrCreateTokenHourlySnapshot(token.id, event);
 
   // User data
   // Combine the id and the user address to generate a unique user id for the day
@@ -399,14 +373,14 @@ export function updateTokenMetrics(
   tokenHourly.hourlyEventCount += INT_ONE;
   tokenHourly.blockNumber = event.block.number;
   tokenHourly.timestamp = event.block.timestamp;
-  tokenHourly.priceUSD = tokenPrice;
+  tokenHourly.priceUSD = token.lastPriceUSD;
   tokenHourly.save();
 
   tokenDaily.dailyVolume = tokenDaily.dailyVolume.plus(amount);
   tokenDaily.cumulativeUniqueUsers = token.userCount;
   tokenDaily.dailyEventCount += INT_ONE;
   tokenDaily.blockNumber = event.block.number;
-  tokenDaily.priceUSD = tokenPrice;
+  tokenDaily.priceUSD = token.lastPriceUSD;
   tokenDaily.timestamp = event.block.timestamp;
   tokenDaily.save();
 
@@ -422,6 +396,25 @@ export function updateTokenMetrics(
     getOrCreateRTokenAccount(fromAddress, tokenAddress);
     updateRTokenMetrics(event, Address.fromString(rTokenId), amount, entryType);
   }
+}
+
+function updateTokenHolder(
+  tokenAddress: Address,
+  newHolder: boolean,
+  event: ethereum.Event
+): void {
+  let token = getOrCreateToken(tokenAddress);
+  let dailyMetrics = getOrCreateTokenDailySnapshot(token.id, event);
+  let hourlyMetrics = getOrCreateTokenHourlySnapshot(token.id, event);
+
+  if (newHolder) {
+    token.holderCount = token.holderCount.plus(BIGINT_ONE);
+    dailyMetrics.dailyHolderCount += INT_ONE;
+    hourlyMetrics.hourlyHolderCount += INT_ONE;
+  } else {
+    token.holderCount = token.holderCount.minus(BIGINT_ONE);
+  }
+  token.save();
 }
 
 function getDayId(event: ethereum.Event): string {
