@@ -2,7 +2,12 @@ import { Address, BigDecimal } from "@graphprotocol/graph-ts";
 import { ERC20 } from "../../generated/Deployer/ERC20";
 import { RToken } from "../../generated/templates/RToken/RToken";
 import { getUsdPricePerToken } from "../prices";
-import { BIGDECIMAL_ZERO, RSR_ADDRESS } from "./constants";
+import {
+  BIGDECIMAL_ONE,
+  BIGDECIMAL_ZERO,
+  RSR_ADDRESS,
+  RSV_ADDRESS,
+} from "./constants";
 import { bigIntToBigDecimal } from "./utils/numbers";
 
 export const INVALID_TOKEN_DECIMALS = 9999;
@@ -149,6 +154,18 @@ export function getRSRPrice(): BigDecimal {
 }
 
 export function getRTokenPrice(address: Address): BigDecimal {
+  // RSV Case, fetch it from Oracle for early blocks default to 1
+  if (address.toHexString() === RSV_ADDRESS.toHexString()) {
+    let price = getTokenPrice(address);
+
+    if (!price.gt(BIGDECIMAL_ZERO)) {
+      price = BIGDECIMAL_ONE;
+    }
+
+    return price;
+  }
+
+  // RToken case, fetch it directly from contract, if no supply price is 0
   let tokenPrice = BIGDECIMAL_ZERO;
   let contract = RToken.bind(address);
   let price = contract.try_price();

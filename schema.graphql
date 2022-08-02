@@ -313,6 +313,11 @@ type RToken @entity {
   createdBlockNumber: BigInt!
 
   ##### Quantitative Data ####
+  " Collaterization of this rToken %"
+  backing: BigInt!
+
+  " Ratio of how much insurance there is corresponding to the mapping % "
+  backingInsurance: BigInt!
 
   " Number of cumulative unique users "
   cumulativeUniqueUsers: Int!

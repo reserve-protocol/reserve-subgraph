@@ -68,6 +68,8 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.rsrStaked = BIGINT_ZERO;
   rToken.rsrUnstaked = BIGINT_ZERO;
   rToken.basketUnits = BIGINT_ZERO;
+  rToken.backing = BIGINT_ZERO;
+  rToken.backingInsurance = BIGINT_ZERO;
   rToken.save();
 
   token.rToken = rToken.id;
@@ -117,7 +119,7 @@ export function handleIssuanceCancel(event: IssuancesCanceled): void {
     event,
     event.address.toHexString(),
     account.id,
-    BIGINT_ZERO, // TODO: Maybe worth to send the amount on the event
+    event.params.amount,
     EntryType.CANCEL_ISSUANCE
   );
   entry.rToken = event.address.toHexString();
@@ -135,7 +137,7 @@ export function handleIssuance(event: IssuancesCompleted): void {
     event,
     event.address.toHexString(),
     account.id,
-    BIGINT_ZERO, // TODO: Maybe worth to send the amount on the event
+    event.params.amount,
     EntryType.ISSUE
   );
   entry.rToken = event.address.toHexString();
@@ -153,7 +155,7 @@ export function handleRedemption(event: Redemption): void {
     event,
     event.address.toHexString(),
     account.id,
-    BIGINT_ZERO, // TODO: Maybe worth to send the amount on the event
+    event.params.amount,
     EntryType.ISSUE
   );
   entry.rToken = event.address.toHexString();

@@ -7,33 +7,18 @@
         "type": "address"
       },
       {
-        "internalType": "contract IERC20Metadata",
-        "name": "comp_",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IERC20Metadata",
-        "name": "aave_",
-        "type": "address"
-      },
-      {
         "internalType": "contract IGnosis",
         "name": "gnosis_",
         "type": "address"
       },
       {
-        "internalType": "contract IComptroller",
-        "name": "comptroller_",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IAaveLendingPool",
-        "name": "aaveLendingPool_",
-        "type": "address"
-      },
-      {
         "internalType": "contract IFacade",
         "name": "facade_",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IAsset",
+        "name": "rsrAsset_",
         "type": "address"
       },
       {
@@ -159,58 +144,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "aave",
-    "outputs": [
-      {
-        "internalType": "contract IERC20Metadata",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "aaveLendingPool",
-    "outputs": [
-      {
-        "internalType": "contract IAaveLendingPool",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "comp",
-    "outputs": [
-      {
-        "internalType": "contract IERC20Metadata",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "comptroller",
-    "outputs": [
-      {
-        "internalType": "contract IComptroller",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "string",
@@ -236,13 +169,25 @@
         "components": [
           {
             "internalType": "uint32",
-            "name": "oneshotPauseDuration",
+            "name": "oneshotFreezeDuration",
             "type": "uint32"
           },
           {
-            "internalType": "uint192",
-            "name": "maxTradeVolume",
-            "type": "uint192"
+            "components": [
+              {
+                "internalType": "uint192",
+                "name": "min",
+                "type": "uint192"
+              },
+              {
+                "internalType": "uint192",
+                "name": "max",
+                "type": "uint192"
+              }
+            ],
+            "internalType": "struct TradingRange",
+            "name": "tradingRange",
+            "type": "tuple"
           },
           {
             "components": [
@@ -298,17 +243,7 @@
           },
           {
             "internalType": "uint192",
-            "name": "dustAmount",
-            "type": "uint192"
-          },
-          {
-            "internalType": "uint192",
             "name": "issuanceRate",
-            "type": "uint192"
-          },
-          {
-            "internalType": "uint192",
-            "name": "minBidSize",
             "type": "uint192"
           }
         ],
@@ -435,6 +370,19 @@
     "outputs": [
       {
         "internalType": "contract IERC20Metadata",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rsrAsset",
+    "outputs": [
+      {
+        "internalType": "contract IAsset",
         "name": "",
         "type": "address"
       }
