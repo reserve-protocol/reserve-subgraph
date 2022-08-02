@@ -38,7 +38,6 @@ export function updateFinancials(
   amountUSD: BigDecimal
 ): void {
   let financialMetricsDaily = getOrCreateFinancialsDailySnapshot(event);
-
   let protocol = getOrCreateProtocol();
 
   // Update the block number and timestamp to that of the last transaction of that day
@@ -73,6 +72,9 @@ export function updateRTokenUniqueUsers(rTokenId: string): void {
 
   protocol.cumulativeUniqueUsers += INT_ONE;
   protocol.save();
+
+  // TODO: remove
+  log.warning("Unique users updated!!!", []);
 }
 
 export function updateAccountBalance(
@@ -81,18 +83,14 @@ export function updateAccountBalance(
   amount: BigInt,
   event: ethereum.Event
 ): void {
-  // update balance
   let accountBalance = getOrCreateAccountBalance(accountAddress, tokenAddress);
-  let accountBalanceSnapshot = getOrCreateAccountBalanceDailySnapshot(
-    accountAddress,
-    tokenAddress,
-    event
-  );
   let balance = accountBalance.amount.plus(bigIntToBigDecimal(amount));
 
-  if (accountBalance.amount.le(BIGDECIMAL_ZERO) && amount.gt(BIGINT_ZERO)) {
+  if (accountBalance.amount.equals(BIGDECIMAL_ZERO) && amount.gt(BIGINT_ZERO)) {
+    log.warning("New TOKEN holder!!!", []);
     updateTokenHolder(tokenAddress, true, event);
   } else if (balance.le(BIGDECIMAL_ZERO)) {
+    log.warning("Remove TOKEN holder!!!", []);
     updateTokenHolder(tokenAddress, false, event);
   }
 
@@ -102,6 +100,12 @@ export function updateAccountBalance(
   accountBalance.timestamp = event.block.timestamp;
   accountBalance.save();
 
+  // Update snapshot
+  let accountBalanceSnapshot = getOrCreateAccountBalanceDailySnapshot(
+    accountAddress,
+    tokenAddress,
+    event
+  );
   accountBalanceSnapshot.amount = accountBalance.amount;
   accountBalanceSnapshot.transferCount = accountBalance.transferCount;
   accountBalanceSnapshot.blockNumber = accountBalance.blockNumber;
@@ -116,11 +120,6 @@ export function updateRTokenAccountBalance(
   event: ethereum.Event
 ): void {
   let accountBalance = getOrCreateRTokenAccount(accountAddress, rTokenAddress);
-  let accountBalanceSnapshot = getOrCreateAccountRTokenDailySnapshot(
-    accountAddress,
-    rTokenAddress,
-    event
-  );
   let stakeAmount = accountBalance.stake.plus(bigIntToBigDecimal(amount));
 
   accountBalance.stake = stakeAmount;
@@ -128,6 +127,12 @@ export function updateRTokenAccountBalance(
   accountBalance.timestamp = event.block.timestamp;
   accountBalance.save();
 
+  // Update snapshot
+  let accountBalanceSnapshot = getOrCreateAccountRTokenDailySnapshot(
+    accountAddress,
+    rTokenAddress,
+    event
+  );
   accountBalanceSnapshot.stake = stakeAmount;
   accountBalanceSnapshot.blockNumber = event.block.number;
   accountBalanceSnapshot.timestamp = event.block.timestamp;
@@ -157,7 +162,7 @@ export function updateRTokenMetrics(
     entryType === EntryType.BURN ||
     entryType === EntryType.TRANSFER
   ) {
-    amountUSD = bigIntToBigDecimal(amount).times(token.lastPriceUSD);
+    amountUSD = getUsdValue(amount, token.lastPriceUSD);
   } else {
     amountUSD = getUsdValue(amount, rsrPrice);
   }
@@ -175,19 +180,15 @@ export function updateRTokenMetrics(
   if (entryType === EntryType.MINT) {
     protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
     protocol.totalRTokenUSD = protocol.totalRTokenUSD.plus(amountUSD);
-    protocol.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD.plus(amountUSD);
   } else if (entryType === EntryType.BURN) {
     protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.minus(
       amountUSD
     );
     protocol.totalRTokenUSD = protocol.totalRTokenUSD.minus(amountUSD);
-    protocol.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD.plus(amountUSD);
-  } else if (entryType === EntryType.TRANSFER) {
-    protocol.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD.plus(amountUSD);
   } else if (entryType === EntryType.STAKE) {
     protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
     protocol.insurance = protocol.insurance.plus(amount);
-    protocol.rsrStakedUSD = getUsdValue(protocol.insurance, rsrPrice);
+    protocol.insuranceUSD = getUsdValue(protocol.insurance, rsrPrice);
     protocol.rsrStaked = protocol.rsrStaked.plus(amount);
     protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsrPrice);
 
@@ -198,8 +199,6 @@ export function updateRTokenMetrics(
       usageMetricsDaily.dailyRSRStaked,
       rsrPrice
     );
-    usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
-    usageMetricsDaily.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
 
     usageMetricsHourly.hourlyRSRStaked = usageMetricsHourly.hourlyRSRStaked.plus(
       amount
@@ -208,32 +207,24 @@ export function updateRTokenMetrics(
       usageMetricsHourly.hourlyRSRStaked,
       rsrPrice
     );
-    usageMetricsHourly.cumulativeRSRStaked = protocol.rsrStaked;
-    usageMetricsHourly.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
 
     // rToken
     rToken.insurance = rToken.insurance.plus(amount);
     rToken.rsrStaked = rToken.rsrStaked.plus(amount);
 
-    rTokenDaily.insurance = rToken.insurance;
     rTokenDaily.dailyRSRStaked = rTokenDaily.dailyRSRStaked.plus(amount);
-    rTokenDaily.cumulativeRSRStaked = rToken.rsrStaked;
-
-    rTokenHourly.insurance = rToken.insurance;
-    rTokenHourly.cumulativeRSRStaked = rToken.rsrStaked;
-    rTokenHourly.hourlyRSRUnstaked = rTokenHourly.hourlyRSRStaked.plus(amount);
+    rTokenHourly.hourlyRSRStaked = rTokenHourly.hourlyRSRStaked.plus(amount);
   } else if (entryType === EntryType.UNSTAKE) {
     protocol.rsrUnstaked = protocol.rsrUnstaked.plus(amount);
     protocol.rsrUnstakedUSD = getUsdValue(protocol.rsrUnstaked, rsrPrice);
 
-    usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRStaked.plus(
+    usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRUnstaked.plus(
       amount
     );
-    usageMetricsDaily.dailyRSRStakedUSD = usageMetricsDaily.dailyRSRUnstakedUSD.plus(
-      amountUSD
+    usageMetricsDaily.dailyRSRUnstakedUSD = getUsdValue(
+      usageMetricsDaily.dailyRSRUnstaked,
+      rsrPrice
     );
-    usageMetricsDaily.cumulativeRSRUnstaked = protocol.rsrStaked;
-    usageMetricsDaily.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
 
     usageMetricsHourly.hourlyRSRUnstaked = usageMetricsHourly.hourlyRSRStaked.plus(
       amount
@@ -241,55 +232,68 @@ export function updateRTokenMetrics(
     usageMetricsHourly.hourlyRSRStakedUSD = usageMetricsHourly.hourlyRSRUnstakedUSD.plus(
       amountUSD
     );
-    usageMetricsHourly.cumulativeRSRUnstaked = protocol.rsrStaked;
-    usageMetricsHourly.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
+
     // rToken
     rToken.rsrUnstaked = rToken.rsrUnstaked.plus(amount);
 
     rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
-    rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
-
     rTokenHourly.hourlyRSRUnstaked = rTokenHourly.hourlyRSRUnstaked.plus(
       amount
     );
-    rTokenHourly.cumulativeRSRUnstaked = rToken.rsrUnstaked;
   } else if (entryType === EntryType.WITHDRAW) {
+    rToken.insurance = rToken.insurance.minus(amount);
+
     protocol.insurance = protocol.insurance.minus(amount);
     protocol.insuranceUSD = getUsdValue(protocol.insurance, rsrPrice);
     protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.minus(
       amountUSD
     );
-    // rToken
-    rToken.insurance = rToken.insurance.minus(amount);
-    rTokenDaily.insurance = rToken.insurance;
-    rTokenHourly.insurance = rToken.insurance;
   }
+  // Save rToken data
+  rToken.save();
 
+  // Protocol cumulative data
+  protocol.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD.plus(amountUSD);
   protocol.transactionCount = protocol.transactionCount.plus(BIGINT_ONE);
   protocol.save();
 
-  // Update the block number and timestamp to that of the last transaction of that day
+  // Usage metrics daily cumulative data
+  usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
+  usageMetricsDaily.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
+  usageMetricsDaily.cumulativeRSRUnstaked = protocol.rsrUnstaked;
+  usageMetricsDaily.cumulativeRSRUnstakedUSD = protocol.rsrUnstakedUSD;
   usageMetricsDaily.blockNumber = event.block.number;
   usageMetricsDaily.timestamp = event.block.timestamp;
   usageMetricsDaily.dailyTransactionCount += INT_ONE;
   usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
   usageMetricsDaily.save();
 
+  // Usage metrics hourly cumulative data
+  usageMetricsHourly.cumulativeRSRStaked = protocol.rsrStaked;
+  usageMetricsHourly.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
+  usageMetricsHourly.cumulativeRSRUnstaked = protocol.rsrUnstaked;
+  usageMetricsHourly.cumulativeRSRUnstakedUSD = protocol.rsrUnstakedUSD;
   usageMetricsHourly.blockNumber = event.block.number;
   usageMetricsHourly.timestamp = event.block.timestamp;
   usageMetricsHourly.hourlyTransactionCount += INT_ONE;
   usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
   usageMetricsHourly.save();
 
+  // rToken daily cumulative data
+  rTokenDaily.insurance = rToken.insurance;
+  rTokenDaily.cumulativeRSRStaked = rToken.rsrStaked;
+  rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
   rTokenDaily.blockNumber = event.block.number;
   rTokenDaily.timestamp = event.block.timestamp;
   rTokenDaily.save();
 
+  // rToken hourly cumulative data
+  rTokenHourly.insurance = rToken.insurance;
+  rTokenHourly.cumulativeRSRStaked = rToken.rsrStaked;
+  rTokenHourly.cumulativeRSRUnstaked = rToken.rsrUnstaked;
   rTokenHourly.blockNumber = event.block.number;
   rTokenHourly.timestamp = event.block.timestamp;
   rTokenHourly.save();
-
-  rToken.save();
 
   // Update protocol financial metrics snapshot
   updateFinancials(event, amountUSD);
@@ -310,26 +314,25 @@ export function updateTokenMetrics(
 
   // Update token price
   if (token.lastPriceBlockNumber.lt(event.block.number)) {
-    token.lastPriceUSD = token.rToken
-      ? getRTokenPrice(tokenAddress)
-      : getTokenPrice(tokenAddress);
+    token.lastPriceUSD = getRTokenPrice(tokenAddress);
     token.lastPriceBlockNumber = event.block.number;
   }
 
+  // User data
+  // Combine the id and the user address to generate a unique user id for the day
   let from = fromAddress
     .toHexString()
     .concat("-")
     .concat(token.id);
-
-  // User data
-  // Combine the id and the user address to generate a unique user id for the day
   let dailyActiveAccountId = from.concat("-").concat(getDayId(event));
   let dailyActiveAccount = ActiveAccount.load(dailyActiveAccountId);
 
   if (!dailyActiveAccount) {
     dailyActiveAccount = new ActiveAccount(dailyActiveAccountId);
-    tokenDaily.dailyActiveUsers += INT_ONE;
     dailyActiveAccount.save();
+
+    log.warning("Daily active user plus one!!!", []);
+    tokenDaily.dailyActiveUsers += INT_ONE;
   }
 
   let hourlyActiveAccountId = from.concat("-").concat(getHourId(event));
@@ -337,8 +340,10 @@ export function updateTokenMetrics(
 
   if (!hourlyActiveAccount) {
     hourlyActiveAccount = new ActiveAccount(hourlyActiveAccountId);
-    tokenHourly.hourlyActiveUsers += INT_ONE;
     hourlyActiveAccount.save();
+
+    log.warning("Hourly active user plus one!!!", []);
+    tokenHourly.hourlyActiveUsers += INT_ONE;
   }
 
   // Update token supply and counts
@@ -346,47 +351,44 @@ export function updateTokenMetrics(
     token.mintCount = token.mintCount.plus(BIGINT_ONE);
     token.totalMinted = token.totalMinted.plus(amount);
     token.totalSupply = token.totalSupply.plus(amount);
-
+    // Daily
     tokenDaily.dailyMintCount += INT_ONE;
-    tokenDaily.dailyMintAmount = tokenDaily.dailyBurnAmount.plus(amount);
-    tokenDaily.dailyTotalSupply = tokenDaily.dailyTotalSupply.plus(amount);
-
+    tokenDaily.dailyMintAmount = tokenDaily.dailyMintAmount.plus(amount);
+    // Hourly
     tokenHourly.hourlyMintCount += INT_ONE;
     tokenHourly.hourlyMintAmount = tokenHourly.hourlyMintAmount.plus(amount);
-    tokenHourly.hourlyTotalSupply = tokenHourly.hourlyTotalSupply.plus(amount);
   } else if (entryType === EntryType.BURN) {
     token.burnCount = token.burnCount.plus(BIGINT_ONE);
     token.totalBurned = token.totalBurned.plus(amount);
-    token.totalSupply = token.totalSupply.minus(amount);
-
+    // Daily
     tokenDaily.dailyBurnCount += INT_ONE;
     tokenDaily.dailyBurnAmount = tokenDaily.dailyBurnAmount.plus(amount);
-    tokenDaily.dailyTotalSupply = tokenDaily.dailyTotalSupply.minus(amount);
-
+    // Hourly
     tokenHourly.hourlyBurnCount += INT_ONE;
     tokenHourly.hourlyBurnAmount = tokenHourly.hourlyBurnAmount.plus(amount);
-    tokenHourly.hourlyTotalSupply = tokenHourly.hourlyTotalSupply.plus(amount);
   }
-
-  tokenHourly.hourlyVolume = tokenHourly.hourlyVolume.plus(amount);
-  tokenHourly.cumulativeUniqueUsers = token.userCount;
-  tokenHourly.hourlyEventCount += INT_ONE;
-  tokenHourly.blockNumber = event.block.number;
-  tokenHourly.timestamp = event.block.timestamp;
-  tokenHourly.priceUSD = token.lastPriceUSD;
-  tokenHourly.save();
-
-  tokenDaily.dailyVolume = tokenDaily.dailyVolume.plus(amount);
-  tokenDaily.cumulativeUniqueUsers = token.userCount;
-  tokenDaily.dailyEventCount += INT_ONE;
-  tokenDaily.blockNumber = event.block.number;
-  tokenDaily.priceUSD = token.lastPriceUSD;
-  tokenDaily.timestamp = event.block.timestamp;
-  tokenDaily.save();
 
   token.cumulativeVolume = token.cumulativeVolume.plus(amount);
   token.transferCount = token.transferCount.plus(BIGINT_ONE);
   token.save();
+
+  tokenHourly.hourlyTotalSupply = token.totalSupply;
+  tokenHourly.hourlyVolume = tokenHourly.hourlyVolume.plus(amount);
+  tokenHourly.cumulativeUniqueUsers = token.userCount;
+  tokenHourly.hourlyEventCount += INT_ONE;
+  tokenHourly.priceUSD = token.lastPriceUSD;
+  tokenHourly.blockNumber = event.block.number;
+  tokenHourly.timestamp = event.block.timestamp;
+  tokenHourly.save();
+
+  tokenDaily.dailyTotalSupply = token.totalSupply;
+  tokenDaily.dailyVolume = tokenDaily.dailyVolume.plus(amount);
+  tokenDaily.cumulativeUniqueUsers = token.userCount;
+  tokenDaily.dailyEventCount += INT_ONE;
+  tokenDaily.priceUSD = token.lastPriceUSD;
+  tokenDaily.blockNumber = event.block.number;
+  tokenDaily.timestamp = event.block.timestamp;
+  tokenDaily.save();
 
   let rTokenId = token.rToken;
 
@@ -414,6 +416,9 @@ function updateTokenHolder(
   } else {
     token.holderCount = token.holderCount.minus(BIGINT_ONE);
   }
+
+  dailyMetrics.save();
+  hourlyMetrics.save();
   token.save();
 }
 
