@@ -155,7 +155,7 @@ export function getRSRPrice(): BigDecimal {
 
 export function getRTokenPrice(address: Address): BigDecimal {
   // RSV Case, fetch it from Oracle for early blocks default to 1
-  if (address.toHexString() === RSV_ADDRESS.toHexString()) {
+  if (address.equals(RSV_ADDRESS)) {
     let price = getTokenPrice(address);
 
     if (!price.gt(BIGDECIMAL_ZERO)) {
@@ -163,16 +163,16 @@ export function getRTokenPrice(address: Address): BigDecimal {
     }
 
     return price;
+  } else {
+    // RToken case, fetch it directly from contract, if no supply price is 0
+    let tokenPrice = BIGDECIMAL_ZERO;
+    let contract = RToken.bind(address);
+    let price = contract.try_price();
+
+    if (!price.reverted) {
+      tokenPrice = bigIntToBigDecimal(price.value);
+    }
+
+    return tokenPrice;
   }
-
-  // RToken case, fetch it directly from contract, if no supply price is 0
-  let tokenPrice = BIGDECIMAL_ZERO;
-  let contract = RToken.bind(address);
-  let price = contract.try_price();
-
-  if (!price.reverted) {
-    tokenPrice = bigIntToBigDecimal(price.value);
-  }
-
-  return tokenPrice;
 }

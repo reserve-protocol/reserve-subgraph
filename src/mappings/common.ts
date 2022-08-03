@@ -51,11 +51,17 @@ export function handleTransfer(event: TransferEvent): void {
     );
   }
 
+  let userAddress = event.params.from;
+
+  if (entryType === EntryType.MINT) {
+    userAddress = event.params.to;
+  }
+
   // Update token analytics
   updateTokenMetrics(
     event,
     event.address,
-    event.params.from,
+    userAddress,
     event.params.value,
     entryType
   );
