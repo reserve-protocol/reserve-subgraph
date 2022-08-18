@@ -108,7 +108,12 @@ export function handleIssuanceStart(event: IssuanceStarted): void {
   entry.rToken = event.address.toHexString();
   entry.save();
 
-  updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.ISSUE_START);
+  updateRTokenMetrics(
+    event,
+    event.address,
+    event.params.amount,
+    EntryType.ISSUE_START
+  );
 }
 
 export function handleIssuanceCancel(event: IssuancesCanceled): void {
@@ -123,10 +128,17 @@ export function handleIssuanceCancel(event: IssuancesCanceled): void {
     EntryType.CANCEL_ISSUANCE
   );
   entry.rToken = event.address.toHexString();
-  entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
+  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
+    token.lastPriceUSD
+  );
   entry.save();
 
-  updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.ISSUE);
+  updateRTokenMetrics(
+    event,
+    event.address,
+    event.params.amount,
+    EntryType.CANCEL_ISSUANCE
+  );
 }
 
 export function handleIssuance(event: IssuancesCompleted): void {
@@ -141,10 +153,17 @@ export function handleIssuance(event: IssuancesCompleted): void {
     EntryType.ISSUE
   );
   entry.rToken = event.address.toHexString();
-  entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
+  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
+    token.lastPriceUSD
+  );
   entry.save();
 
-  updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.ISSUE);
+  updateRTokenMetrics(
+    event,
+    event.address,
+    event.params.amount,
+    EntryType.ISSUE
+  );
 }
 
 export function handleRedemption(event: Redemption): void {
@@ -309,10 +328,11 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
     let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
     rToken.rsrExchangeRate = event.params.newVal;
-    daily.rsrExchangeRate = rToken.basketUnits;
-    hourly.rsrExchangeRate = rToken.basketUnits;
-
     rToken.save();
+
+    daily.rsrExchangeRate = event.params.newVal;
+    hourly.rsrExchangeRate = event.params.newVal;
+
     daily.save();
     hourly.save();
   }

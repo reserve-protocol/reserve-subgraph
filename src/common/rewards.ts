@@ -39,27 +39,6 @@ export const WINDOW_SIZE_SECONDS = 86400;
 // Recommended value is (RATE_IN_SECODNDS / TIMESTAMP_STORAGE_INTERVAL) - > Round up to nearest even integer
 export const BUFFER_SIZE = 144;
 
-// Add this entity to the schema.
-// type _CircularBuffer @entity {
-//   " 'CIRCULAR_BUFFER' "
-//   id: ID!
-
-//   " Array of sorted block numbers sorted continuously "
-//   blocks: [Int!]!
-
-//   " The index in the blocks array which will be used with the newest block to calculate block speed (Usally set to about a day before newest block) "
-//   windowStartIndex: Int!
-
-//   " The next index in the blocks array that will be replaced with the newest block "
-//   nextIndex: Int!
-
-//   " This determines the size of the blocks array. Should be set to contain at least a days worth of blocks according to a 1 day window for measuring speed"
-//   bufferSize: Int!
-
-//   " The current calculated number of blocks per day based on calculated block speed "
-//   blocksPerDay: BigDecimal!
-// }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const CIRCULAR_BUFFER = "CIRCULAR_BUFFER";

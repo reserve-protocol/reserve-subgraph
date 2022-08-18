@@ -72,9 +72,6 @@ export function updateRTokenUniqueUsers(rTokenId: string): void {
 
   protocol.cumulativeUniqueUsers += INT_ONE;
   protocol.save();
-
-  // TODO: remove
-  log.warning("Unique users updated!!!", []);
 }
 
 export function updateAccountBalance(
@@ -87,10 +84,8 @@ export function updateAccountBalance(
   let balance = accountBalance.amount.plus(bigIntToBigDecimal(amount));
 
   if (accountBalance.amount.equals(BIGDECIMAL_ZERO) && amount.gt(BIGINT_ZERO)) {
-    log.warning("New TOKEN holder!!!", []);
     updateTokenHolder(tokenAddress, true, event);
   } else if (balance.le(BIGDECIMAL_ZERO)) {
-    log.warning("Remove TOKEN holder!!!", []);
     updateTokenHolder(tokenAddress, false, event);
   }
 
@@ -160,7 +155,9 @@ export function updateRTokenMetrics(
   if (
     entryType === EntryType.MINT ||
     entryType === EntryType.BURN ||
-    entryType === EntryType.TRANSFER
+    entryType === EntryType.TRANSFER ||
+    entryType === EntryType.CANCEL_ISSUANCE ||
+    entryType === EntryType.CLAIM
   ) {
     amountUSD = getUsdValue(amount, token.lastPriceUSD);
   } else {
