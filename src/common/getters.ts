@@ -208,7 +208,11 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics.dailyRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.rsrExchangeRate = BIGINT_ZERO;
-    rTokenMetrics.basketUnits = BIGINT_ZERO;
+    rTokenMetrics.basketRate = BIGINT_ZERO;
+    rTokenMetrics.dailyRTokenRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.dailyInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
 
     rTokenMetrics.save();
   }
@@ -246,7 +250,11 @@ export function getOrCreateRTokenHourlySnapshot(
     rTokenMetrics.hourlyRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.rsrExchangeRate = BIGINT_ZERO;
-    rTokenMetrics.basketUnits = BIGINT_ZERO;
+    rTokenMetrics.basketRate = BIGINT_ZERO;
+    rTokenMetrics.hourlyRTokenRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.hourlyInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
 
     rTokenMetrics.save();
   }

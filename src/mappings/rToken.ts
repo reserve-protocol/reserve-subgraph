@@ -36,6 +36,7 @@ import { getRSRPrice } from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import {
+  BIGDECIMAL_ZERO,
   BIGINT_ONE,
   BIGINT_ZERO,
   EntryType,
@@ -67,9 +68,11 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.insurance = BIGINT_ZERO;
   rToken.rsrStaked = BIGINT_ZERO;
   rToken.rsrUnstaked = BIGINT_ZERO;
-  rToken.basketUnits = BIGINT_ZERO;
+  rToken.basketRate = BIGINT_ZERO;
   rToken.backing = BIGINT_ZERO;
   rToken.backingInsurance = BIGINT_ZERO;
+  rToken.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
+  rToken.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
   rToken.save();
 
   token.rToken = rToken.id;
@@ -306,14 +309,15 @@ export function handleUnstake(event: UnstakingCompleted): void {
 // * Rewards
 export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let rToken = RToken.load(event.address.toHexString())!;
+  let token = Token.load(rToken.token)!;
   let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
   let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
-  rToken.basketUnits = event.params.newBasketsNeeded;
+  rToken.basketRate = token.totalSupply.div(event.params.newBasketsNeeded);
   rToken.save();
 
-  daily.basketUnits = rToken.basketUnits;
-  hourly.basketUnits = rToken.basketUnits;
+  daily.basketRate = rToken.basketRate;
+  hourly.basketRate = rToken.basketRate;
 
   daily.save();
   hourly.save();

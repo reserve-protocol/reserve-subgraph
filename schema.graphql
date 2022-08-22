@@ -343,16 +343,14 @@ type RToken @entity {
   " Total RSR unStaked "
   rsrUnstaked: BigInt!
 
-  " RToken collateral basket units needed to keep price peg "
-  basketUnits: BigInt!
+  " Exchange rate between basket units to totalSupply of rToken "
+  basketRate: BigInt!
 
-  " Per-block reward token emission as of the current block normalized to a day, in token's native amount. This should be ideally calculated as the theoretical rate instead of the realized amount. "
-  # TODO: Review how is this calculated
-  rewardTokenEmissionsAmount: [BigInt!]
+  " Revenue given to RToken holders "
+  cumulativeRTokenRevenueUSD: BigDecimal!
 
-  " Per-block reward token emission as of the current block normalized to a day, in USD value. This should be ideally calculated as the theoretical rate instead of the realized amount. "
-  # TODO: Review how is this calculated
-  rewardTokenEmissionsUSD: [BigDecimal!]
+  " Revenue given to RSR Stakers "
+  cumulativeInsuranceRevenueUSD: BigDecimal!
 
   ##### Snapshots #####
 
@@ -413,16 +411,20 @@ type RTokenDailySnapshot @entity {
   " Reward token exchange rate "
   rsrExchangeRate: BigInt!
 
-  " RToken collateral basket units needed to keep price peg "
-  basketUnits: BigInt!
+  " Exchange rate between basket units to totalSupply of rToken "
+  basketRate: BigInt!
 
-  " Per-block reward token emission as of the current block normalized to a day, in token's native amount. This should be ideally calculated as the theoretical rate instead of the realized amount. "
-  # TODO: Review how is this calculated
-  rewardTokenEmissionsAmount: [BigInt!]
+  " Daily revenue given to RToken holders "
+  dailyRTokenRevenueUSD: BigDecimal!
 
-  " Per-block reward token emission as of the current block normalized to a day, in USD value. This should be ideally calculated as the theoretical rate instead of the realized amount. "
-  # TODO: Review how is this calculated
-  rewardTokenEmissionsUSD: [BigDecimal!]
+  " Revenue given to RToken holders "
+  cumulativeRTokenRevenueUSD: BigDecimal!
+
+  " Daily Revenue given to RSR Stakers "
+  dailyInsuranceRevenueUSD: BigDecimal!
+
+  " Revenue given to RSR Stakers "
+  cumulativeInsuranceRevenueUSD: BigDecimal!
 }
 
 type RTokenHourlySnapshot @entity {
@@ -473,14 +475,20 @@ type RTokenHourlySnapshot @entity {
   " Reward token exchange rate "
   rsrExchangeRate: BigInt
 
-  " RToken collateral basket units needed to keep price peg "
-  basketUnits: BigInt
+  " Exchange rate between basket units to totalSupply of rToken "
+  basketRate: BigInt!
 
-  " Per-block reward token emission as of the current block normalized to a day (not hour), in token's native amount. This should be ideally calculated as the theoretical rate instead of the realized amount. "
-  rewardTokenEmissionsAmount: [BigInt!]
+  " Daily revenue given to RToken holders "
+  hourlyRTokenRevenueUSD: BigDecimal!
 
-  " Per-block reward token emission as of the current block normalized to a day (not hour), in USD value. This should be ideally calculated as the theoretical rate instead of the realized amount. "
-  rewardTokenEmissionsUSD: [BigDecimal!]
+  " Revenue given to RToken holders "
+  cumulativeRTokenRevenueUSD: BigDecimal!
+
+  " Hourly Revenue given to RSR Stakers "
+  hourlyInsuranceRevenueUSD: BigDecimal!
+
+  " Revenue given to RSR Stakers "
+  cumulativeInsuranceRevenueUSD: BigDecimal!
 }
 
 #############################
@@ -863,26 +871,4 @@ type AccountRTokenDailySnapshot @entity {
 
   " Timestamp in which the stake was last modified "
   timestamp: BigInt!
-}
-
-###########################
-##### Helper Entities #####
-###########################
-# Helper entities are additional entities created to help with mapping.
-# They are usually used to store internal states that would simplify
-# the mapping logic. All helper entities should be prefixed with an
-# underscore to differentiate them from the common schema.
-type _CircularBuffer @entity {
-  " 'CIRCULAR_BUFFER' "
-  id: ID!
-  " Array of sorted block numbers sorted continuously "
-  blocks: [Int!]!
-  " The index in the blocks array which will be used with the newest block to calculate block speed (Usally set to about a day before newest block) "
-  windowStartIndex: Int!
-  " The next index in the blocks array that will be replaced with the newest block "
-  nextIndex: Int!
-  " This determines the size of the blocks array. Should be set to contain at least a days worth of blocks according to a 1 day window for measuring speed"
-  bufferSize: Int!
-  " The current calculated number of blocks per day based on calculated block speed "
-  blocksPerDay: BigDecimal!
 }
