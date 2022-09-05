@@ -9,7 +9,7 @@ dataSources:
     source:
       address: "0x2A5679683fF5485F5D776841B1639255D3fDAF57"
       abi: Deployer
-      startBlock: 7490073
+      startBlock: 7400073
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -26,6 +26,8 @@ dataSources:
           file: ./abis/Deployer.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
 
         ###########################################
         ############## Price Oracle ###############
@@ -73,7 +75,7 @@ dataSources:
     source:
       address: "0xE794eA53578837f6193bBb77885A52c2ee394e14"
       abi: ERC20
-      startBlock: 7490073
+      startBlock: 7400073
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -133,7 +135,7 @@ dataSources:
     source:
       address: "0xd6c7488831aA08c11AF2e30E24095305b230d298"
       abi: RSVManager
-      startBlock: 7490073
+      startBlock: 7400073
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -176,6 +178,8 @@ templates:
       abis:
         - name: RToken
           file: ./abis/RToken.json
+        - name: Facade
+          file: ./abis/Facade.json
         - name: ERC20
           file: ./abis/ERC20.json
 
@@ -249,6 +253,8 @@ templates:
           file: ./abis/RToken.json
         - name: stRSR
           file: ./abis/stRSR.json
+        - name: Facade
+          file: ./abis/Facade.json
 
         ###########################################
         ############## Price Oracle ###############

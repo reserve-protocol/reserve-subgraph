@@ -1,10 +1,11 @@
 import { Address, BigDecimal } from "@graphprotocol/graph-ts";
 import { ERC20 } from "../../generated/Deployer/ERC20";
-import { RToken } from "../../generated/templates/RToken/RToken";
+import { Facade } from "../../generated/templates/RToken/Facade";
 import { getUsdPricePerToken } from "../prices";
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
+  FACADE_ADDRESS,
   RSR_ADDRESS,
   RSV_ADDRESS,
 } from "./constants";
@@ -136,17 +137,19 @@ class StaticTokenDefinition {
   }
 }
 
+// TODO: Uncomment for mainnet
 export function getTokenPrice(address: Address): BigDecimal {
-  let tokenPrice: BigDecimal;
-  let fetchPrice = getUsdPricePerToken(address);
-  if (!fetchPrice.reverted) {
-    tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
-  } else {
-    // default value of this variable, if reverted is BigDecimal Zero
-    tokenPrice = fetchPrice.usdPrice;
-  }
+  // let tokenPrice: BigDecimal;
+  // let fetchPrice = getUsdPricePerToken(address);
+  // if (!fetchPrice.reverted) {
+  //   tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
+  // } else {
+  //   // default value of this variable, if reverted is BigDecimal Zero
+  //   tokenPrice = fetchPrice.usdPrice;
+  // }
 
-  return tokenPrice;
+  // return tokenPrice;
+  return BIGDECIMAL_ZERO;
 }
 
 export function getRSRPrice(): BigDecimal {
@@ -166,8 +169,8 @@ export function getRTokenPrice(address: Address): BigDecimal {
   } else {
     // RToken case, fetch it directly from contract, if no supply price is 0
     let tokenPrice = BIGDECIMAL_ZERO;
-    let contract = RToken.bind(address);
-    let price = contract.try_price();
+    let contract = Facade.bind(Address.fromString(FACADE_ADDRESS));
+    let price = contract.try_price(address);
 
     if (!price.reverted) {
       tokenPrice = bigIntToBigDecimal(price.value);

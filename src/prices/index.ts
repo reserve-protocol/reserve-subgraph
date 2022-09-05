@@ -104,15 +104,16 @@ export function getUsdPricePerToken(tokenAddr: Address): CustomPriceType {
   return new CustomPriceType();
 }
 
+// TODO: Commented for goerli -> no price oracle
 export function getUsdPrice(
   tokenAddr: Address,
   amount: BigDecimal
 ): BigDecimal {
-  let tokenPrice = getUsdPricePerToken(tokenAddr);
+  // let tokenPrice = getUsdPricePerToken(tokenAddr);
 
-  if (!tokenPrice.reverted) {
-    return tokenPrice.usdPrice.times(amount).div(tokenPrice.decimalsBaseTen);
-  }
+  // if (!tokenPrice.reverted) {
+  //   return tokenPrice.usdPrice.times(amount).div(tokenPrice.decimalsBaseTen);
+  // }
 
   return constants.BIGDECIMAL_ZERO;
 }
