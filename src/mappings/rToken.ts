@@ -1,4 +1,4 @@
-import { Address, log } from "@graphprotocol/graph-ts";
+import { Address } from "@graphprotocol/graph-ts";
 import { Account, RToken, Token } from "../../generated/schema";
 import {
   RToken as RTokenTemplate,
@@ -36,8 +36,8 @@ import { getRSRPrice } from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import {
+  BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
-  BIGINT_ONE,
   BIGINT_ZERO,
   EntryType,
   INT_ONE,
@@ -64,11 +64,11 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.rewardTokenSupply = BIGINT_ZERO;
   rToken.rsrPriceUSD = getRSRPrice();
   rToken.rsrPriceLastBlock = event.block.number;
-  rToken.rsrExchangeRate = BIGINT_ONE;
+  rToken.rsrExchangeRate = BIGDECIMAL_ONE;
   rToken.insurance = BIGINT_ZERO;
   rToken.rsrStaked = BIGINT_ZERO;
   rToken.rsrUnstaked = BIGINT_ZERO;
-  rToken.basketRate = BIGINT_ZERO;
+  rToken.basketRate = BIGDECIMAL_ONE;
   rToken.backing = BIGINT_ZERO;
   rToken.backingInsurance = BIGINT_ZERO;
   rToken.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
@@ -313,7 +313,9 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
   let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
-  rToken.basketRate = token.totalSupply.div(event.params.newBasketsNeeded);
+  rToken.basketRate = bigIntToBigDecimal(
+    token.totalSupply.div(event.params.newBasketsNeeded)
+  );
   rToken.save();
 
   daily.basketRate = rToken.basketRate;
@@ -331,11 +333,11 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
     let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
     let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
-    rToken.rsrExchangeRate = event.params.newVal;
+    rToken.rsrExchangeRate = bigIntToBigDecimal(event.params.newVal);
     rToken.save();
 
-    daily.rsrExchangeRate = event.params.newVal;
-    hourly.rsrExchangeRate = event.params.newVal;
+    daily.rsrExchangeRate = rToken.rsrExchangeRate;
+    hourly.rsrExchangeRate = rToken.rsrExchangeRate;
 
     daily.save();
     hourly.save();

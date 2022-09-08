@@ -332,7 +332,7 @@ type RToken @entity {
   rsrPriceLastBlock: BigInt!
 
   " Reward token exchange rate "
-  rsrExchangeRate: BigInt!
+  rsrExchangeRate: BigDecimal!
 
   " How much RSR is currently held for insurance "
   insurance: BigInt!
@@ -344,7 +344,7 @@ type RToken @entity {
   rsrUnstaked: BigInt!
 
   " Exchange rate between basket units to totalSupply of rToken "
-  basketRate: BigInt!
+  basketRate: BigDecimal!
 
   " Revenue given to RToken holders "
   cumulativeRTokenRevenueUSD: BigDecimal!
@@ -409,10 +409,10 @@ type RTokenDailySnapshot @entity {
   cumulativeRSRUnstaked: BigInt!
 
   " Reward token exchange rate "
-  rsrExchangeRate: BigInt!
+  rsrExchangeRate: BigDecimal!
 
   " Exchange rate between basket units to totalSupply of rToken "
-  basketRate: BigInt!
+  basketRate: BigDecimal!
 
   " Daily revenue given to RToken holders "
   dailyRTokenRevenueUSD: BigDecimal!
@@ -473,10 +473,10 @@ type RTokenHourlySnapshot @entity {
   cumulativeRSRUnstaked: BigInt!
 
   " Reward token exchange rate "
-  rsrExchangeRate: BigInt
+  rsrExchangeRate: BigDecimal!
 
   " Exchange rate between basket units to totalSupply of rToken "
-  basketRate: BigInt!
+  basketRate: BigDecimal!
 
   " Daily revenue given to RToken holders "
   hourlyRTokenRevenueUSD: BigDecimal!

@@ -277,6 +277,8 @@ export function updateRTokenMetrics(
   usageMetricsHourly.save();
 
   // rToken daily cumulative data
+  rTokenDaily.rsrExchangeRate = rToken.rsrExchangeRate;
+  rTokenDaily.basketRate = rToken.basketRate;
   rTokenDaily.insurance = rToken.insurance;
   rTokenDaily.cumulativeRSRStaked = rToken.rsrStaked;
   rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
@@ -285,6 +287,8 @@ export function updateRTokenMetrics(
   rTokenDaily.save();
 
   // rToken hourly cumulative data
+  rTokenHourly.rsrExchangeRate = rToken.rsrExchangeRate;
+  rTokenHourly.basketRate = rToken.basketRate;
   rTokenHourly.insurance = rToken.insurance;
   rTokenHourly.cumulativeRSRStaked = rToken.rsrStaked;
   rTokenHourly.cumulativeRSRUnstaked = rToken.rsrUnstaked;
