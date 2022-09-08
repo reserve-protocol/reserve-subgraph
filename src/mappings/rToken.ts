@@ -313,9 +313,9 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
   let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
-  rToken.basketRate = bigIntToBigDecimal(
-    token.totalSupply.div(event.params.newBasketsNeeded)
-  );
+  rToken.basketRate = token.totalSupply
+    .div(event.params.newBasketsNeeded)
+    .toBigDecimal();
   rToken.save();
 
   daily.basketRate = rToken.basketRate;
