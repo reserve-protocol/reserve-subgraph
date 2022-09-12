@@ -42,7 +42,6 @@ enum RewardTokenType {
   BORROW
 }
 
-# TODO: Not used, cannot do multi enum query type
 enum EntryType {
   TRANSFER # ERC20 Token transfer
   ISSUE # Issuance
@@ -52,7 +51,6 @@ enum EntryType {
   STAKE # stake
   UNSTAKE # stake
   WITHDRAW # stake
-  # TODO: Run auctions? governance?
 }
 
 #############################
@@ -352,6 +350,9 @@ type RToken @entity {
   " Revenue given to RSR Stakers "
   cumulativeInsuranceRevenueUSD: BigDecimal!
 
+  " Related auctions "
+  trades: [Trade!]! @derivedFrom(field: "rToken")
+
   ##### Snapshots #####
 
   " RToken daily snapshots "
@@ -359,8 +360,6 @@ type RToken @entity {
 
   " RToken hourly snapshots "
   hourlySnapshots: [RTokenHourlySnapshot!]! @derivedFrom(field: "rToken")
-
-  # TODO: Auctions / Default events / Basket change? Track basket?
 }
 
 type RTokenDailySnapshot @entity {
@@ -489,6 +488,27 @@ type RTokenHourlySnapshot @entity {
 
   " Revenue given to RSR Stakers "
   cumulativeInsuranceRevenueUSD: BigDecimal!
+}
+
+type Trade @entity {
+  " { RTokenId }-{ Smart contract address of the auction } "
+  id: ID!
+  " GnosisAuctionId "
+  auctionId: BigInt!
+  " Auction trade amount "
+  amount: BigDecimal!
+  " Worst case price "
+  worstCasePrice: BigDecimal!
+  " Selling token "
+  selling: String!
+  " Buying token "
+  buying: String!
+  " started At timestamp "
+  startedAt: BigInt!
+  " End time timestamp "
+  endAt: BigInt!
+  " rToken id "
+  rToken: RToken!
 }
 
 #############################
@@ -871,4 +891,11 @@ type AccountRTokenDailySnapshot @entity {
 
   " Timestamp in which the stake was last modified "
   timestamp: BigInt!
+}
+
+type RTokenContract @entity {
+  " {Address of related contract} "
+  id: ID!
+  " Address of the related rToken"
+  rToken: String!
 }

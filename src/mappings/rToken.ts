@@ -1,9 +1,20 @@
+import { GnosisTrade } from "./../../generated/templates/BackingManager/GnosisTrade";
+import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 import { Address } from "@graphprotocol/graph-ts";
-import { Account, RToken, Token } from "../../generated/schema";
+import {
+  Account,
+  Trade,
+  RToken,
+  RTokenContract,
+  Token,
+} from "../../generated/schema";
 import {
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
+  BackingManager,
+  RevenueTrader,
 } from "../../generated/templates";
+import { RToken as _RToken } from "../../generated/templates/RToken/RToken";
 import {
   BasketsNeededChanged,
   IssuancesCanceled,
@@ -35,6 +46,8 @@ import {
 import { getRSRPrice } from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
+import { Main } from "./../../generated/Deployer/Main";
+
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
@@ -84,9 +97,25 @@ export function handleCreateToken(event: RTokenCreated): void {
   stToken.rToken = rToken.id;
   stToken.save();
 
+  let rTokenContract = _RToken.bind(event.params.rToken);
+  let mainAddress = rTokenContract.main();
+  let mainContract = Main.bind(mainAddress);
+
+  let backingManagerAddress = mainContract.backingManager();
+  let backingManager = new RTokenContract(backingManagerAddress.toHexString());
+  backingManager.rToken = rToken.id;
+  backingManager.save();
+
+  let revenueTraderAddress = mainContract.rTokenTrader();
+  let revenueTrader = new RTokenContract(revenueTraderAddress.toHexString());
+  revenueTrader.rToken = rToken.id;
+  revenueTrader.save();
+
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(event.params.stRSR);
+  BackingManager.create(backingManagerAddress);
+  RevenueTrader.create(revenueTraderAddress);
 }
 
 export function handleTokenTransfer(event: TransferEvent): void {
@@ -342,6 +371,26 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
     daily.save();
     hourly.save();
   }
+}
+
+export function handleTrade(event: TradeStarted): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let tradeContract = GnosisTrade.bind(event.address);
+  let auctionId = tradeContract.auctionId();
+  let worstCasePrice = tradeContract.worstCasePrice();
+  let endAt = tradeContract.endTime();
+
+  let trade = new Trade(event.params.trade.toHexString());
+  trade.amount = bigIntToBigDecimal(event.params.sellAmount);
+  trade.worstCasePrice = bigIntToBigDecimal(worstCasePrice);
+  trade.auctionId = auctionId;
+  trade.selling = event.params.sell.toHexString();
+  trade.buying = event.params.buy.toHexString();
+  trade.startedAt = event.block.timestamp;
+  trade.endAt = endAt;
+  trade.rToken = rTokenContract.rToken;
+
+  trade.save();
 }
 
 function getRTokenId(rewardTokenAddress: Address): string | null {

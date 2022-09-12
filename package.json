@@ -4,12 +4,11 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --product hosted-service lcamargof/Cryptoasdf",
+    "deploy": "graph deploy --product hosted-service lcamargof/reserve",
     "create-local": "graph create --node http://127.0.0.1:8020/ lcamargof/reserve",
     "remove-local": "graph remove --node http://127.0.0.1:8020/ lcamargof/reserve",
     "deploy-local": "graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 lcamargof/reserve",
-    "create-testnet": "graph create --node http://34.171.0.196:8020/ lcamargof/reserve",
-    "deploy-testnet": "graph deploy --node http://34.171.0.196:8020/ --ipfs http://34.171.0.196:5001 lcamargof/reserve"
+    "deploy-testnet": "graph deploy --product hosted-service lcamargof/reserve-goerli"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.32.0",

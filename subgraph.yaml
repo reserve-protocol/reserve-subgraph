@@ -24,6 +24,8 @@ dataSources:
           file: ./abis/RToken.json
         - name: Deployer
           file: ./abis/Deployer.json
+        - name: Main
+          file: ./abis/Main.json
         - name: ERC20
           file: ./abis/ERC20.json
         - name: Facade
@@ -231,6 +233,48 @@ templates:
           handler: handleRedemption
         - event: BasketsNeededChanged(uint192,uint192)
           handler: handleRTokenBaskets
+      file: ./src/mappings/rToken.ts
+  - name: RevenueTrader
+    kind: ethereum/contract
+    network: goerli
+    source:
+      abi: RevenueTrader
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Trade
+        - RTokenContract
+      abis:
+        - name: RevenueTrader
+          file: ./abis/RevenueTrader.json
+        - name: GnosisTrade
+          file: ./abis/GnosisTrade.json
+      eventHandlers:
+        - event: TradeStarted(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTrade
+      file: ./src/mappings/rToken.ts
+  - name: BackingManager
+    kind: ethereum/contract
+    network: goerli
+    source:
+      abi: BackingManager
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Trade
+        - RTokenContract
+      abis:
+        - name: BackingManager
+          file: ./abis/BackingManager.json
+        - name: GnosisTrade
+          file: ./abis/GnosisTrade.json
+      eventHandlers:
+        - event: TradeStarted(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTrade
       file: ./src/mappings/rToken.ts
   - name: stRSR
     kind: ethereum/contract
