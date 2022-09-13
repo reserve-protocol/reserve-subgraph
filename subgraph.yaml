@@ -75,7 +75,7 @@ dataSources:
     kind: ethereum/contract
     network: goerli
     source:
-      address: "0xE794eA53578837f6193bBb77885A52c2ee394e14"
+      address: "0xC54cA3D2A4fE68D079b45c92D703DADfE3Ad0AA0"
       abi: ERC20
       startBlock: 7400073
     mapping:
@@ -135,7 +135,7 @@ dataSources:
     kind: ethereum/contract
     network: goerli
     source:
-      address: "0xd6c7488831aA08c11AF2e30E24095305b230d298"
+      address: "0x08d95a020cE6FCfF46ACb323E2416Bc847D68b9a"
       abi: RSVManager
       startBlock: 7400073
     mapping:
