@@ -91,6 +91,8 @@ dataSources:
           file: ./abis/RToken.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
         ###########################################
         ############## Price Oracle ###############
         ###########################################
@@ -153,6 +155,8 @@ dataSources:
           file: ./abis/RSVManager.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
       eventHandlers:
         - event: Issuance(indexed address,indexed uint256)
           handler: handleIssuance

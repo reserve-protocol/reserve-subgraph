@@ -332,7 +332,6 @@ export function updateTokenMetrics(
     dailyActiveAccount = new ActiveAccount(dailyActiveAccountId);
     dailyActiveAccount.save();
 
-    log.warning("Daily active user plus one!!!", []);
     tokenDaily.dailyActiveUsers += INT_ONE;
   }
 
@@ -343,7 +342,6 @@ export function updateTokenMetrics(
     hourlyActiveAccount = new ActiveAccount(hourlyActiveAccountId);
     hourlyActiveAccount.save();
 
-    log.warning("Hourly active user plus one!!!", []);
     tokenHourly.hourlyActiveUsers += INT_ONE;
   }
 

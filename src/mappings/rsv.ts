@@ -22,6 +22,7 @@ export function handleIssuance(event: RSVIssuance): void {
     event.params.amount,
     EntryType.ISSUE
   );
+  // TODO: Entry amountUSD
 }
 
 // Handles RSV redemption

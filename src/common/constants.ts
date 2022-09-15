@@ -81,7 +81,7 @@ export const RSR_ADDRESS = Address.fromString(
   "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"
 ); // TODO: Created block
 export const RSV_ADDRESS = Address.fromString(
-  "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
+  "0xC54cA3D2A4fE68D079b45c92D703DADfE3Ad0AA0"
 );
 
 ////////////////////////
