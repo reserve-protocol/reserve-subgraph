@@ -7,7 +7,7 @@ dataSources:
     name: Deployer
     network: goerli
     source:
-      address: "0x2A5679683fF5485F5D776841B1639255D3fDAF57"
+      address: "0x6D80CEE7065848233d81c7621C736149a6666979"
       abi: Deployer
       startBlock: 7400073
     mapping:

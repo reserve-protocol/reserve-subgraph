@@ -132,5 +132,5 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 /////////////////////////////
 
 // TODO: Change back for mainnet addresses
-export const FACTORY_ADDRESS = "0x2A5679683fF5485F5D776841B1639255D3fDAF57"; // Deployer address
-export const FACADE_ADDRESS = "0xf02481eAaf3F17606e03D063FDCF666954956568";
+export const FACTORY_ADDRESS = "0x6D80CEE7065848233d81c7621C736149a6666979"; // Deployer address
+export const FACADE_ADDRESS = "0x8B84160CF8d9066Ba45f71471a06F2BFAc364626";
