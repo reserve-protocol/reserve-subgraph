@@ -5,11 +5,11 @@ dataSources:
   # Deployer
   - kind: ethereum/contract
     name: Deployer
-    network: goerli
+    network: mainnet
     source:
-      address: "0x6D80CEE7065848233d81c7621C736149a6666979"
+      address: "0x092F139e9002ACB3dD51A64eD2bB527A30911b0E"
       abi: Deployer
-      startBlock: 7400073
+      startBlock: 15676091
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -73,9 +73,9 @@ dataSources:
   # RSV tracks ERC20 transactions
   - name: RSV
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
-      address: "0xC54cA3D2A4fE68D079b45c92D703DADfE3Ad0AA0"
+      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
       abi: ERC20
       startBlock: 7400073
     mapping:
@@ -135,9 +135,9 @@ dataSources:
   # RSV Manager tracks issue and redeem
   - name: RSVManager
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
-      address: "0x08d95a020cE6FCfF46ACb323E2416Bc847D68b9a"
+      address: "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6"
       abi: RSVManager
       startBlock: 7400073
     mapping:
@@ -167,7 +167,7 @@ templates:
   # Track RToken ERC20 events
   - name: RToken
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: RToken
     mapping:
@@ -240,7 +240,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: RevenueTrader
     mapping:
@@ -261,7 +261,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: BackingManager
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: BackingManager
     mapping:
@@ -282,7 +282,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: stRSR
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: stRSR # RToken Main
     mapping:

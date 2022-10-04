@@ -77,13 +77,6 @@ export namespace EntryType {
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
-export const RSR_ADDRESS = Address.fromString(
-  "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"
-); // TODO: Created block
-export const RSV_ADDRESS = Address.fromString(
-  "0xC54cA3D2A4fE68D079b45c92D703DADfE3Ad0AA0"
-);
-
 ////////////////////////
 ///// Type Helpers /////
 ////////////////////////
@@ -131,6 +124,13 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 ///// Protocol Specific /////
 /////////////////////////////
 
-// TODO: Change back for mainnet addresses
-export const FACTORY_ADDRESS = "0x6D80CEE7065848233d81c7621C736149a6666979"; // Deployer address
-export const FACADE_ADDRESS = "0x8B84160CF8d9066Ba45f71471a06F2BFAc364626";
+export const FACTORY_ADDRESS = "0x092F139e9002ACB3dD51A64eD2bB527A30911b0E"; // Deployer address
+export const FACADE_ADDRESS = "0x798918a19AedDA5B923ffC053a63e6a96911dC0a";
+
+// Tokens
+export const RSR_ADDRESS = Address.fromString(
+  "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"
+); // TODO: Created block
+export const RSV_ADDRESS = Address.fromString(
+  "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
+);
