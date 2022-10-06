@@ -1,26 +1,24 @@
-import { GnosisTrade } from "./../../generated/templates/BackingManager/GnosisTrade";
-import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 import { Address } from "@graphprotocol/graph-ts";
 import {
   Account,
-  Trade,
   RToken,
   RTokenContract,
   Token,
+  Trade,
 } from "../../generated/schema";
 import {
-  RToken as RTokenTemplate,
-  stRSR as stRSRTemplate,
   BackingManager,
   RevenueTrader,
+  RToken as RTokenTemplate,
+  stRSR as stRSRTemplate,
 } from "../../generated/templates";
-import { RToken as _RToken } from "../../generated/templates/RToken/RToken";
 import {
   BasketsNeededChanged,
   IssuancesCanceled,
   IssuancesCompleted,
   IssuanceStarted,
   Redemption,
+  RToken as _RToken,
   Transfer as TransferEvent,
 } from "../../generated/templates/RToken/RToken";
 import {
@@ -46,13 +44,17 @@ import {
 import { getRSRPrice } from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
+import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
+import { GnosisTrade } from "./../../generated/templates/BackingManager/GnosisTrade";
+import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
   EntryType,
+  FACADE_ADDRESS,
   INT_ONE,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
@@ -65,6 +67,15 @@ export function handleCreateToken(event: RTokenCreated): void {
   let token = getOrCreateToken(event.params.rToken);
   let rewardToken = getOrCreateRewardToken(event.params.stRSR);
   let stToken = Token.load(event.params.stRSR.toHexString())!;
+
+  let facadeContract = Facade.bind(Address.fromString(FACADE_ADDRESS));
+  let basketBreakdown = facadeContract.basketBreakdown(event.params.rToken);
+  let targets: string[] = [];
+  let targetBytes = basketBreakdown.getTargets();
+
+  for (let i = 0; i < targetBytes.length; i++) {
+    targets.push(targetBytes[i].toHexString());
+  }
 
   // Create new RToken
   let rToken = new RToken(event.params.rToken.toHexString());
@@ -86,6 +97,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.backingInsurance = BIGINT_ZERO;
   rToken.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
   rToken.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+  rToken.targetUnits = targets.join(",");
   rToken.save();
 
   token.rToken = rToken.id;

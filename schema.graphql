@@ -350,6 +350,9 @@ type RToken @entity {
   " Revenue given to RSR Stakers "
   cumulativeInsuranceRevenueUSD: BigDecimal!
 
+  " Targets units for the primary basket"
+  targetUnits: String!
+
   " Related auctions "
   trades: [Trade!]! @derivedFrom(field: "rToken")
 

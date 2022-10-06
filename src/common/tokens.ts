@@ -137,19 +137,17 @@ class StaticTokenDefinition {
   }
 }
 
-// TODO: Uncomment for mainnet
 export function getTokenPrice(address: Address): BigDecimal {
-  // let tokenPrice: BigDecimal;
-  // let fetchPrice = getUsdPricePerToken(address);
-  // if (!fetchPrice.reverted) {
-  //   tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
-  // } else {
-  //   // default value of this variable, if reverted is BigDecimal Zero
-  //   tokenPrice = fetchPrice.usdPrice;
-  // }
+  let tokenPrice: BigDecimal;
+  let fetchPrice = getUsdPricePerToken(address);
+  if (!fetchPrice.reverted) {
+    tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
+  } else {
+    // default value of this variable, if reverted is BigDecimal Zero
+    tokenPrice = fetchPrice.usdPrice;
+  }
 
-  // return tokenPrice;
-  return BIGDECIMAL_ZERO;
+  return tokenPrice;
 }
 
 export function getRSRPrice(): BigDecimal {
