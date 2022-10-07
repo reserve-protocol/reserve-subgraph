@@ -1,10 +1,4 @@
-import {
-  Address,
-  BigDecimal,
-  BigInt,
-  ethereum,
-  log,
-} from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { ActiveAccount, RToken, Token } from "../../generated/schema";
 import {
   BIGDECIMAL_ZERO,
@@ -30,7 +24,7 @@ import {
   getOrCreateUsageMetricDailySnapshot,
   getOrCreateUsageMetricHourlySnapshot,
 } from "./getters";
-import { getRSRPrice, getRTokenPrice, getTokenPrice } from "./tokens";
+import { getRSRPrice, getRTokenPrice } from "./tokens";
 import { bigIntToBigDecimal, getUsdValue } from "./utils/numbers";
 
 export function updateFinancials(
@@ -359,6 +353,7 @@ export function updateTokenMetrics(
   } else if (entryType === EntryType.BURN) {
     token.burnCount = token.burnCount.plus(BIGINT_ONE);
     token.totalBurned = token.totalBurned.plus(amount);
+    token.totalSupply = token.totalSupply.minus(amount);
     // Daily
     tokenDaily.dailyBurnCount += INT_ONE;
     tokenDaily.dailyBurnAmount = tokenDaily.dailyBurnAmount.plus(amount);
