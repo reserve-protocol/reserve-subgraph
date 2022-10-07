@@ -7,6 +7,7 @@ import {
   getOrCreateToken,
   getTokenAccount,
 } from "../common/getters";
+import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { EntryType, RSV_ADDRESS } from "./../common/constants";
 
 // Handles token issuance
@@ -15,14 +16,18 @@ export function handleIssuance(event: RSVIssuance): void {
   let token = getOrCreateToken(RSV_ADDRESS);
 
   // Create entry
-  getOrCreateEntry(
+  let entry = getOrCreateEntry(
     event,
     token.id,
     account.id,
     event.params.amount,
     EntryType.ISSUE
   );
-  // TODO: Entry amountUSD
+  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
+    token.lastPriceUSD
+  );
+  entry.rToken = event.address.toHexString();
+  entry.save();
 }
 
 // Handles RSV redemption
@@ -31,11 +36,17 @@ export function handleRedemption(event: RSVRedemption): void {
   let token = getOrCreateToken(RSV_ADDRESS);
 
   // Create entry
-  getOrCreateEntry(
+  let entry = getOrCreateEntry(
     event,
     token.id,
     account.id,
     event.params.amount,
     EntryType.REDEEM
   );
+
+  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
+    token.lastPriceUSD
+  );
+  entry.rToken = event.address.toHexString();
+  entry.save();
 }
