@@ -387,7 +387,7 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
 
 export function handleTrade(event: TradeStarted): void {
   let rTokenContract = RTokenContract.load(event.address.toHexString())!;
-  let tradeContract = GnosisTrade.bind(event.address);
+  let tradeContract = GnosisTrade.bind(event.params.trade);
   let auctionId = tradeContract.auctionId();
   let worstCasePrice = tradeContract.worstCasePrice();
   let endAt = tradeContract.endTime();

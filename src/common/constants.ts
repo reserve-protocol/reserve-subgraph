@@ -124,8 +124,8 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 ///// Protocol Specific /////
 /////////////////////////////
 
-export const FACTORY_ADDRESS = "0x092F139e9002ACB3dD51A64eD2bB527A30911b0E"; // Deployer address
-export const FACADE_ADDRESS = "0x798918a19AedDA5B923ffC053a63e6a96911dC0a";
+export const FACTORY_ADDRESS = "0x9cAc8ED3297040626D8aA6317F5e29813A6A8fc6"; // Deployer address
+export const FACADE_ADDRESS = "0x3DAf5a7681a9cfB92fB38983EB3998dFC7963B28";
 
 // Tokens
 export const RSR_ADDRESS = Address.fromString(

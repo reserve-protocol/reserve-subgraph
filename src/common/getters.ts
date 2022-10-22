@@ -286,7 +286,7 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     if (tokenAddress === RSV_ADDRESS) {
       token.transferCount = BigInt.fromI32(1933);
       token.holderCount = BigInt.fromI32(220);
-      token.totalSupply = BigInt.fromI32(314192);
+      token.totalSupply = BigInt.fromI32(628477);
     }
 
     token.save();
