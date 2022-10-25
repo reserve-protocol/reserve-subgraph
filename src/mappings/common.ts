@@ -75,10 +75,10 @@ export function handleTransfer(event: TransferEvent): void {
   );
   // Transfer specific
   entry.to = toAccount.id;
+  entry.amountUSD = token.lastPriceUSD.times(
+    bigIntToBigDecimal(event.params.value)
+  );
   if (rTokenId) {
-    entry.amountUSD = token.lastPriceUSD.times(
-      bigIntToBigDecimal(event.params.value)
-    );
     entry.rToken = rTokenId;
   }
   entry.save();
