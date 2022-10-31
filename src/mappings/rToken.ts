@@ -74,7 +74,11 @@ export function handleCreateToken(event: RTokenCreated): void {
   let targetBytes = basketBreakdown.getTargets();
 
   for (let i = 0; i < targetBytes.length; i++) {
-    targets.push(targetBytes[i].toHexString());
+    let targetName = targetBytes[i].toString();
+
+    if (targets.indexOf(targetName) === -1) {
+      targets.push(targetName);
+    }
   }
 
   // Create new RToken
@@ -101,6 +105,9 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.save();
 
   token.rToken = rToken.id;
+  token.lastPriceUSD = bigIntToBigDecimal(
+    facadeContract.price(event.params.rToken)
+  );
   token.save();
 
   rewardToken.rToken = rToken.id;
