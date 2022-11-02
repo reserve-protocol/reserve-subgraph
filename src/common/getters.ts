@@ -17,7 +17,7 @@ import {
 import {
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
-  FACTORY_ADDRESS,
+  PROTOCOL_SLUG,
   INT_ONE,
   INT_ZERO,
   Network,
@@ -25,7 +25,6 @@ import {
   PROTOCOL_METHODOLOGY_VERSION,
   PROTOCOL_NAME,
   PROTOCOL_SCHEMA_VERSION,
-  PROTOCOL_SLUG,
   PROTOCOL_SUBGRAPH_VERSION,
   RewardTokenType,
   RSV_ADDRESS,
@@ -41,10 +40,10 @@ import { updateRTokenUniqueUsers } from "./metrics";
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
 
 export function getOrCreateProtocol(): Protocol {
-  let protocol = Protocol.load(FACTORY_ADDRESS);
+  let protocol = Protocol.load(PROTOCOL_SLUG);
 
   if (!protocol) {
-    protocol = new Protocol(FACTORY_ADDRESS);
+    protocol = new Protocol(PROTOCOL_SLUG);
     protocol.name = PROTOCOL_NAME;
     protocol.slug = PROTOCOL_SLUG;
     protocol.schemaVersion = PROTOCOL_SCHEMA_VERSION;
@@ -86,7 +85,7 @@ export function getOrCreateUsageMetricDailySnapshot(
 
   if (!usageMetrics) {
     usageMetrics = new UsageMetricsDailySnapshot(dayId);
-    usageMetrics.protocol = FACTORY_ADDRESS;
+    usageMetrics.protocol = PROTOCOL_SLUG;
 
     usageMetrics.dailyActiveUsers = INT_ZERO;
     usageMetrics.cumulativeUniqueUsers = INT_ZERO;
@@ -121,7 +120,7 @@ export function getOrCreateUsageMetricHourlySnapshot(
 
   if (!usageMetrics) {
     usageMetrics = new UsageMetricsHourlySnapshot(hourId);
-    usageMetrics.protocol = FACTORY_ADDRESS;
+    usageMetrics.protocol = PROTOCOL_SLUG;
 
     usageMetrics.hourlyActiveUsers = INT_ZERO;
     usageMetrics.cumulativeUniqueUsers = INT_ZERO;
@@ -156,7 +155,7 @@ export function getOrCreateFinancialsDailySnapshot(
 
   if (!financialMetrics) {
     financialMetrics = new FinancialsDailySnapshot(id);
-    financialMetrics.protocol = FACTORY_ADDRESS;
+    financialMetrics.protocol = PROTOCOL_SLUG;
 
     financialMetrics.insurance = BIGINT_ZERO;
     financialMetrics.insuranceUSD = BIGDECIMAL_ZERO;
@@ -192,7 +191,7 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics = new RTokenDailySnapshot(
       rTokenAddress.concat("-").concat(dayId)
     );
-    rTokenMetrics.protocol = FACTORY_ADDRESS;
+    rTokenMetrics.protocol = PROTOCOL_SLUG;
     rTokenMetrics.rToken = rTokenAddress;
     rTokenMetrics.blockNumber = event.block.number;
     rTokenMetrics.timestamp = event.block.timestamp;
@@ -234,7 +233,7 @@ export function getOrCreateRTokenHourlySnapshot(
     rTokenMetrics = new RTokenHourlySnapshot(
       rTokenAddress.concat("-").concat(hourId)
     );
-    rTokenMetrics.protocol = FACTORY_ADDRESS;
+    rTokenMetrics.protocol = PROTOCOL_SLUG;
     rTokenMetrics.rToken = rTokenAddress;
     rTokenMetrics.blockNumber = event.block.number;
     rTokenMetrics.timestamp = event.block.timestamp;

@@ -8,6 +8,7 @@ import {
 } from "../../generated/schema";
 import {
   BackingManager,
+  Deployer,
   RevenueTrader,
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
@@ -46,6 +47,7 @@ import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
+import { DeploymentRegistered } from "./../../generated/Register/Register";
 import { GnosisTrade } from "./../../generated/templates/BackingManager/GnosisTrade";
 import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
@@ -58,6 +60,11 @@ import {
   INT_ONE,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
+
+// * Tracks new deployments of the protocol
+export function handleProtocolDeployed(event: DeploymentRegistered): void {
+  Deployer.create(event.params.deployer);
+}
 
 // * Deployer events
 export function handleCreateToken(event: RTokenCreated): void {
