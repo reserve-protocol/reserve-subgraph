@@ -2,35 +2,14 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
-  # Protocol Factory
-  - kind: ethereum/contract
-    name: Register
-    network: mainnet
-    source:
-      address: "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe"
-      abi: Register
-      startBlock: 15879376
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Protocol
-      abis:
-        - name: Register
-          file: ./abis/Register.json
-      eventHandlers:
-        - event: DeploymentRegistered(string,address)
-          handler: handleProtocolDeployed
-      file: ./src/mappings/rToken.ts
   # Deployer v1.0
   - kind: ethereum/contract
     name: Deployer
-    network: mainnet
+    network: goerli
     source:
-      address: "0x9cAc8ED3297040626D8aA6317F5e29813A6A8fc6"
+      address: "0xa96aE05dFa869F4FCC4142E8D4E4F2706FEe2B57"
       abi: Deployer
-      startBlock: 15719847
+      startBlock: 8176335
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -70,84 +49,84 @@ dataSources:
         - event: RTokenCreated(indexed address,indexed address,address,indexed address)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
-  # RSV tracks ERC20 transactions
-  - name: RSV
-    kind: ethereum/contract
-    network: mainnet
-    source:
-      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
-      abi: ERC20
-      startBlock: 10497183
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Token
-        - Account
-        - Entry
-      abis:
-        - name: RToken
-          file: ./abis/RToken.json
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: Facade
-          file: ./abis/Facade.json
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
-        - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
-        # SushiSwap Contracts
-        - name: SushiSwapRouter
-          file: ./abis/Prices/SushiSwap/Router.json
-        - name: SushiSwapFactory
-          file: ./abis/Prices/SushiSwap/Factory.json
-        - name: SushiSwapPair
-          file: ./abis/Prices/SushiSwap/Pair.json
-        - name: CalculationsSushiSwap
-          file: ./abis/Prices/Calculations/SushiSwap.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mappings/common.ts
-  # RSV Manager tracks issue and redeem
-  - name: RSVManager
-    kind: ethereum/contract
-    network: mainnet
-    source:
-      address: "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6"
-      abi: RSVManager
-      startBlock: 10497183
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Token
-        - Account
-        - Entry
-      abis:
-        - name: RToken
-          file: ./abis/RToken.json
-        - name: RSVManager
-          file: ./abis/RSVManager.json
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: Facade
-          file: ./abis/Facade.json
-      eventHandlers:
-        - event: Issuance(indexed address,indexed uint256)
-          handler: handleIssuance
-        - event: Redemption(indexed address,indexed uint256)
-          handler: handleRedemption
-      file: ./src/mappings/rsv.ts
+  # # RSV tracks ERC20 transactions
+  # - name: RSV
+  #   kind: ethereum/contract
+  #   network: goerli
+  #   source:
+  #     address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
+  #     abi: ERC20
+  #     startBlock: 10497183
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - Token
+  #       - Account
+  #       - Entry
+  #     abis:
+  #       - name: RToken
+  #         file: ./abis/RToken.json
+  #       - name: ERC20
+  #         file: ./abis/ERC20.json
+  #       - name: Facade
+  #         file: ./abis/Facade.json
+  #       ###########################################
+  #       ############## Price Oracle ###############
+  #       ###########################################
+  #       # ERC20
+  #       - name: PriceOracleERC20
+  #         file: ./abis/Prices/ERC20.json
+  #       # SushiSwap Contracts
+  #       - name: SushiSwapRouter
+  #         file: ./abis/Prices/SushiSwap/Router.json
+  #       - name: SushiSwapFactory
+  #         file: ./abis/Prices/SushiSwap/Factory.json
+  #       - name: SushiSwapPair
+  #         file: ./abis/Prices/SushiSwap/Pair.json
+  #       - name: CalculationsSushiSwap
+  #         file: ./abis/Prices/Calculations/SushiSwap.json
+  #     eventHandlers:
+  #       - event: Transfer(indexed address,indexed address,uint256)
+  #         handler: handleTransfer
+  #     file: ./src/mappings/common.ts
+  # # RSV Manager tracks issue and redeem
+  # - name: RSVManager
+  #   kind: ethereum/contract
+  #   network: goerli
+  #   source:
+  #     address: "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6"
+  #     abi: RSVManager
+  #     startBlock: 10497183
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - Token
+  #       - Account
+  #       - Entry
+  #     abis:
+  #       - name: RToken
+  #         file: ./abis/RToken.json
+  #       - name: RSVManager
+  #         file: ./abis/RSVManager.json
+  #       - name: ERC20
+  #         file: ./abis/ERC20.json
+  #       - name: Facade
+  #         file: ./abis/Facade.json
+  #     eventHandlers:
+  #       - event: Issuance(indexed address,indexed uint256)
+  #         handler: handleIssuance
+  #       - event: Redemption(indexed address,indexed uint256)
+  #         handler: handleRedemption
+  #     file: ./src/mappings/rsv.ts
 templates:
   # Deployer
   - kind: ethereum/contract
     name: Deployer
-    network: mainnet
+    network: goerli
     source:
       abi: Deployer
     mapping:
@@ -192,7 +171,7 @@ templates:
   # Track RToken ERC20 events
   - name: RToken
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: RToken
     mapping:
@@ -243,9 +222,30 @@ templates:
         - event: BasketsNeededChanged(uint192,uint192)
           handler: handleRTokenBaskets
       file: ./src/mappings/rToken.ts
+  - name: Main
+    kind: ethereum/contract
+    network: goerli
+    source:
+      abi: Main
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - RToken
+        - RTokenContract
+      abis:
+        - name: Main
+          file: ./abis/Main.json
+      eventHandlers:
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+      file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: RevenueTrader
     mapping:
@@ -266,7 +266,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: BackingManager
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: BackingManager
     mapping:
@@ -287,7 +287,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: stRSR
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: stRSR # RToken Main
     mapping:
@@ -308,7 +308,6 @@ templates:
           file: ./abis/stRSR.json
         - name: Facade
           file: ./abis/Facade.json
-
         ###########################################
         ############## Price Oracle ###############
         ###########################################

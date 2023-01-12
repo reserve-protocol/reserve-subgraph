@@ -1,3 +1,7 @@
+import {
+  RoleGranted,
+  RoleRevoked,
+} from "./../../generated/templates/Deployer/Main";
 import { Address } from "@graphprotocol/graph-ts";
 import {
   Account,
@@ -12,6 +16,7 @@ import {
   RevenueTrader,
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
+  Main as MainTemplate,
 } from "../../generated/templates";
 import {
   BasketsNeededChanged,
@@ -58,8 +63,10 @@ import {
   EntryType,
   FACADE_ADDRESS,
   INT_ONE,
+  Roles,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
+import { removeFromArrayAtIndex } from "../common/utils/arrays";
 
 // * Tracks new deployments of the protocol
 export function handleProtocolDeployed(event: DeploymentRegistered): void {
@@ -95,6 +102,10 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.rewardToken = rewardToken.id;
   rToken.createdTimestamp = event.block.timestamp;
   rToken.createdBlockNumber = event.block.number;
+  rToken.owners = [];
+  rToken.freezers = [];
+  rToken.pausers = [];
+  rToken.longFreezers = [];
   rToken.cumulativeUniqueUsers = INT_ONE;
   rToken.rewardTokenSupply = BIGINT_ZERO;
   rToken.rsrPriceUSD = getRSRPrice();
@@ -123,9 +134,10 @@ export function handleCreateToken(event: RTokenCreated): void {
   stToken.rToken = rToken.id;
   stToken.save();
 
-  let rTokenContract = _RToken.bind(event.params.rToken);
-  let mainAddress = rTokenContract.main();
-  let mainContract = Main.bind(mainAddress);
+  let mainContract = Main.bind(event.params.main);
+  let main = new RTokenContract(event.params.main.toHexString());
+  main.rToken = rToken.id;
+  main.save();
 
   let backingManagerAddress = mainContract.backingManager();
   let backingManager = new RTokenContract(backingManagerAddress.toHexString());
@@ -140,6 +152,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(event.params.stRSR);
+  MainTemplate.create(event.params.main);
   BackingManager.create(backingManagerAddress);
   RevenueTrader.create(revenueTraderAddress);
 }
@@ -419,7 +432,44 @@ export function handleTrade(event: TradeStarted): void {
   trade.save();
 }
 
+export function handleRoleGranted(event: RoleGranted): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+
+  let role = roleToProp(event.params.role.toString());
+
+  if (rToken[role].indexOf(event.params.account.toHexString()) === -1) {
+    rToken[role].push(event.params.account.toHexString());
+    rToken.save();
+  }
+}
+
+export function handleRoleRevoked(event: RoleRevoked): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+
+  let role = roleToProp(event.params.role.toString());
+  let index = rToken[role].indexOf(event.params.account.toHexString());
+
+  if (index !== -1) {
+    rToken[role] = removeFromArrayAtIndex(rToken[role], index);
+    rToken.save();
+  }
+}
+
 function getRTokenId(rewardTokenAddress: Address): string | null {
   let rewardToken = getOrCreateRewardToken(rewardTokenAddress);
   return rewardToken.rToken;
+}
+
+function roleToProp(role: string): string {
+  if (role === Roles.OWNER) {
+    return "owners";
+  } else if (role === Roles.PAUSER) {
+    return "pausers";
+  } else if (role === Roles.SHORT_FREEZER) {
+    return "freezers";
+  }
+
+  return "longFreezers";
 }

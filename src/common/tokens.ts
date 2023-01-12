@@ -100,7 +100,7 @@ class StaticTokenDefinition {
 
     // Add RSR
     let tokenRSR = new StaticTokenDefinition(
-      Address.fromString("0x320623b8e4ff03373931769a31fc52a4e78b5d70"),
+      RSR_ADDRESS,
       "RSR",
       "Reserve Rights",
       18 as i32
@@ -109,7 +109,7 @@ class StaticTokenDefinition {
 
     // Add RSV
     let tokenRSV = new StaticTokenDefinition(
-      Address.fromString("0x196f4727526eA7FB1e17b2071B3d8eAA38486988"),
+      RSV_ADDRESS,
       "RSV",
       "Reserve",
       18 as i32
@@ -138,16 +138,17 @@ class StaticTokenDefinition {
 }
 
 export function getTokenPrice(address: Address): BigDecimal {
-  let tokenPrice: BigDecimal;
-  let fetchPrice = getUsdPricePerToken(address);
-  if (!fetchPrice.reverted) {
-    tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
-  } else {
-    // default value of this variable, if reverted is BigDecimal Zero
-    tokenPrice = fetchPrice.usdPrice;
-  }
+  // let tokenPrice: BigDecimal;
+  // let fetchPrice = getUsdPricePerToken(address);
+  // if (!fetchPrice.reverted) {
+  //   tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
+  // } else {
+  //   // default value of this variable, if reverted is BigDecimal Zero
+  //   tokenPrice = fetchPrice.usdPrice;
+  // }
 
-  return tokenPrice;
+  // return tokenPrice;
+  return BIGDECIMAL_ZERO;
 }
 
 export function getRSRPrice(): BigDecimal {

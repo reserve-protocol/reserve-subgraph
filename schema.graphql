@@ -53,6 +53,11 @@ enum EntryType {
   WITHDRAW # stake
 }
 
+enum GovernanceType {
+  ALEXIOS # v1 Reserve version of governance
+  CUSTOM # arbitrary address
+}
+
 #############################
 ##### Protocol Metadata #####
 #############################
@@ -309,6 +314,22 @@ type RToken @entity {
 
   " Creation block number "
   createdBlockNumber: BigInt!
+
+  " Governance type: custom/alexios "
+  governanceType: GovernanceType
+
+  ##### Roles ####
+  " Token owner (can be governance address) "
+  owners: [String!]!
+
+  " Pausers "
+  pausers: [String!]!
+
+  " short freezers (this role is revoked after action) "
+  freezers: [String!]!
+
+  " long freezers (this role is revoked after action) "
+  longFreezers: [String!]!
 
   ##### Quantitative Data ####
   " Collaterization of this rToken %"

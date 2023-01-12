@@ -70,6 +70,18 @@ export namespace EntryType {
   export const MINT = "MINT";
 }
 
+export namespace GovernanceType {
+  export const ALEXIOS = "ALEXIOS";
+  export const CUSTOM = "CUSTOM";
+}
+
+export namespace Roles {
+  export const OWNER = "OWNER";
+  export const PAUSER = "PAUSER";
+  export const SHORT_FREEZER = "SHORT_FREEZER";
+  export const LONG_FREEZER = "LONG_FREEZER";
+}
+
 //////////////////////////////
 ///// Ethereum Addresses /////
 //////////////////////////////
@@ -124,12 +136,12 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 ///// Protocol Specific /////
 /////////////////////////////
 
-export const FACADE_ADDRESS = "0x3DAf5a7681a9cfB92fB38983EB3998dFC7963B28";
+export const FACADE_ADDRESS = "0x0C9C61Df98E4a2dC4284C68615543BF8D957a94D";
 
 // Tokens
 export const RSR_ADDRESS = Address.fromString(
-  "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"
+  "0xB58b5530332D2E9e15bfd1f2525E6fD84e830307"
 ); // TODO: Created block
 export const RSV_ADDRESS = Address.fromString(
-  "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
+  "0xC54cA3D2A4fE68D079b45c92D703DADfE3Ad0AA0"
 );
