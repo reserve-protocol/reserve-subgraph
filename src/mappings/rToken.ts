@@ -2,7 +2,7 @@ import {
   RoleGranted,
   RoleRevoked,
 } from "./../../generated/templates/Deployer/Main";
-import { Address } from "@graphprotocol/graph-ts";
+import { Address, Value } from "@graphprotocol/graph-ts";
 import {
   Account,
   RToken,
@@ -83,9 +83,15 @@ export function handleCreateToken(event: RTokenCreated): void {
   let stToken = Token.load(event.params.stRSR.toHexString())!;
 
   let facadeContract = Facade.bind(Address.fromString(FACADE_ADDRESS));
-  let basketBreakdown = facadeContract.basketBreakdown(event.params.rToken);
+  let basketBreakdown = facadeContract.try_basketBreakdown(event.params.rToken);
+
+  // Error on collateral, don't map token
+  if (basketBreakdown.reverted) {
+    return;
+  }
+
   let targets: string[] = [];
-  let targetBytes = basketBreakdown.getTargets();
+  let targetBytes = basketBreakdown.value.getTargets();
 
   for (let i = 0; i < targetBytes.length; i++) {
     let targetName = targetBytes[i].toString();
@@ -437,9 +443,11 @@ export function handleRoleGranted(event: RoleGranted): void {
   let rToken = RToken.load(rTokenContract.rToken)!;
 
   let role = roleToProp(event.params.role.toString());
+  let current = rToken.get(role)!.toStringArray();
 
-  if (rToken[role].indexOf(event.params.account.toHexString()) === -1) {
-    rToken[role].push(event.params.account.toHexString());
+  if (current.indexOf(event.params.account.toHexString()) === -1) {
+    current.push(event.params.account.toHexString());
+    rToken.set(role, Value.fromStringArray(current));
     rToken.save();
   }
 }
@@ -449,10 +457,14 @@ export function handleRoleRevoked(event: RoleRevoked): void {
   let rToken = RToken.load(rTokenContract.rToken)!;
 
   let role = roleToProp(event.params.role.toString());
-  let index = rToken[role].indexOf(event.params.account.toHexString());
+  let current = rToken.get(role)!.toStringArray();
+  let index = current.indexOf(event.params.account.toHexString());
 
   if (index !== -1) {
-    rToken[role] = removeFromArrayAtIndex(rToken[role], index);
+    rToken.set(
+      role,
+      Value.fromStringArray(removeFromArrayAtIndex(current, index))
+    );
     rToken.save();
   }
 }

@@ -9,7 +9,7 @@ dataSources:
     source:
       address: "0xa96aE05dFa869F4FCC4142E8D4E4F2706FEe2B57"
       abi: Deployer
-      startBlock: 8176335
+      startBlock: 8263100
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -46,7 +46,7 @@ dataSources:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
-        - event: RTokenCreated(indexed address,indexed address,address,indexed address)
+        - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
   # # RSV tracks ERC20 transactions
@@ -165,7 +165,7 @@ templates:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
-        - event: RTokenCreated(indexed address,indexed address,address,indexed address)
+        - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
   # Track RToken ERC20 events
