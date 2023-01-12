@@ -2,7 +2,7 @@ import {
   RoleGranted,
   RoleRevoked,
 } from "./../../generated/templates/Deployer/Main";
-import { Address, Value } from "@graphprotocol/graph-ts";
+import { Address, log, Value } from "@graphprotocol/graph-ts";
 import {
   Account,
   RToken,
@@ -475,11 +475,11 @@ function getRTokenId(rewardTokenAddress: Address): string | null {
 }
 
 function roleToProp(role: string): string {
-  if (role === Roles.OWNER) {
+  if (role == Roles.OWNER) {
     return "owners";
-  } else if (role === Roles.PAUSER) {
+  } else if (role == Roles.PAUSER) {
     return "pausers";
-  } else if (role === Roles.SHORT_FREEZER) {
+  } else if (role == Roles.SHORT_FREEZER) {
     return "freezers";
   }
 
