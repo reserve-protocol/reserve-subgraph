@@ -377,6 +377,12 @@ type RToken @entity {
   " Related auctions "
   trades: [Trade!]! @derivedFrom(field: "rToken")
 
+  " Revenue distribution "
+  revenueDistribution: [RevenueDistribution!]! @derivedFrom(field: "rToken")
+
+  " Related contracts "
+  contracts: [RTokenContract!]! @derivedFrom(field: "rToken")
+
   ##### Snapshots #####
 
   " RToken daily snapshots "
@@ -920,6 +926,27 @@ type AccountRTokenDailySnapshot @entity {
 type RTokenContract @entity {
   " {Address of related contract} "
   id: ID!
-  " Address of the related rToken"
-  rToken: String!
+
+  " Contract name "
+  name: String!
+
+  " Related rToken"
+  rToken: RToken!
+}
+
+type RevenueDistribution @entity {
+  " { Address Of the Account }-{ Address of the RToken } "
+  id: ID!
+
+  " Destination address "
+  destination: String!
+
+  " Number of shares in RToken "
+  rTokenDist: Int!
+
+  " Number of shares in RSR "
+  rsrDist: Int!
+
+  " RToken entity "
+  rToken: RToken!
 }

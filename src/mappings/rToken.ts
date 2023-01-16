@@ -1,3 +1,4 @@
+import { DistributionSet } from "./../../generated/templates/Distributor/Distributor";
 import {
   RoleGranted,
   RoleRevoked,
@@ -5,6 +6,7 @@ import {
 import { Address, log, Value } from "@graphprotocol/graph-ts";
 import {
   Account,
+  RevenueDistribution,
   RToken,
   RTokenContract,
   Token,
@@ -14,6 +16,7 @@ import {
   BackingManager,
   Deployer,
   RevenueTrader,
+  Distributor,
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
   Main as MainTemplate,
@@ -60,6 +63,7 @@ import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
+  ContractName,
   EntryType,
   FACADE_ADDRESS,
   INT_ONE,
@@ -143,22 +147,32 @@ export function handleCreateToken(event: RTokenCreated): void {
   let mainContract = Main.bind(event.params.main);
   let main = new RTokenContract(event.params.main.toHexString());
   main.rToken = rToken.id;
+  main.name = ContractName.MAIN;
   main.save();
 
   let backingManagerAddress = mainContract.backingManager();
   let backingManager = new RTokenContract(backingManagerAddress.toHexString());
   backingManager.rToken = rToken.id;
+  backingManager.name = ContractName.BACKING_MANAGER;
   backingManager.save();
 
   let revenueTraderAddress = mainContract.rTokenTrader();
   let revenueTrader = new RTokenContract(revenueTraderAddress.toHexString());
   revenueTrader.rToken = rToken.id;
+  revenueTrader.name = ContractName.REVENUE_TRADER;
   revenueTrader.save();
+
+  let distributorAddress = mainContract.distributor();
+  let distributor = new RTokenContract(distributorAddress.toHexString());
+  distributor.rToken = rToken.id;
+  distributor.name = ContractName.DISTRIBUTOR;
+  distributor.save();
 
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(event.params.stRSR);
   MainTemplate.create(event.params.main);
+  Distributor.create(distributorAddress);
   BackingManager.create(backingManagerAddress);
   RevenueTrader.create(revenueTraderAddress);
 }
@@ -467,6 +481,25 @@ export function handleRoleRevoked(event: RoleRevoked): void {
     );
     rToken.save();
   }
+}
+
+export function handleDistribution(event: DistributionSet): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let id = event.params.dest
+    .toHexString()
+    .concat("-")
+    .concat(rTokenContract.rToken);
+
+  let distribution = RevenueDistribution.load(id);
+
+  if (!distribution) {
+    distribution = new RevenueDistribution(id);
+    distribution.rToken = rTokenContract.rToken;
+    distribution.destination = event.params.dest.toHexString();
+  }
+  distribution.rTokenDist = event.params.rTokenDist;
+  distribution.rsrDist = event.params.rsrDist;
+  distribution.save();
 }
 
 function getRTokenId(rewardTokenAddress: Address): string | null {

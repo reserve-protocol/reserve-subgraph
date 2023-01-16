@@ -82,6 +82,13 @@ export namespace Roles {
   export const LONG_FREEZER = "LONG_FREEZER";
 }
 
+export namespace ContractName {
+  export const BACKING_MANAGER = "BACKING_MANAGER";
+  export const REVENUE_TRADER = "REVENUE_TRADER";
+  export const MAIN = "MAIN";
+  export const DISTRIBUTOR = "DISTRIBUTOR";
+}
+
 //////////////////////////////
 ///// Ethereum Addresses /////
 //////////////////////////////

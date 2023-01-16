@@ -243,6 +243,25 @@ templates:
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleRoleRevoked
       file: ./src/mappings/rToken.ts
+  - name: Distributor
+    kind: ethereum/contract
+    network: goerli
+    source:
+      abi: Distributor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Trade
+        - RTokenContract
+      abis:
+        - name: Distributor
+          file: ./abis/distributor.json
+      eventHandlers:
+        - event: DistributionSet(address,uint16,uint16)
+          handler: handleDistribution
+      file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract
     network: goerli
