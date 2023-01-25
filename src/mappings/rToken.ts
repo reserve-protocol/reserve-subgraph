@@ -1,9 +1,4 @@
-import { DistributionSet } from "./../../generated/templates/Distributor/Distributor";
-import {
-  RoleGranted,
-  RoleRevoked,
-} from "./../../generated/templates/Deployer/Main";
-import { Address, log, Value } from "@graphprotocol/graph-ts";
+import { Address, Value } from "@graphprotocol/graph-ts";
 import {
   Account,
   RevenueDistribution,
@@ -15,19 +10,16 @@ import {
 import {
   BackingManager,
   Deployer,
+  Distributor as DistributorTemplate,
+  Main as MainTemplate,
   RevenueTrader,
-  Distributor,
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
-  Main as MainTemplate,
 } from "../../generated/templates";
 import {
   BasketsNeededChanged,
-  IssuancesCanceled,
-  IssuancesCompleted,
-  IssuanceStarted,
+  Issuance,
   Redemption,
-  RToken as _RToken,
   Transfer as TransferEvent,
 } from "../../generated/templates/RToken/RToken";
 import {
@@ -57,11 +49,18 @@ import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
 import { DeploymentRegistered } from "./../../generated/Register/Register";
 import { GnosisTrade } from "./../../generated/templates/BackingManager/GnosisTrade";
+import {
+  RoleGranted,
+  RoleRevoked,
+} from "./../../generated/templates/Deployer/Main";
+import { DistributionSet } from "./../../generated/templates/Distributor/Distributor";
 import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
+import { removeFromArrayAtIndex } from "../common/utils/arrays";
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
+  BIGINT_ONE,
   BIGINT_ZERO,
   ContractName,
   EntryType,
@@ -70,7 +69,6 @@ import {
   Roles,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
-import { removeFromArrayAtIndex } from "../common/utils/arrays";
 
 // * Tracks new deployments of the protocol
 export function handleProtocolDeployed(event: DeploymentRegistered): void {
@@ -112,7 +110,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.rewardToken = rewardToken.id;
   rToken.createdTimestamp = event.block.timestamp;
   rToken.createdBlockNumber = event.block.number;
-  rToken.owners = [];
+  rToken.owners = [event.params.owner.toHexString()];
   rToken.freezers = [];
   rToken.pausers = [];
   rToken.longFreezers = [];
@@ -132,9 +130,13 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.targetUnits = targets.join(",");
   rToken.save();
 
+  let currentPrice = facadeContract.price(event.params.rToken);
   token.rToken = rToken.id;
   token.lastPriceUSD = bigIntToBigDecimal(
-    facadeContract.price(event.params.rToken)
+    currentPrice
+      .getHigh()
+      .plus(currentPrice.getLow())
+      .div(BIGINT_ONE.plus(BIGINT_ONE))
   );
   token.save();
 
@@ -163,6 +165,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   revenueTrader.save();
 
   let distributorAddress = mainContract.distributor();
+
   let distributor = new RTokenContract(distributorAddress.toHexString());
   distributor.rToken = rToken.id;
   distributor.name = ContractName.DISTRIBUTOR;
@@ -172,7 +175,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(event.params.stRSR);
   MainTemplate.create(event.params.main);
-  Distributor.create(distributorAddress);
+  DistributorTemplate.create(distributorAddress);
   BackingManager.create(backingManagerAddress);
   RevenueTrader.create(revenueTraderAddress);
 }
@@ -182,57 +185,8 @@ export function handleTokenTransfer(event: TransferEvent): void {
 }
 
 // * rToken Events
-export function handleIssuanceStart(event: IssuanceStarted): void {
-  let account = getTokenAccount(event.params.issuer, event.address);
-  let token = getOrCreateToken(event.address);
 
-  let entry = getOrCreateEntry(
-    event,
-    event.address.toHexString(),
-    account.id,
-    event.params.amount,
-    EntryType.ISSUE_START
-  );
-  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
-    token.lastPriceUSD
-  );
-  entry.rToken = event.address.toHexString();
-  entry.save();
-
-  updateRTokenMetrics(
-    event,
-    event.address,
-    event.params.amount,
-    EntryType.ISSUE_START
-  );
-}
-
-export function handleIssuanceCancel(event: IssuancesCanceled): void {
-  let account = getTokenAccount(event.params.issuer, event.address);
-  let token = getOrCreateToken(event.address);
-
-  let entry = getOrCreateEntry(
-    event,
-    event.address.toHexString(),
-    account.id,
-    event.params.amount,
-    EntryType.CANCEL_ISSUANCE
-  );
-  entry.rToken = event.address.toHexString();
-  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
-    token.lastPriceUSD
-  );
-  entry.save();
-
-  updateRTokenMetrics(
-    event,
-    event.address,
-    event.params.amount,
-    EntryType.CANCEL_ISSUANCE
-  );
-}
-
-export function handleIssuance(event: IssuancesCompleted): void {
+export function handleIssuance(event: Issuance): void {
   let account = getTokenAccount(event.params.issuer, event.address);
   let token = getOrCreateToken(event.address);
 

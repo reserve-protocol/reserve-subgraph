@@ -58,11 +58,9 @@ export namespace RewardTokenType {
 // CUSTOM
 export namespace EntryType {
   export const TRANSFER = "TRANSFER";
-  export const ISSUE_START = "ISSUE_START";
   export const ISSUE = "ISSUE";
   export const REDEEM = "REDEEM";
   export const CLAIM = "CLAIM";
-  export const CANCEL_ISSUANCE = "CANCEL_ISSUANCE";
   export const STAKE = "STAKE";
   export const UNSTAKE = "UNSTAKE";
   export const WITHDRAW = "WITHDRAW";
@@ -143,7 +141,7 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 ///// Protocol Specific /////
 /////////////////////////////
 
-export const FACADE_ADDRESS = "0x0C9C61Df98E4a2dC4284C68615543BF8D957a94D";
+export const FACADE_ADDRESS = "0x7321485aA1D0439296B882bBc85Eb0BD350F8381";
 
 // Tokens
 export const RSR_ADDRESS = Address.fromString(

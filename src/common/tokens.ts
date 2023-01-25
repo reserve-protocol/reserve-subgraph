@@ -1,10 +1,10 @@
 import { Address, BigDecimal } from "@graphprotocol/graph-ts";
 import { ERC20 } from "../../generated/Deployer/ERC20";
 import { Facade } from "../../generated/templates/RToken/Facade";
-import { getUsdPricePerToken } from "../prices";
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
+  BIGINT_ONE,
   FACADE_ADDRESS,
   RSR_ADDRESS,
   RSV_ADDRESS,
@@ -172,7 +172,12 @@ export function getRTokenPrice(address: Address): BigDecimal {
     let price = contract.try_price(address);
 
     if (!price.reverted) {
-      tokenPrice = bigIntToBigDecimal(price.value);
+      tokenPrice = bigIntToBigDecimal(
+        price.value
+          .getHigh()
+          .plus(price.value.getLow())
+          .div(BIGINT_ONE.plus(BIGINT_ONE))
+      );
     }
 
     return tokenPrice;
