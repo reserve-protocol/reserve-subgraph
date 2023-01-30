@@ -85,6 +85,28 @@ export namespace ContractName {
   export const REVENUE_TRADER = "REVENUE_TRADER";
   export const MAIN = "MAIN";
   export const DISTRIBUTOR = "DISTRIBUTOR";
+  export const TIMELOCK = "TIMELOCK";
+  export const GOVERNOR = "GOVERNOR";
+}
+
+export namespace ProposalState {
+  export const PENDING = "PENDING";
+  export const ACTIVE = "ACTIVE";
+  export const CANCELED = "CANCELED";
+  export const DEFEATED = "DEFEATED";
+  export const SUCCEEDED = "SUCCEEDED";
+  export const QUEUED = "QUEUED";
+  export const EXPIRED = "EXPIRED";
+  export const EXECUTED = "EXECUTED";
+}
+
+export namespace VoteChoice {
+  export const AGAINST_VALUE = 0;
+  export const FOR_VALUE = 1;
+  export const ABSTAIN_VALUE = 2;
+  export const AGAINST = "AGAINST";
+  export const FOR = "FOR";
+  export const ABSTAIN = "ABSTAIN";
 }
 
 //////////////////////////////

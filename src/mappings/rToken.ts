@@ -1,6 +1,6 @@
-import { Address, Value } from "@graphprotocol/graph-ts";
+import { Timelock } from "./../../generated/templates/Main/Timelock";
+import { Address, log, Value } from "@graphprotocol/graph-ts";
 import {
-  Account,
   RevenueDistribution,
   RToken,
   RTokenContract,
@@ -15,6 +15,9 @@ import {
   RevenueTrader,
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
+  Timelock as TimelockTemplate,
+  Governance as GovernanceTemplate,
+  stRSRVotes as stRSRVotesTemplate,
 } from "../../generated/templates";
 import {
   BasketsNeededChanged,
@@ -22,12 +25,6 @@ import {
   Redemption,
   Transfer as TransferEvent,
 } from "../../generated/templates/RToken/RToken";
-import {
-  ExchangeRateSet,
-  Staked,
-  UnstakingCompleted,
-  UnstakingStarted,
-} from "../../generated/templates/stRSR/stRSR";
 import {
   getOrCreateEntry,
   getOrCreateProtocol,
@@ -37,11 +34,7 @@ import {
   getOrCreateToken,
   getTokenAccount,
 } from "../common/getters";
-import {
-  updateRTokenAccountBalance,
-  updateRTokenMetrics,
-  updateRTokenUniqueUsers,
-} from "../common/metrics";
+import { updateRTokenMetrics } from "../common/metrics";
 import { getRSRPrice } from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
@@ -69,6 +62,7 @@ import {
   Roles,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
+import { getGovernance } from "../governance/handlers";
 
 // * Tracks new deployments of the protocol
 export function handleProtocolDeployed(event: DeploymentRegistered): void {
@@ -174,6 +168,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(event.params.stRSR);
+  stRSRVotesTemplate.create(event.params.stRSR);
   MainTemplate.create(event.params.main);
   DistributorTemplate.create(distributorAddress);
   BackingManager.create(backingManagerAddress);
@@ -229,125 +224,6 @@ export function handleRedemption(event: Redemption): void {
   updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.REDEEM);
 }
 
-// * stRSR Events
-export function handleStake(event: Staked): void {
-  let rTokenId = getRTokenId(event.address);
-
-  // Avoid error, but is this needed? it should always exist
-  if (rTokenId) {
-    let account = Account.load(event.params.staker.toHexString());
-
-    if (!account) {
-      account = new Account(event.params.staker.toHexString());
-      account.save();
-      updateRTokenUniqueUsers(rTokenId);
-    }
-
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      account.id,
-      event.params.rsrAmount,
-      EntryType.STAKE
-    );
-
-    updateRTokenAccountBalance(
-      event.params.staker,
-      Address.fromString(rTokenId),
-      BIGINT_ZERO.plus(event.params.stRSRAmount),
-      event
-    );
-
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.STAKE
-    );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.rToken = rTokenId;
-    entry.stAmount = event.params.stRSRAmount;
-    entry.save();
-  }
-}
-
-export function handleUnstakeStarted(event: UnstakingStarted): void {
-  let rTokenId = getRTokenId(event.address);
-
-  // Avoid error, but is this needed? it should always exist
-  if (rTokenId) {
-    updateRTokenAccountBalance(
-      event.params.staker,
-      Address.fromString(rTokenId),
-      BIGINT_ZERO.minus(event.params.stRSRAmount),
-      event
-    );
-
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.UNSTAKE
-    );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      event.params.staker.toHexString(),
-      event.params.rsrAmount,
-      EntryType.UNSTAKE
-    );
-
-    entry.rToken = rTokenId;
-    entry.stAmount = event.params.stRSRAmount;
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.save();
-  }
-}
-
-export function handleUnstake(event: UnstakingCompleted): void {
-  let rTokenId = getRTokenId(event.address);
-
-  // Avoid error, but is this needed? it should always exist
-  if (rTokenId) {
-    let account = Account.load(event.params.staker.toHexString())!;
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      account.id,
-      event.params.rsrAmount,
-      EntryType.WITHDRAW
-    );
-
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.WITHDRAW
-    );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.rToken = rTokenId;
-    entry.save();
-  }
-}
-
 // * Rewards
 export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let rToken = RToken.load(event.address.toHexString())!;
@@ -365,25 +241,6 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
 
   daily.save();
   hourly.save();
-}
-
-export function handleExchangeRate(event: ExchangeRateSet): void {
-  let rTokenId = getRTokenId(event.address);
-
-  if (rTokenId) {
-    let rToken = RToken.load(rTokenId)!;
-    let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
-    let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
-
-    rToken.rsrExchangeRate = bigIntToBigDecimal(event.params.newVal);
-    rToken.save();
-
-    daily.rsrExchangeRate = rToken.rsrExchangeRate;
-    hourly.rsrExchangeRate = rToken.rsrExchangeRate;
-
-    daily.save();
-    hourly.save();
-  }
 }
 
 export function handleTrade(event: TradeStarted): void {
@@ -417,6 +274,41 @@ export function handleRoleGranted(event: RoleGranted): void {
     current.push(event.params.account.toHexString());
     rToken.set(role, Value.fromStringArray(current));
     rToken.save();
+
+    // Check if the address is a timelock address if so, start indexing roles
+    if (event.params.role.toString() == Roles.OWNER) {
+      let contract = Timelock.bind(event.params.account);
+      let tx = contract.try_PROPOSER_ROLE();
+      // Check if the address is a timelock, if it is start indexing
+      if (!tx.reverted) {
+        let timelockContract = new RTokenContract(
+          event.params.account.toHexString()
+        );
+        timelockContract.rToken = rToken.id;
+        timelockContract.name = ContractName.TIMELOCK;
+        timelockContract.save();
+        TimelockTemplate.create(event.params.account);
+      }
+    }
+  }
+}
+
+export function handleTimelockRoleGranted(event: RoleGranted): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+  let timelockContract = Timelock.bind(event.address);
+  let proposalRole = timelockContract.PROPOSER_ROLE();
+
+  if (event.params.role.equals(proposalRole)) {
+    let governorContract = new RTokenContract(
+      event.params.account.toHexString()
+    );
+    governorContract.rToken = rToken.id;
+    governorContract.name = ContractName.GOVERNOR;
+    governorContract.save();
+    let gov = getGovernance(event.params.account.toHexString());
+    gov.save();
+    GovernanceTemplate.create(event.params.account);
   }
 }
 
@@ -454,11 +346,6 @@ export function handleDistribution(event: DistributionSet): void {
   distribution.rTokenDist = event.params.rTokenDist;
   distribution.rsrDist = event.params.rsrDist;
   distribution.save();
-}
-
-function getRTokenId(rewardTokenAddress: Address): string | null {
-  let rewardToken = getOrCreateRewardToken(rewardTokenAddress);
-  return rewardToken.rToken;
 }
 
 function roleToProp(role: string): string {
