@@ -180,7 +180,7 @@ function getGovernanceFramework(
     governanceFramework.proposalThreshold = contract.proposalThreshold();
     governanceFramework.quorumNumerator = contract.quorumNumerator(blockNumber);
     governanceFramework.quorumDenominator = contract.quorumDenominator();
-    governanceFramework.governance = rTokenContract.id;
+    governanceFramework.governance = rTokenContract.rToken;
   }
 
   return governanceFramework;

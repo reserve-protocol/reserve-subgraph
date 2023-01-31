@@ -231,7 +231,7 @@ export function _handleProposalCreated(
   event: ethereum.Event
 ): void {
   const proposal = getProposal(proposalId, event.address.toHexString());
-  let proposer = getOrCreateDelegate(proposerAddr, event.address.toHexString());
+  let proposer = getOrCreateDelegate(proposerAddr, proposal.governance);
 
   // Checking if the proposer was a delegate already accounted for, if not we should log an error
   // since it shouldn't be possible for a delegate to propose anything without first being "created"
@@ -243,7 +243,7 @@ export function _handleProposalCreated(
   }
 
   // Creating it anyway since we will want to account for this event data, even though it should've never happened
-  proposer = getOrCreateDelegate(proposerAddr, event.address.toHexString());
+  proposer = getOrCreateDelegate(proposerAddr, proposal.governance);
 
   proposal.proposer = proposer.id;
   proposal.txnHash = event.transaction.hash.toHexString();
@@ -393,7 +393,7 @@ export function _handleVoteCast(
   proposal.save();
 
   // Add 1 to participant's proposal voting count
-  const voter = getOrCreateDelegate(voterAddress, event.address.toHexString());
+  const voter = getOrCreateDelegate(voterAddress, proposal.governance);
   voter.numberVotes = voter.numberVotes + 1;
   voter.save();
 

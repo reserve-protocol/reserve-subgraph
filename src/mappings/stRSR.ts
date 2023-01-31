@@ -184,7 +184,7 @@ export function handleDelegateChanged(event: DelegateChanged): void {
 
 // DelegateVotesChanged(indexed address,uint256,uint256)
 // Called in succession to the above DelegateChanged event
-export function handleDelegateVotesChfanged(event: DelegateVotesChanged): void {
+export function handleDelegateVotesChanged(event: DelegateVotesChanged): void {
   _handleDelegateVotesChanged(
     event.params.delegate.toHexString(),
     event.params.previousBalance,
