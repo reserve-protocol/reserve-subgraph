@@ -1174,9 +1174,12 @@ enum VoteChoice {
 type TokenHolder @entity {
   "A TokenHolder is any address that holds any amount of tokens, the id used is the blockchain address."
   id: String!
+  "Holder address"
+  address: String!
   "Delegate address of the token holder which will participate in votings. Delegates don't need to hold any tokens and can even be the token holder itself."
   delegate: Delegate
-
+  "Governance"
+  governance: Governance!
   "Token balance of this address expressed in the smallest unit of the token"
   tokenBalanceRaw: BigInt!
   "Token balance of this address expressed as a BigDecimal normalized value"
@@ -1190,6 +1193,9 @@ type TokenHolder @entity {
 type Delegate @entity {
   "A Delegate is any address that has been delegated with voting tokens by a token holder, id is the blockchain address of said delegate"
   id: String!
+
+  "Delegate address"
+  address: String!
 
   "Amount of votes delegated to this delegate to be used on proposal votings expressed in the smallest unit of the token"
   delegatedVotesRaw: BigInt!
@@ -1208,6 +1214,9 @@ type Delegate @entity {
 
   "Proposals that the delegate has created"
   proposals: [Proposal!]! @derivedFrom(field: "proposer")
+
+  "Governance this delegate is related to"
+  governance: Governance!
 }
 
 # Timeseries Data
@@ -1224,6 +1233,8 @@ type stTokenDailySnapshot @entity {
   blockNumber: BigInt!
   "Timestamp of snapshot"
   timestamp: BigInt!
+  "Governance"
+  governance: Governance!
 }
 
 type VoteDailySnapshot @entity {

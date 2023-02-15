@@ -145,13 +145,16 @@ export function getOrCreateDelegate(
   address: string,
   governor: string
 ): Delegate {
-  let delegate = Delegate.load(address);
+  let delegateId = governor.concat("-").concat(address);
+  let delegate = Delegate.load(delegateId);
   if (!delegate) {
-    delegate = new Delegate(address);
+    delegate = new Delegate(delegateId);
+    delegate.address = address;
     delegate.delegatedVotesRaw = BIGINT_ZERO;
     delegate.delegatedVotes = BIGDECIMAL_ZERO;
     delegate.tokenHoldersRepresentedAmount = 0;
     delegate.numberVotes = 0;
+    delegate.governance = governor;
     delegate.save();
 
     if (address != ZERO_ADDRESS) {
@@ -168,13 +171,16 @@ export function getOrCreateTokenHolder(
   address: string,
   governor: string
 ): TokenHolder {
-  let tokenHolder = TokenHolder.load(address);
+  let holderId = governor.concat("-").concat(address);
+  let tokenHolder = TokenHolder.load(holderId);
   if (!tokenHolder) {
-    tokenHolder = new TokenHolder(address);
+    tokenHolder = new TokenHolder(holderId);
+    tokenHolder.address = address;
     tokenHolder.tokenBalanceRaw = BIGINT_ZERO;
     tokenHolder.tokenBalance = BIGDECIMAL_ZERO;
     tokenHolder.totalTokensHeldRaw = BIGINT_ZERO;
     tokenHolder.totalTokensHeld = BIGDECIMAL_ZERO;
+    tokenHolder.governance = governor;
     tokenHolder.save();
 
     if (address != ZERO_ADDRESS) {
@@ -190,15 +196,19 @@ export function getOrCreateTokenHolder(
 }
 
 export function getOrCreateTokenDailySnapshot(
+  governor: string,
   block: ethereum.Block
 ): stTokenDailySnapshot {
-  const snapshotId = (block.timestamp.toI64() / SECONDS_PER_DAY).toString();
+  const snapshotId = governor
+    .concat("-")
+    .concat((block.timestamp.toI64() / SECONDS_PER_DAY).toString());
   const previousSnapshot = stTokenDailySnapshot.load(snapshotId);
 
   if (previousSnapshot != null) {
     return previousSnapshot as stTokenDailySnapshot;
   }
   const snapshot = new stTokenDailySnapshot(snapshotId);
+  snapshot.governance = governor;
   return snapshot;
 }
 

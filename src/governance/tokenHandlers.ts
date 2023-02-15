@@ -152,7 +152,7 @@ export function _handleTransfer(
   }
 
   // Take snapshot
-  const dailySnapshot = getOrCreateTokenDailySnapshot(event.block);
+  const dailySnapshot = getOrCreateTokenDailySnapshot(governorId, event.block);
   dailySnapshot.totalSupply = governance.totalTokenSupply;
   dailySnapshot.tokenHolders = governance.currentTokenHolders;
   dailySnapshot.delegates = governance.currentDelegates;
