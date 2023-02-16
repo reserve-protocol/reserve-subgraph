@@ -163,7 +163,7 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 ///// Protocol Specific /////
 /////////////////////////////
 
-export const FACADE_ADDRESS = "0x7321485aA1D0439296B882bBc85Eb0BD350F8381";
+export const FACADE_ADDRESS = "0xfDa8C62d86E426D5fB653B6c44a455Bb657b693f";
 
 // Tokens
 export const RSR_ADDRESS = Address.fromString(
