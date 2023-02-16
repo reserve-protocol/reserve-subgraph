@@ -163,12 +163,12 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 ///// Protocol Specific /////
 /////////////////////////////
 
-export const FACADE_ADDRESS = "0x7321485aA1D0439296B882bBc85Eb0BD350F8381";
+export const FACADE_ADDRESS = "0xE774CCF1431c3DEe7Fa4c20f67534b61289CAa45";
 
 // Tokens
 export const RSR_ADDRESS = Address.fromString(
-  "0xB58b5530332D2E9e15bfd1f2525E6fD84e830307"
+  "0x320623b8e4ff03373931769a31fc52a4e78b5d70"
 ); // TODO: Created block
 export const RSV_ADDRESS = Address.fromString(
-  "0xC54cA3D2A4fE68D079b45c92D703DADfE3Ad0AA0"
+  "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
 );

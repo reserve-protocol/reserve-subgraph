@@ -5,11 +5,11 @@ dataSources:
   # Deployer v1.0
   - kind: ethereum/contract
     name: Deployer
-    network: goerli
+    network: mainnet
     source:
-      address: "0xA6974b81dcB174057C054BfBef512Bb26DDc3cd0"
+      address: "0xE898790455F6AC247782484Acc8508F72348D262"
       abi: Deployer
-      startBlock: 8263100
+      startBlock: 16622090
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -52,7 +52,7 @@ dataSources:
   # # RSV tracks ERC20 transactions
   # - name: RSV
   #   kind: ethereum/contract
-  #   network: goerli
+  #   network: mainnet
   #   source:
   #     address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
   #     abi: ERC20
@@ -94,7 +94,7 @@ dataSources:
   # # RSV Manager tracks issue and redeem
   # - name: RSVManager
   #   kind: ethereum/contract
-  #   network: goerli
+  #   network: mainnet
   #   source:
   #     address: "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6"
   #     abi: RSVManager
@@ -126,7 +126,7 @@ templates:
   # Deployer
   - kind: ethereum/contract
     name: Deployer
-    network: goerli
+    network: mainnet
     source:
       abi: Deployer
     mapping:
@@ -171,7 +171,7 @@ templates:
   # Track RToken ERC20 events
   - name: RToken
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: RToken
     mapping:
@@ -220,7 +220,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Main
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: Main
     mapping:
@@ -243,7 +243,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Timelock
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: Timelock
     mapping:
@@ -262,7 +262,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Governance
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: Governor
     mapping:
@@ -304,7 +304,7 @@ templates:
       file: ./src/mappings/governance.ts
   - name: Distributor
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: Distributor
     mapping:
@@ -323,7 +323,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: RevenueTrader
     mapping:
@@ -344,7 +344,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: BackingManager
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: BackingManager
     mapping:
@@ -365,7 +365,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: stRSR
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: stRSR # RToken Main
     mapping:
@@ -414,7 +414,7 @@ templates:
       file: ./src/mappings/stRSR.ts
   - name: stRSRVotes
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: stRSRVotes
     mapping:
