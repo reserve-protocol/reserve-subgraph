@@ -306,7 +306,7 @@ export function handleTimelockRoleGranted(event: RoleGranted): void {
     governorContract.rToken = rToken.id;
     governorContract.name = ContractName.GOVERNOR;
     governorContract.save();
-    let gov = getGovernance(event.params.account.toHexString());
+    let gov = getGovernance(rToken.id);
     gov.save();
     GovernanceTemplate.create(event.params.account);
   }
