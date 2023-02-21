@@ -104,7 +104,7 @@ function getLatestProposalValues(
   governorId: string,
   contractAddress: Address
 ): Proposal {
-  const proposal = getProposal(proposalId, governorId);
+  const proposal = getProposal(proposalId, contractAddress.toHexString());
 
   // On first vote, set state and quorum values
   if (proposal.state == ProposalState.PENDING) {
@@ -114,7 +114,7 @@ function getLatestProposalValues(
       proposal.startBlock
     );
 
-    const governance = getGovernance(contractAddress.toHexString());
+    const governance = getGovernance(governorId);
     proposal.tokenHoldersAtStart = governance.currentTokenHolders;
     proposal.delegatesAtStart = governance.currentDelegates;
   }
