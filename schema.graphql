@@ -1019,7 +1019,7 @@ type Governance @entity {
 
 type GovernanceFramework @entity {
   "Governance contract addresss"
-  id: String!
+  id: ID!
   "Name of the governance framework"
   name: String!
   "Governance framework contract address"
@@ -1173,7 +1173,7 @@ enum VoteChoice {
 
 type TokenHolder @entity {
   "A TokenHolder is any address that holds any amount of tokens, the id used is the blockchain address."
-  id: String!
+  id: ID!
   "Holder address"
   address: String!
   "Delegate address of the token holder which will participate in votings. Delegates don't need to hold any tokens and can even be the token holder itself."
@@ -1192,7 +1192,7 @@ type TokenHolder @entity {
 
 type Delegate @entity {
   "A Delegate is any address that has been delegated with voting tokens by a token holder, id is the blockchain address of said delegate"
-  id: String!
+  id: ID!
 
   "Delegate address"
   address: String!
