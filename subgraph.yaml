@@ -9,7 +9,7 @@ dataSources:
     source:
       address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
       abi: Deployer
-      startBlock: 16622090
+      startBlock: 16680990
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -49,79 +49,79 @@ dataSources:
         - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
-  # # RSV tracks ERC20 transactions
-  # - name: RSV
-  #   kind: ethereum/contract
-  #   network: mainnet
-  #   source:
-  #     address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
-  #     abi: ERC20
-  #     startBlock: 10497183
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - Token
-  #       - Account
-  #       - Entry
-  #     abis:
-  #       - name: RToken
-  #         file: ./abis/RToken.json
-  #       - name: ERC20
-  #         file: ./abis/ERC20.json
-  #       - name: Facade
-  #         file: ./abis/Facade.json
-  #       ###########################################
-  #       ############## Price Oracle ###############
-  #       ###########################################
-  #       # ERC20
-  #       - name: PriceOracleERC20
-  #         file: ./abis/Prices/ERC20.json
-  #       # SushiSwap Contracts
-  #       - name: SushiSwapRouter
-  #         file: ./abis/Prices/SushiSwap/Router.json
-  #       - name: SushiSwapFactory
-  #         file: ./abis/Prices/SushiSwap/Factory.json
-  #       - name: SushiSwapPair
-  #         file: ./abis/Prices/SushiSwap/Pair.json
-  #       - name: CalculationsSushiSwap
-  #         file: ./abis/Prices/Calculations/SushiSwap.json
-  #     eventHandlers:
-  #       - event: Transfer(indexed address,indexed address,uint256)
-  #         handler: handleTransfer
-  #     file: ./src/mappings/common.ts
-  # # RSV Manager tracks issue and redeem
-  # - name: RSVManager
-  #   kind: ethereum/contract
-  #   network: mainnet
-  #   source:
-  #     address: "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6"
-  #     abi: RSVManager
-  #     startBlock: 10497183
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.6
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - Token
-  #       - Account
-  #       - Entry
-  #     abis:
-  #       - name: RToken
-  #         file: ./abis/RToken.json
-  #       - name: RSVManager
-  #         file: ./abis/RSVManager.json
-  #       - name: ERC20
-  #         file: ./abis/ERC20.json
-  #       - name: Facade
-  #         file: ./abis/Facade.json
-  #     eventHandlers:
-  #       - event: Issuance(indexed address,indexed uint256)
-  #         handler: handleIssuance
-  #       - event: Redemption(indexed address,indexed uint256)
-  #         handler: handleRedemption
-  #     file: ./src/mappings/rsv.ts
+  # RSV tracks ERC20 transactions
+  - name: RSV
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
+      abi: ERC20
+      startBlock: 10497183
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - Account
+        - Entry
+      abis:
+        - name: RToken
+          file: ./abis/RToken.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # SushiSwap Contracts
+        - name: SushiSwapRouter
+          file: ./abis/Prices/SushiSwap/Router.json
+        - name: SushiSwapFactory
+          file: ./abis/Prices/SushiSwap/Factory.json
+        - name: SushiSwapPair
+          file: ./abis/Prices/SushiSwap/Pair.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/mappings/common.ts
+  # RSV Manager tracks issue and redeem
+  - name: RSVManager
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      address: "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6"
+      abi: RSVManager
+      startBlock: 10497183
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - Account
+        - Entry
+      abis:
+        - name: RToken
+          file: ./abis/RToken.json
+        - name: RSVManager
+          file: ./abis/RSVManager.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
+      eventHandlers:
+        - event: Issuance(indexed address,indexed uint256)
+          handler: handleIssuance
+        - event: Redemption(indexed address,indexed uint256)
+          handler: handleRedemption
+      file: ./src/mappings/rsv.ts
 templates:
   # Deployer
   - kind: ethereum/contract
