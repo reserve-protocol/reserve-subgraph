@@ -60,7 +60,6 @@ export function getOrCreateProtocol(): Protocol {
     protocol.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeUniqueUsers = INT_ZERO;
     protocol.network = Network.MAINNET;
-    protocol.type = ProtocolType.GENERIC;
 
     protocol.rsrStaked = BIGINT_ZERO;
     protocol.rsrStakedUSD = BIGDECIMAL_ZERO;

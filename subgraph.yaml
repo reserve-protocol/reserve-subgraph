@@ -2,35 +2,14 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
-  # Protocol Factory
-  - kind: ethereum/contract
-    name: Register
-    network: mainnet
-    source:
-      address: "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe"
-      abi: Register
-      startBlock: 15879376
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Protocol
-      abis:
-        - name: Register
-          file: ./abis/Register.json
-      eventHandlers:
-        - event: DeploymentRegistered(string,address)
-          handler: handleProtocolDeployed
-      file: ./src/mappings/rToken.ts
   # Deployer v1.0
   - kind: ethereum/contract
     name: Deployer
     network: mainnet
     source:
-      address: "0x9cAc8ED3297040626D8aA6317F5e29813A6A8fc6"
+      address: "0xE898790455F6AC247782484Acc8508F72348D262"
       abi: Deployer
-      startBlock: 15719847
+      startBlock: 16622090
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -67,82 +46,82 @@ dataSources:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
-        - event: RTokenCreated(indexed address,indexed address,address,indexed address)
+        - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
-  # RSV tracks ERC20 transactions
-  - name: RSV
-    kind: ethereum/contract
-    network: mainnet
-    source:
-      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
-      abi: ERC20
-      startBlock: 10497183
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Token
-        - Account
-        - Entry
-      abis:
-        - name: RToken
-          file: ./abis/RToken.json
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: Facade
-          file: ./abis/Facade.json
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
-        - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
-        # SushiSwap Contracts
-        - name: SushiSwapRouter
-          file: ./abis/Prices/SushiSwap/Router.json
-        - name: SushiSwapFactory
-          file: ./abis/Prices/SushiSwap/Factory.json
-        - name: SushiSwapPair
-          file: ./abis/Prices/SushiSwap/Pair.json
-        - name: CalculationsSushiSwap
-          file: ./abis/Prices/Calculations/SushiSwap.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mappings/common.ts
-  # RSV Manager tracks issue and redeem
-  - name: RSVManager
-    kind: ethereum/contract
-    network: mainnet
-    source:
-      address: "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6"
-      abi: RSVManager
-      startBlock: 10497183
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Token
-        - Account
-        - Entry
-      abis:
-        - name: RToken
-          file: ./abis/RToken.json
-        - name: RSVManager
-          file: ./abis/RSVManager.json
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: Facade
-          file: ./abis/Facade.json
-      eventHandlers:
-        - event: Issuance(indexed address,indexed uint256)
-          handler: handleIssuance
-        - event: Redemption(indexed address,indexed uint256)
-          handler: handleRedemption
-      file: ./src/mappings/rsv.ts
+  # # RSV tracks ERC20 transactions
+  # - name: RSV
+  #   kind: ethereum/contract
+  #   network: mainnet
+  #   source:
+  #     address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
+  #     abi: ERC20
+  #     startBlock: 10497183
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - Token
+  #       - Account
+  #       - Entry
+  #     abis:
+  #       - name: RToken
+  #         file: ./abis/RToken.json
+  #       - name: ERC20
+  #         file: ./abis/ERC20.json
+  #       - name: Facade
+  #         file: ./abis/Facade.json
+  #       ###########################################
+  #       ############## Price Oracle ###############
+  #       ###########################################
+  #       # ERC20
+  #       - name: PriceOracleERC20
+  #         file: ./abis/Prices/ERC20.json
+  #       # SushiSwap Contracts
+  #       - name: SushiSwapRouter
+  #         file: ./abis/Prices/SushiSwap/Router.json
+  #       - name: SushiSwapFactory
+  #         file: ./abis/Prices/SushiSwap/Factory.json
+  #       - name: SushiSwapPair
+  #         file: ./abis/Prices/SushiSwap/Pair.json
+  #       - name: CalculationsSushiSwap
+  #         file: ./abis/Prices/Calculations/SushiSwap.json
+  #     eventHandlers:
+  #       - event: Transfer(indexed address,indexed address,uint256)
+  #         handler: handleTransfer
+  #     file: ./src/mappings/common.ts
+  # # RSV Manager tracks issue and redeem
+  # - name: RSVManager
+  #   kind: ethereum/contract
+  #   network: mainnet
+  #   source:
+  #     address: "0x4B481872f31bab47C6780D5488c84D309b1B8Bb6"
+  #     abi: RSVManager
+  #     startBlock: 10497183
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - Token
+  #       - Account
+  #       - Entry
+  #     abis:
+  #       - name: RToken
+  #         file: ./abis/RToken.json
+  #       - name: RSVManager
+  #         file: ./abis/RSVManager.json
+  #       - name: ERC20
+  #         file: ./abis/ERC20.json
+  #       - name: Facade
+  #         file: ./abis/Facade.json
+  #     eventHandlers:
+  #       - event: Issuance(indexed address,indexed uint256)
+  #         handler: handleIssuance
+  #       - event: Redemption(indexed address,indexed uint256)
+  #         handler: handleRedemption
+  #     file: ./src/mappings/rsv.ts
 templates:
   # Deployer
   - kind: ethereum/contract
@@ -186,7 +165,7 @@ templates:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
-        - event: RTokenCreated(indexed address,indexed address,address,indexed address)
+        - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
   # Track RToken ERC20 events
@@ -232,16 +211,115 @@ templates:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTokenTransfer
-        - event: IssuanceStarted(indexed address,indexed uint256,indexed uint256,uint192,address[],uint256[],uint192)
-          handler: handleIssuanceStart
-        - event: IssuancesCanceled(indexed address,indexed uint256,indexed uint256,uint256)
-          handler: handleIssuanceCancel
-        - event: IssuancesCompleted(indexed address,indexed uint256,indexed uint256,uint256)
+        - event: Issuance(indexed address,indexed address,indexed uint256,uint192)
           handler: handleIssuance
-        - event: Redemption(indexed address,indexed uint256,uint192)
+        - event: Redemption(indexed address,indexed address,indexed uint256,uint192)
           handler: handleRedemption
         - event: BasketsNeededChanged(uint192,uint192)
           handler: handleRTokenBaskets
+      file: ./src/mappings/rToken.ts
+  - name: Main
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: Main
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - RToken
+        - RTokenContract
+      abis:
+        - name: Main
+          file: ./abis/Main.json
+        - name: Timelock
+          file: ./abis/Timelock.json
+      eventHandlers:
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+      file: ./src/mappings/rToken.ts
+  - name: Timelock
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: Timelock
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - RToken
+        - RTokenContract
+      abis:
+        - name: Timelock
+          file: ./abis/Timelock.json
+      eventHandlers:
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleTimelockRoleGranted
+      file: ./src/mappings/rToken.ts
+  - name: Governance
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: Governor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - RToken
+        - RTokenContract
+        - Governance
+        - Proposal
+        - Vote
+        - TokenHolder
+        - Delegate
+      abis:
+        - name: Governor
+          file: ./abis/Governor.json
+      eventHandlers:
+        - event: ProposalCanceled(uint256)
+          handler: handleProposalCanceled
+        - event: ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)
+          handler: handleProposalCreated
+        - event: ProposalExecuted(uint256)
+          handler: handleProposalExecuted
+        - event: ProposalQueued(uint256,uint256)
+          handler: handleProposalQueued
+        - event: ProposalThresholdSet(uint256,uint256)
+          handler: handleProposalThresholdSet
+        - event: QuorumNumeratorUpdated(uint256,uint256)
+          handler: handleQuorumNumeratorUpdated
+        - event: TimelockChange(address,address)
+          handler: handleTimelockChange
+        - event: VoteCast(indexed address,uint256,uint8,uint256,string)
+          handler: handleVoteCast
+        - event: VotingDelaySet(uint256,uint256)
+          handler: handleVotingDelaySet
+        - event: VotingPeriodSet(uint256,uint256)
+          handler: handleVotingPeriodSet
+      file: ./src/mappings/governance.ts
+  - name: Distributor
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: Distributor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Trade
+        - RTokenContract
+      abis:
+        - name: Distributor
+          file: ./abis/distributor.json
+      eventHandlers:
+        - event: DistributionSet(address,uint16,uint16)
+          handler: handleDistribution
       file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract
@@ -295,8 +373,8 @@ templates:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Main
-        - MainUser
+        - RToken
+        - Account
         - Token
         - User
         - Entry
@@ -308,7 +386,6 @@ templates:
           file: ./abis/stRSR.json
         - name: Facade
           file: ./abis/Facade.json
-
         ###########################################
         ############## Price Oracle ###############
         ###########################################
@@ -325,6 +402,7 @@ templates:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
+        # Staking events
         - event: Staked(indexed uint256,indexed address,uint256,indexed uint256)
           handler: handleStake
         - event: UnstakingStarted(indexed uint256,indexed uint256,indexed address,uint256,uint256,uint256)
@@ -333,4 +411,30 @@ templates:
           handler: handleUnstake
         - event: ExchangeRateSet(indexed uint192,indexed uint192)
           handler: handleExchangeRate
-      file: ./src/mappings/rToken.ts
+      file: ./src/mappings/stRSR.ts
+  - name: stRSRVotes
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: stRSRVotes
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Governance
+        - Proposal
+        - Vote
+        - TokenHolder
+        - Delegate
+      abis:
+        - name: stRSRVotes
+          file: ./abis/StRSRVotes.json
+      eventHandlers:
+        - event: DelegateChanged(indexed address,indexed address,indexed address)
+          handler: handleDelegateChanged
+        - event: DelegateVotesChanged(indexed address,uint256,uint256)
+          handler: handleDelegateVotesChanged
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/mappings/stRSR.ts

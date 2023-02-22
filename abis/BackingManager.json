@@ -59,25 +59,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint192",
-        "name": "oldVal",
-        "type": "uint192"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint192",
-        "name": "newVal",
-        "type": "uint192"
-      }
-    ],
-    "name": "DustAmountSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "uint8",
         "name": "version",
@@ -111,7 +92,26 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
+        "internalType": "uint192",
+        "name": "oldVal",
+        "type": "uint192"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint192",
+        "name": "newVal",
+        "type": "uint192"
+      }
+    ],
+    "name": "MinTradeVolumeSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "contract IERC20",
         "name": "erc20",
         "type": "address"
       },
@@ -246,7 +246,7 @@
   },
   {
     "inputs": [],
-    "name": "MAX_DUST_AMOUNT",
+    "name": "MAX_TRADE_SLIPPAGE",
     "outputs": [
       {
         "internalType": "uint192",
@@ -259,7 +259,7 @@
   },
   {
     "inputs": [],
-    "name": "MAX_TRADE_SLIPPAGE",
+    "name": "MAX_TRADE_VOLUME",
     "outputs": [
       {
         "internalType": "uint192",
@@ -298,7 +298,20 @@
   },
   {
     "inputs": [],
-    "name": "claimAndSweepRewards",
+    "name": "claimRewards",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "erc20",
+        "type": "address"
+      }
+    ],
+    "name": "claimRewardsSingle",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -337,6 +350,11 @@
         "internalType": "uint192",
         "name": "maxTradeSlippage_",
         "type": "uint192"
+      },
+      {
+        "internalType": "uint192",
+        "name": "minTradeVolume_",
+        "type": "uint192"
       }
     ],
     "name": "init",
@@ -371,6 +389,19 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "contract IERC20[]",
+        "name": "erc20s",
+        "type": "address[]"
+      }
+    ],
+    "name": "manageTokensSortedOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "maxTradeSlippage",
     "outputs": [
@@ -381,6 +412,48 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minTradeVolume",
+    "outputs": [
+      {
+        "internalType": "uint192",
+        "name": "",
+        "type": "uint192"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint192",
+        "name": "x",
+        "type": "uint192"
+      },
+      {
+        "internalType": "uint192",
+        "name": "y",
+        "type": "uint192"
+      },
+      {
+        "internalType": "uint192",
+        "name": "z",
+        "type": "uint192"
+      }
+    ],
+    "name": "mulDivCeil",
+    "outputs": [
+      {
+        "internalType": "uint192",
+        "name": "",
+        "type": "uint192"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -437,6 +510,19 @@
       }
     ],
     "name": "setMaxTradeSlippage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint192",
+        "name": "val",
+        "type": "uint192"
+      }
+    ],
+    "name": "setMinTradeVolume",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -541,6 +627,19 @@
     "name": "upgradeToAndCall",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "version",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   }
 ]

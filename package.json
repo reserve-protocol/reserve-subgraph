@@ -4,14 +4,14 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --product hosted-service lcamargof/reserve",
+    "deploy": "graph deploy --studio reserve",
     "create-local": "graph create --node http://127.0.0.1:8020/ lcamargof/reserve",
     "remove-local": "graph remove --node http://127.0.0.1:8020/ lcamargof/reserve",
     "deploy-local": "graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 lcamargof/reserve",
     "deploy-testnet": "graph deploy --product hosted-service lcamargof/reserve-goerli"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.32.0",
-    "@graphprotocol/graph-ts": "^0.27.0"
+    "@graphprotocol/graph-cli": "^0.37.1",
+    "@graphprotocol/graph-ts": "^0.29.1"
   }
 }

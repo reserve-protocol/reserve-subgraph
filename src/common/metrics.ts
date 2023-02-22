@@ -150,7 +150,6 @@ export function updateRTokenMetrics(
     entryType === EntryType.MINT ||
     entryType === EntryType.BURN ||
     entryType === EntryType.TRANSFER ||
-    entryType === EntryType.CANCEL_ISSUANCE ||
     entryType === EntryType.CLAIM
   ) {
     amountUSD = getUsdValue(amount, token.lastPriceUSD);

@@ -1,6 +1,7 @@
-import { Address } from "@graphprotocol/graph-ts";
+import { Timelock } from "./../../generated/templates/Main/Timelock";
+import { Address, log, Value } from "@graphprotocol/graph-ts";
 import {
-  Account,
+  RevenueDistribution,
   RToken,
   RTokenContract,
   Token,
@@ -9,25 +10,21 @@ import {
 import {
   BackingManager,
   Deployer,
+  Distributor as DistributorTemplate,
+  Main as MainTemplate,
   RevenueTrader,
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
+  Timelock as TimelockTemplate,
+  Governance as GovernanceTemplate,
+  stRSRVotes as stRSRVotesTemplate,
 } from "../../generated/templates";
 import {
   BasketsNeededChanged,
-  IssuancesCanceled,
-  IssuancesCompleted,
-  IssuanceStarted,
+  Issuance,
   Redemption,
-  RToken as _RToken,
   Transfer as TransferEvent,
 } from "../../generated/templates/RToken/RToken";
-import {
-  ExchangeRateSet,
-  Staked,
-  UnstakingCompleted,
-  UnstakingStarted,
-} from "../../generated/templates/stRSR/stRSR";
 import {
   getOrCreateEntry,
   getOrCreateProtocol,
@@ -37,11 +34,7 @@ import {
   getOrCreateToken,
   getTokenAccount,
 } from "../common/getters";
-import {
-  updateRTokenAccountBalance,
-  updateRTokenMetrics,
-  updateRTokenUniqueUsers,
-} from "../common/metrics";
+import { updateRTokenMetrics } from "../common/metrics";
 import { getRSRPrice } from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
@@ -49,17 +42,27 @@ import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
 import { DeploymentRegistered } from "./../../generated/Register/Register";
 import { GnosisTrade } from "./../../generated/templates/BackingManager/GnosisTrade";
+import {
+  RoleGranted,
+  RoleRevoked,
+} from "./../../generated/templates/Deployer/Main";
+import { DistributionSet } from "./../../generated/templates/Distributor/Distributor";
 import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
+import { removeFromArrayAtIndex } from "../common/utils/arrays";
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
+  BIGINT_ONE,
   BIGINT_ZERO,
+  ContractName,
   EntryType,
   FACADE_ADDRESS,
   INT_ONE,
+  Roles,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
+import { getGovernance } from "../governance/handlers";
 
 // * Tracks new deployments of the protocol
 export function handleProtocolDeployed(event: DeploymentRegistered): void {
@@ -76,9 +79,15 @@ export function handleCreateToken(event: RTokenCreated): void {
   let stToken = Token.load(event.params.stRSR.toHexString())!;
 
   let facadeContract = Facade.bind(Address.fromString(FACADE_ADDRESS));
-  let basketBreakdown = facadeContract.basketBreakdown(event.params.rToken);
+  let basketBreakdown = facadeContract.try_basketBreakdown(event.params.rToken);
+
+  // Error on collateral, don't map token
+  if (basketBreakdown.reverted) {
+    return;
+  }
+
   let targets: string[] = [];
-  let targetBytes = basketBreakdown.getTargets();
+  let targetBytes = basketBreakdown.value.getTargets();
 
   for (let i = 0; i < targetBytes.length; i++) {
     let targetName = targetBytes[i].toString();
@@ -95,6 +104,10 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.rewardToken = rewardToken.id;
   rToken.createdTimestamp = event.block.timestamp;
   rToken.createdBlockNumber = event.block.number;
+  rToken.owners = [event.params.owner.toHexString()];
+  rToken.freezers = [];
+  rToken.pausers = [];
+  rToken.longFreezers = [];
   rToken.cumulativeUniqueUsers = INT_ONE;
   rToken.rewardTokenSupply = BIGINT_ZERO;
   rToken.rsrPriceUSD = getRSRPrice();
@@ -111,9 +124,13 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.targetUnits = targets.join(",");
   rToken.save();
 
+  let currentPrice = facadeContract.price(event.params.rToken);
   token.rToken = rToken.id;
   token.lastPriceUSD = bigIntToBigDecimal(
-    facadeContract.price(event.params.rToken)
+    currentPrice
+      .getHigh()
+      .plus(currentPrice.getLow())
+      .div(BIGINT_ONE.plus(BIGINT_ONE))
   );
   token.save();
 
@@ -123,23 +140,37 @@ export function handleCreateToken(event: RTokenCreated): void {
   stToken.rToken = rToken.id;
   stToken.save();
 
-  let rTokenContract = _RToken.bind(event.params.rToken);
-  let mainAddress = rTokenContract.main();
-  let mainContract = Main.bind(mainAddress);
+  let mainContract = Main.bind(event.params.main);
+  let main = new RTokenContract(event.params.main.toHexString());
+  main.rToken = rToken.id;
+  main.name = ContractName.MAIN;
+  main.save();
 
   let backingManagerAddress = mainContract.backingManager();
   let backingManager = new RTokenContract(backingManagerAddress.toHexString());
   backingManager.rToken = rToken.id;
+  backingManager.name = ContractName.BACKING_MANAGER;
   backingManager.save();
 
   let revenueTraderAddress = mainContract.rTokenTrader();
   let revenueTrader = new RTokenContract(revenueTraderAddress.toHexString());
   revenueTrader.rToken = rToken.id;
+  revenueTrader.name = ContractName.REVENUE_TRADER;
   revenueTrader.save();
+
+  let distributorAddress = mainContract.distributor();
+
+  let distributor = new RTokenContract(distributorAddress.toHexString());
+  distributor.rToken = rToken.id;
+  distributor.name = ContractName.DISTRIBUTOR;
+  distributor.save();
 
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(event.params.stRSR);
+  stRSRVotesTemplate.create(event.params.stRSR);
+  MainTemplate.create(event.params.main);
+  DistributorTemplate.create(distributorAddress);
   BackingManager.create(backingManagerAddress);
   RevenueTrader.create(revenueTraderAddress);
 }
@@ -149,57 +180,8 @@ export function handleTokenTransfer(event: TransferEvent): void {
 }
 
 // * rToken Events
-export function handleIssuanceStart(event: IssuanceStarted): void {
-  let account = getTokenAccount(event.params.issuer, event.address);
-  let token = getOrCreateToken(event.address);
 
-  let entry = getOrCreateEntry(
-    event,
-    event.address.toHexString(),
-    account.id,
-    event.params.amount,
-    EntryType.ISSUE_START
-  );
-  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
-    token.lastPriceUSD
-  );
-  entry.rToken = event.address.toHexString();
-  entry.save();
-
-  updateRTokenMetrics(
-    event,
-    event.address,
-    event.params.amount,
-    EntryType.ISSUE_START
-  );
-}
-
-export function handleIssuanceCancel(event: IssuancesCanceled): void {
-  let account = getTokenAccount(event.params.issuer, event.address);
-  let token = getOrCreateToken(event.address);
-
-  let entry = getOrCreateEntry(
-    event,
-    event.address.toHexString(),
-    account.id,
-    event.params.amount,
-    EntryType.CANCEL_ISSUANCE
-  );
-  entry.rToken = event.address.toHexString();
-  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
-    token.lastPriceUSD
-  );
-  entry.save();
-
-  updateRTokenMetrics(
-    event,
-    event.address,
-    event.params.amount,
-    EntryType.CANCEL_ISSUANCE
-  );
-}
-
-export function handleIssuance(event: IssuancesCompleted): void {
+export function handleIssuance(event: Issuance): void {
   let account = getTokenAccount(event.params.issuer, event.address);
   let token = getOrCreateToken(event.address);
 
@@ -242,125 +224,6 @@ export function handleRedemption(event: Redemption): void {
   updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.REDEEM);
 }
 
-// * stRSR Events
-export function handleStake(event: Staked): void {
-  let rTokenId = getRTokenId(event.address);
-
-  // Avoid error, but is this needed? it should always exist
-  if (rTokenId) {
-    let account = Account.load(event.params.staker.toHexString());
-
-    if (!account) {
-      account = new Account(event.params.staker.toHexString());
-      account.save();
-      updateRTokenUniqueUsers(rTokenId);
-    }
-
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      account.id,
-      event.params.rsrAmount,
-      EntryType.STAKE
-    );
-
-    updateRTokenAccountBalance(
-      event.params.staker,
-      Address.fromString(rTokenId),
-      BIGINT_ZERO.plus(event.params.stRSRAmount),
-      event
-    );
-
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.STAKE
-    );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.rToken = rTokenId;
-    entry.stAmount = event.params.stRSRAmount;
-    entry.save();
-  }
-}
-
-export function handleUnstakeStarted(event: UnstakingStarted): void {
-  let rTokenId = getRTokenId(event.address);
-
-  // Avoid error, but is this needed? it should always exist
-  if (rTokenId) {
-    updateRTokenAccountBalance(
-      event.params.staker,
-      Address.fromString(rTokenId),
-      BIGINT_ZERO.minus(event.params.stRSRAmount),
-      event
-    );
-
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.UNSTAKE
-    );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      event.params.staker.toHexString(),
-      event.params.rsrAmount,
-      EntryType.UNSTAKE
-    );
-
-    entry.rToken = rTokenId;
-    entry.stAmount = event.params.stRSRAmount;
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.save();
-  }
-}
-
-export function handleUnstake(event: UnstakingCompleted): void {
-  let rTokenId = getRTokenId(event.address);
-
-  // Avoid error, but is this needed? it should always exist
-  if (rTokenId) {
-    let account = Account.load(event.params.staker.toHexString())!;
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      account.id,
-      event.params.rsrAmount,
-      EntryType.WITHDRAW
-    );
-
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.WITHDRAW
-    );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.rToken = rTokenId;
-    entry.save();
-  }
-}
-
 // * Rewards
 export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let rToken = RToken.load(event.address.toHexString())!;
@@ -378,25 +241,6 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
 
   daily.save();
   hourly.save();
-}
-
-export function handleExchangeRate(event: ExchangeRateSet): void {
-  let rTokenId = getRTokenId(event.address);
-
-  if (rTokenId) {
-    let rToken = RToken.load(rTokenId)!;
-    let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
-    let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
-
-    rToken.rsrExchangeRate = bigIntToBigDecimal(event.params.newVal);
-    rToken.save();
-
-    daily.rsrExchangeRate = rToken.rsrExchangeRate;
-    hourly.rsrExchangeRate = rToken.rsrExchangeRate;
-
-    daily.save();
-    hourly.save();
-  }
 }
 
 export function handleTrade(event: TradeStarted): void {
@@ -419,7 +263,99 @@ export function handleTrade(event: TradeStarted): void {
   trade.save();
 }
 
-function getRTokenId(rewardTokenAddress: Address): string | null {
-  let rewardToken = getOrCreateRewardToken(rewardTokenAddress);
-  return rewardToken.rToken;
+export function handleRoleGranted(event: RoleGranted): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+
+  let role = roleToProp(event.params.role.toString());
+  let current = rToken.get(role)!.toStringArray();
+
+  if (current.indexOf(event.params.account.toHexString()) === -1) {
+    current.push(event.params.account.toHexString());
+    rToken.set(role, Value.fromStringArray(current));
+    rToken.save();
+
+    // Check if the address is a timelock address if so, start indexing roles
+    if (event.params.role.toString() == Roles.OWNER) {
+      let contract = Timelock.bind(event.params.account);
+      let tx = contract.try_PROPOSER_ROLE();
+      // Check if the address is a timelock, if it is start indexing
+      if (!tx.reverted) {
+        let timelockContract = new RTokenContract(
+          event.params.account.toHexString()
+        );
+        timelockContract.rToken = rToken.id;
+        timelockContract.name = ContractName.TIMELOCK;
+        timelockContract.save();
+        TimelockTemplate.create(event.params.account);
+      }
+    }
+  }
+}
+
+export function handleTimelockRoleGranted(event: RoleGranted): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+  let timelockContract = Timelock.bind(event.address);
+  let proposalRole = timelockContract.PROPOSER_ROLE();
+
+  if (event.params.role.equals(proposalRole)) {
+    let governorContract = new RTokenContract(
+      event.params.account.toHexString()
+    );
+    governorContract.rToken = rToken.id;
+    governorContract.name = ContractName.GOVERNOR;
+    governorContract.save();
+    let gov = getGovernance(rToken.id);
+    gov.save();
+    GovernanceTemplate.create(event.params.account);
+  }
+}
+
+export function handleRoleRevoked(event: RoleRevoked): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+
+  let role = roleToProp(event.params.role.toString());
+  let current = rToken.get(role)!.toStringArray();
+  let index = current.indexOf(event.params.account.toHexString());
+
+  if (index !== -1) {
+    rToken.set(
+      role,
+      Value.fromStringArray(removeFromArrayAtIndex(current, index))
+    );
+    rToken.save();
+  }
+}
+
+export function handleDistribution(event: DistributionSet): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let id = event.params.dest
+    .toHexString()
+    .concat("-")
+    .concat(rTokenContract.rToken);
+
+  let distribution = RevenueDistribution.load(id);
+
+  if (!distribution) {
+    distribution = new RevenueDistribution(id);
+    distribution.rToken = rTokenContract.rToken;
+    distribution.destination = event.params.dest.toHexString();
+  }
+  distribution.rTokenDist = event.params.rTokenDist;
+  distribution.rsrDist = event.params.rsrDist;
+  distribution.save();
+}
+
+function roleToProp(role: string): string {
+  if (role == Roles.OWNER) {
+    return "owners";
+  } else if (role == Roles.PAUSER) {
+    return "pausers";
+  } else if (role == Roles.SHORT_FREEZER) {
+    return "freezers";
+  }
+
+  return "longFreezers";
 }

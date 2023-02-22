@@ -58,16 +58,55 @@ export namespace RewardTokenType {
 // CUSTOM
 export namespace EntryType {
   export const TRANSFER = "TRANSFER";
-  export const ISSUE_START = "ISSUE_START";
   export const ISSUE = "ISSUE";
   export const REDEEM = "REDEEM";
   export const CLAIM = "CLAIM";
-  export const CANCEL_ISSUANCE = "CANCEL_ISSUANCE";
   export const STAKE = "STAKE";
   export const UNSTAKE = "UNSTAKE";
   export const WITHDRAW = "WITHDRAW";
   export const BURN = "BURN";
   export const MINT = "MINT";
+}
+
+export namespace GovernanceType {
+  export const ALEXIOS = "ALEXIOS";
+  export const CUSTOM = "CUSTOM";
+}
+
+export namespace Roles {
+  export const OWNER = "OWNER";
+  export const PAUSER = "PAUSER";
+  export const SHORT_FREEZER = "SHORT_FREEZER";
+  export const LONG_FREEZER = "LONG_FREEZER";
+}
+
+export namespace ContractName {
+  export const BACKING_MANAGER = "BACKING_MANAGER";
+  export const REVENUE_TRADER = "REVENUE_TRADER";
+  export const MAIN = "MAIN";
+  export const DISTRIBUTOR = "DISTRIBUTOR";
+  export const TIMELOCK = "TIMELOCK";
+  export const GOVERNOR = "GOVERNOR";
+}
+
+export namespace ProposalState {
+  export const PENDING = "PENDING";
+  export const ACTIVE = "ACTIVE";
+  export const CANCELED = "CANCELED";
+  export const DEFEATED = "DEFEATED";
+  export const SUCCEEDED = "SUCCEEDED";
+  export const QUEUED = "QUEUED";
+  export const EXPIRED = "EXPIRED";
+  export const EXECUTED = "EXECUTED";
+}
+
+export namespace VoteChoice {
+  export const AGAINST_VALUE = 0;
+  export const FOR_VALUE = 1;
+  export const ABSTAIN_VALUE = 2;
+  export const AGAINST = "AGAINST";
+  export const FOR = "FOR";
+  export const ABSTAIN = "ABSTAIN";
 }
 
 //////////////////////////////
@@ -124,11 +163,11 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 ///// Protocol Specific /////
 /////////////////////////////
 
-export const FACADE_ADDRESS = "0x3DAf5a7681a9cfB92fB38983EB3998dFC7963B28";
+export const FACADE_ADDRESS = "0xE774CCF1431c3DEe7Fa4c20f67534b61289CAa45";
 
 // Tokens
 export const RSR_ADDRESS = Address.fromString(
-  "0x320623b8E4fF03373931769A31Fc52A4E78B5d70"
+  "0x320623b8e4ff03373931769a31fc52a4e78b5d70"
 ); // TODO: Created block
 export const RSV_ADDRESS = Address.fromString(
   "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
