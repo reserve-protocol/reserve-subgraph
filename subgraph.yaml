@@ -7,7 +7,7 @@ dataSources:
     name: Deployer
     network: mainnet
     source:
-      address: "0xE898790455F6AC247782484Acc8508F72348D262"
+      address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
       abi: Deployer
       startBlock: 16622090
     mapping:
