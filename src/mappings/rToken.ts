@@ -1,5 +1,5 @@
 import { Timelock } from "./../../generated/templates/Main/Timelock";
-import { Address, log, Value } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, log, Value } from "@graphprotocol/graph-ts";
 import {
   RevenueDistribution,
   RToken,
@@ -231,9 +231,14 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
   let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
-  rToken.basketRate = token.totalSupply
-    .div(event.params.newBasketsNeeded)
-    .toBigDecimal();
+  if (event.params.newBasketsNeeded.equals(BIGINT_ZERO)) {
+    rToken.basketRate = BIGDECIMAL_ZERO;
+  } else {
+    rToken.basketRate = token.totalSupply
+      .div(event.params.newBasketsNeeded)
+      .toBigDecimal();
+  }
+
   rToken.save();
 
   daily.basketRate = rToken.basketRate;
