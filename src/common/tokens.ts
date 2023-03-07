@@ -10,6 +10,7 @@ import {
   RSV_ADDRESS,
 } from "./constants";
 import { bigIntToBigDecimal } from "./utils/numbers";
+import { getUsdPricePerToken } from "../prices";
 
 export const INVALID_TOKEN_DECIMALS = 9999;
 export const UNKNOWN_TOKEN_VALUE = "unknown";
@@ -138,17 +139,16 @@ class StaticTokenDefinition {
 }
 
 export function getTokenPrice(address: Address): BigDecimal {
-  // let tokenPrice: BigDecimal;
-  // let fetchPrice = getUsdPricePerToken(address);
-  // if (!fetchPrice.reverted) {
-  //   tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
-  // } else {
-  //   // default value of this variable, if reverted is BigDecimal Zero
-  //   tokenPrice = fetchPrice.usdPrice;
-  // }
+  let tokenPrice: BigDecimal;
+  let fetchPrice = getUsdPricePerToken(address);
+  if (!fetchPrice.reverted) {
+    tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
+  } else {
+    // default value of this variable, if reverted is BigDecimal Zero
+    tokenPrice = fetchPrice.usdPrice;
+  }
 
-  // return tokenPrice;
-  return BIGDECIMAL_ZERO;
+  return tokenPrice;
 }
 
 export function getRSRPrice(): BigDecimal {
