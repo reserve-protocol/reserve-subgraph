@@ -168,7 +168,7 @@ export const FACADE_ADDRESS = "0x80b24e984e4fc92a4846b044286DcCcd66564DB9";
 // Tokens
 export const RSR_ADDRESS = Address.fromString(
   "0x320623b8e4ff03373931769a31fc52a4e78b5d70"
-); // TODO: Created block
+);
 export const RSV_ADDRESS = Address.fromString(
   "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
 );

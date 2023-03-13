@@ -1,7 +1,6 @@
 import * as MAINNET from "../config/mainnet";
 
 import { Address, BigDecimal, BigInt, TypedMap } from "@graphprotocol/graph-ts";
-import { SushiSwapPair__getReservesResult } from "../../../generated/Deployer/SushiSwapPair";
 
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// COMMON ////////////////////////////////
@@ -42,40 +41,13 @@ export const WHITELIST_TOKENS_LIST: string[] = [
 ];
 
 ///////////////////////////////////////////////////////////////////////////
-///////////////////////////// CURVE CONTRACT //////////////////////////////
+///////////////////////////// CHAINLINK CONTRACT //////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////// SUSHISWAP CONTRACT //////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-export const SUSHISWAP_DEFAULT_RESERVE_CALL = new SushiSwapPair__getReservesResult(
-  BIGINT_ZERO,
-  BIGINT_ZERO,
-  BIGINT_ZERO
-);
-
-export const SUSHISWAP_CALCULATIONS_ADDRESS_MAP = new TypedMap<
-  string,
-  Address
->();
-SUSHISWAP_CALCULATIONS_ADDRESS_MAP.set(
+export const CHAIN_LINK_CONTRACT_ADDRESS = new Map<string, Address>();
+CHAIN_LINK_CONTRACT_ADDRESS.set(
   MAINNET.NETWORK_STRING,
-  MAINNET.SUSHISWAP_CALCULATIONS_ADDRESS
-);
-
-export const SUSHISWAP_WETH_ADDRESS = new TypedMap<string, Address>();
-SUSHISWAP_WETH_ADDRESS.set(
-  MAINNET.NETWORK_STRING,
-  MAINNET.SUSHISWAP_WETH_ADDRESS
-);
-export const SUSHISWAP_ROUTER_ADDRESS_MAP = new TypedMap<
-  string,
-  TypedMap<string, Address>
->();
-SUSHISWAP_ROUTER_ADDRESS_MAP.set(
-  MAINNET.NETWORK_STRING,
-  MAINNET.SUSHISWAP_ROUTER_ADDRESS
+  MAINNET.CHAIN_LINK_CONTRACT_ADDRESS
 );
 
 ///////////////////////////////////////////////////////////////////////////

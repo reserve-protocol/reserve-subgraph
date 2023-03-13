@@ -3,27 +3,13 @@ import { Address, TypedMap } from "@graphprotocol/graph-ts";
 export const NETWORK_STRING = "mainnet";
 
 ///////////////////////////////////////////////////////////////////////////
-///////////////////////////// SUSHISWAP CONTRACT //////////////////////////
+///////////////////////////// CHAINLINK CONTRACT //////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-export const SUSHISWAP_CALCULATIONS_ADDRESS = Address.fromString(
-  "0x8263e161A855B644f582d9C164C66aABEe53f927"
-);
-export const SUSHISWAP_WETH_ADDRESS = Address.fromString(
-  "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+export const CHAIN_LINK_CONTRACT_ADDRESS = Address.fromString(
+  "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
 );
 
-export const SUSHISWAP_ROUTER_ADDRESS = new TypedMap<string, Address>();
-SUSHISWAP_ROUTER_ADDRESS.set(
-  "routerV1",
-  Address.fromString("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F")
-);
-SUSHISWAP_ROUTER_ADDRESS.set(
-  "routerV2",
-  Address.fromString("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D")
-);
-
-///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// HELPERS /////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 

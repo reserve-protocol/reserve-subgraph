@@ -1,5 +1,4 @@
-import { Timelock } from "./../../generated/templates/Main/Timelock";
-import { Address, BigDecimal, log, Value } from "@graphprotocol/graph-ts";
+import { Address, Value } from "@graphprotocol/graph-ts";
 import {
   RevenueDistribution,
   RToken,
@@ -11,13 +10,13 @@ import {
   BackingManager,
   Deployer,
   Distributor as DistributorTemplate,
+  Governance as GovernanceTemplate,
   Main as MainTemplate,
   RevenueTrader,
   RToken as RTokenTemplate,
   stRSR as stRSRTemplate,
-  Timelock as TimelockTemplate,
-  Governance as GovernanceTemplate,
   stRSRVotes as stRSRVotesTemplate,
+  Timelock as TimelockTemplate,
 } from "../../generated/templates";
 import {
   BasketsNeededChanged,
@@ -40,16 +39,18 @@ import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
-import { DeploymentRegistered } from "./../../generated/Register/Register";
+// import { DeploymentRegistered } from "./../../generated/Register/Register";
 import { GnosisTrade } from "./../../generated/templates/BackingManager/GnosisTrade";
 import {
   RoleGranted,
   RoleRevoked,
 } from "./../../generated/templates/Deployer/Main";
 import { DistributionSet } from "./../../generated/templates/Distributor/Distributor";
+import { Timelock } from "./../../generated/templates/Main/Timelock";
 import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
 import { removeFromArrayAtIndex } from "../common/utils/arrays";
+import { getGovernance } from "../governance/handlers";
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
@@ -62,12 +63,11 @@ import {
   Roles,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
-import { getGovernance } from "../governance/handlers";
 
 // * Tracks new deployments of the protocol
-export function handleProtocolDeployed(event: DeploymentRegistered): void {
-  Deployer.create(event.params.deployer);
-}
+// export function handleProtocolDeployed(event: DeploymentRegistered): void {
+//   Deployer.create(event.params.deployer);
+// }
 
 // * Deployer events
 export function handleCreateToken(event: RTokenCreated): void {
@@ -215,7 +215,7 @@ export function handleRedemption(event: Redemption): void {
     event.address.toHexString(),
     account.id,
     event.params.amount,
-    EntryType.ISSUE
+    EntryType.REDEEM
   );
   entry.rToken = event.address.toHexString();
   entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);

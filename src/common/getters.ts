@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   Account,
   AccountRToken,
@@ -280,11 +280,19 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.lastPriceBlockNumber = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
 
-    // Inherit RSV-v1 metrics
-    if (tokenAddress === RSV_ADDRESS) {
-      token.transferCount = BigInt.fromI32(1933);
-      token.holderCount = BigInt.fromI32(220);
-      token.totalSupply = BigInt.fromI32(628477);
+    // Inherit RSVmetrics
+    if (tokenAddress.equals(RSV_ADDRESS)) {
+      token.transferCount = BigInt.fromString("5961");
+      token.holderCount = BigInt.fromString("324");
+      token.totalSupply = BigInt.fromString("6535046536411291513413162");
+
+      token.userCount = 1260;
+      token.mintCount = BigInt.fromString("131");
+      token.burnCount = BigInt.fromString("82");
+      token.totalBurned = BigInt.fromString("55838473117476189600000000");
+      token.totalMinted = BigInt.fromString("62059326860904893261971700");
+      token.lastPriceUSD = BigDecimal.fromString("1.085697");
+      token.lastPriceBlockNumber = BigInt.fromString("16815303");
     }
 
     token.save();
