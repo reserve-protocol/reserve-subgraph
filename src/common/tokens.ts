@@ -12,7 +12,7 @@ import {
 import { bigIntToBigDecimal } from "./utils/numbers";
 import { getUsdPricePerToken } from "../prices";
 
-export const INVALID_TOKEN_DECIMALS = 9999;
+export const INVALID_TOKEN_DECIMALS = 18;
 export const UNKNOWN_TOKEN_VALUE = "unknown";
 
 export function fetchTokenSymbol(tokenAddress: Address): string {

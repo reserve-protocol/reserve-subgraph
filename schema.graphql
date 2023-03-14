@@ -508,12 +508,18 @@ type Trade @entity {
   auctionId: BigInt!
   " Auction trade amount "
   amount: BigDecimal!
+  " Min buy amount "
+  minBuyAmount: BigDecimal!
   " Worst case price "
   worstCasePrice: BigDecimal!
   " Selling token "
   selling: String!
   " Buying token "
   buying: String!
+  " Sell tokens symbol "
+  sellingTokenSymbol: String!
+  " Buy token symbol "
+  buyingTokenSymbol: String!
   " started At timestamp "
   startedAt: BigInt!
   " End time timestamp "

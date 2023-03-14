@@ -34,7 +34,11 @@ import {
   getTokenAccount,
 } from "../common/getters";
 import { updateRTokenMetrics } from "../common/metrics";
-import { getRSRPrice } from "../common/tokens";
+import {
+  fetchTokenDecimals,
+  fetchTokenSymbol,
+  getRSRPrice,
+} from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import { Facade } from "./../../generated/Deployer/Facade";
@@ -254,9 +258,17 @@ export function handleTrade(event: TradeStarted): void {
   let auctionId = tradeContract.auctionId();
   let worstCasePrice = tradeContract.worstCasePrice();
   let endAt = tradeContract.endTime();
+  let buyTokenDecimals = fetchTokenDecimals(event.params.buy);
+  let sellTokenDecimals = fetchTokenDecimals(event.params.sell);
 
   let trade = new Trade(event.params.trade.toHexString());
-  trade.amount = bigIntToBigDecimal(event.params.sellAmount);
+  trade.amount = bigIntToBigDecimal(event.params.sellAmount, sellTokenDecimals);
+  trade.minBuyAmount = bigIntToBigDecimal(
+    event.params.minBuyAmount,
+    buyTokenDecimals
+  );
+  trade.sellingTokenSymbol = fetchTokenSymbol(event.params.sell);
+  trade.buyingTokenSymbol = fetchTokenSymbol(event.params.buy);
   trade.worstCasePrice = bigIntToBigDecimal(worstCasePrice);
   trade.auctionId = auctionId;
   trade.selling = event.params.sell.toHexString();

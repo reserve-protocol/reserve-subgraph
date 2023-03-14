@@ -291,6 +291,8 @@ templates:
           file: ./abis/RevenueTrader.json
         - name: GnosisTrade
           file: ./abis/GnosisTrade.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: TradeStarted(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleTrade
@@ -312,6 +314,8 @@ templates:
           file: ./abis/BackingManager.json
         - name: GnosisTrade
           file: ./abis/GnosisTrade.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: TradeStarted(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleTrade
