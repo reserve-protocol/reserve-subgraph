@@ -369,7 +369,7 @@ export function _handleVoteCast(
   const voteId = voterAddress.concat("-").concat(proposal.id);
   const vote = new Vote(voteId);
   vote.proposal = proposal.id;
-  vote.voter = voterAddress;
+  vote.voter = proposal.governance.concat("-").concat(voterAddress);
   vote.weight = weight;
   vote.reason = reason;
   vote.block = event.block.number;
