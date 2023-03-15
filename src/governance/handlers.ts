@@ -12,12 +12,14 @@ import {
   DelegateVotingPowerChange,
   Governance,
   Proposal,
+  RToken,
   RTokenContract,
   stTokenDailySnapshot,
   TokenHolder,
   Vote,
   VoteDailySnapshot,
 } from "../../generated/schema";
+import { Timelock } from "./../../generated/templates/Main/Timelock";
 import {
   BIGDECIMAL_ZERO,
   BIGINT_ONE,
@@ -26,6 +28,7 @@ import {
   VoteChoice,
   ZERO_ADDRESS,
 } from "../common/constants";
+import { getGovernanceFramework } from "../mappings/governance";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 
@@ -340,20 +343,35 @@ export function _handleProposalQueued(
   eta: BigInt,
   event: ethereum.Event
 ): void {
+  let GovernanceFramework = getGovernanceFramework(
+    event.address.toHexString(),
+    event.block.number
+  );
+  let timelockContract = Timelock.bind(
+    Address.fromString(GovernanceFramework.timelockAddress)
+  );
+  let executionDelay = timelockContract.try_getMinDelay();
+
   // Update proposal status + execution metadata
   const proposal = getProposal(
     proposalId.toString(),
     event.address.toHexString()
   );
+  const governance = getGovernance(proposal.governance);
+
   proposal.state = ProposalState.QUEUED;
   proposal.queueTxnHash = event.transaction.hash.toHexString();
   proposal.queueBlock = event.block.number;
   proposal.queueTime = event.block.timestamp;
   proposal.executionETA = eta;
+  if (!executionDelay.reverted) {
+    proposal.executionStartBlock = event.block.number.plus(
+      executionDelay.value
+    );
+  }
   proposal.save();
 
   // Update governance proposal state counts
-  const governance = getGovernance(proposal.governance);
   governance.proposalsQueued = governance.proposalsQueued.plus(BIGINT_ONE);
   governance.save();
 }

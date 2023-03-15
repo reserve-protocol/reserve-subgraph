@@ -159,7 +159,7 @@ export function handleVotingPeriodSet(event: VotingPeriodSet): void {
 }
 
 // Helper function that imports and binds the contract
-function getGovernanceFramework(
+export function getGovernanceFramework(
   contractAddress: string,
   blockNumber: BigInt
 ): GovernanceFramework {

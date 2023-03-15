@@ -14,10 +14,6 @@ export function getUsdPricePerToken(tokenAddr: Address): CustomPriceType {
   // ChainLink Feed Registry
   const chainLinkPrice = getTokenPriceFromChainLink(tokenAddr, network);
   if (!chainLinkPrice.reverted) {
-    log.warning("[ChainLinkFeed] tokenAddress: {}, Price: {}", [
-      tokenAddr.toHexString(),
-      chainLinkPrice.usdPrice.div(chainLinkPrice.decimalsBaseTen).toString(),
-    ]);
     return chainLinkPrice;
   }
 

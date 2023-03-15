@@ -1109,6 +1109,8 @@ type Proposal @entity {
   queueBlock: BigInt
   "Timestamp of block proposal was queued in"
   queueTime: BigInt
+  "executionStartBlock"
+  executionStartBlock: BigInt
   "Once the proposal is queued for execution it will have an ETA of the execution"
   executionETA: BigInt
   "Transaction hash of the proposal execution"

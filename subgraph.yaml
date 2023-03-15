@@ -233,6 +233,8 @@ templates:
       abis:
         - name: Governor
           file: ./abis/Governor.json
+        - name: Timelock
+          file: ./abis/Timelock.json
       eventHandlers:
         - event: ProposalCanceled(uint256)
           handler: handleProposalCanceled
