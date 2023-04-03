@@ -61,6 +61,50 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
       file: ./src/mappings/common.ts
+  # Deployer v1.0 - required because contract added to registry after eUSD deployment
+  # duplicate of template definition below
+  - kind: ethereum/contract
+    name: Deployer
+    network: mainnet
+    source:
+      address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
+      abi: Deployer
+      startBlock: 16680990
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Protocol
+        - RToken
+        - Token
+        - RewardToken
+      abis:
+        - name: RToken
+          file: ./abis/RToken.json
+        - name: Deployer
+          file: ./abis/Deployer.json
+        - name: Main
+          file: ./abis/Main.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Chainlink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        - name: ChainLinkAggregator
+          file: ./abis/Prices/ChainlinkAggregator.json
+      eventHandlers:
+        - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
+          handler: handleCreateToken
+      file: ./src/mappings/rToken.ts
 templates:
   # Deployer
   - kind: ethereum/contract
