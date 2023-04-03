@@ -2,7 +2,67 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
-  # Deployer v1.0
+  # Deployer Registry
+  - kind: ethereum/contract
+    name: DeployerRegistry
+    network: mainnet
+    source:
+      address: "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe"
+      abi: DeployerRegistry
+      startBlock: 16680990
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Deployer
+      abis:
+        - name: DeployerRegistry
+          file: ./abis/DeployerRegistry.json
+      eventHandlers:
+        - event: DeploymentRegistered(string,address)
+          handler: handleDeploymentRegistered
+      file: ./src/mappings/deployerRegistry.ts
+  # RSV tracks ERC20 transactions
+  - name: RSV
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
+      abi: ERC20
+      startBlock: 16815302
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - Account
+        - Entry
+      abis:
+        - name: RToken
+          file: ./abis/RToken.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Chainlink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        - name: ChainLinkAggregator
+          file: ./abis/Prices/ChainlinkAggregator.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/mappings/common.ts
+  # Deployer v1.0 - required because contract added to registry after eUSD deployment
+  # duplicate of template definition below
   - kind: ethereum/contract
     name: Deployer
     network: mainnet
@@ -45,44 +105,6 @@ dataSources:
         - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
-  # RSV tracks ERC20 transactions
-  - name: RSV
-    kind: ethereum/contract
-    network: mainnet
-    source:
-      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
-      abi: ERC20
-      startBlock: 16815302
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Token
-        - Account
-        - Entry
-      abis:
-        - name: RToken
-          file: ./abis/RToken.json
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: Facade
-          file: ./abis/Facade.json
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
-        - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
-        # Chainlink Contracts
-        - name: ChainLinkContract
-          file: ./abis/Prices/ChainLink.json
-        - name: ChainLinkAggregator
-          file: ./abis/Prices/ChainlinkAggregator.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mappings/common.ts
 templates:
   # Deployer
   - kind: ethereum/contract

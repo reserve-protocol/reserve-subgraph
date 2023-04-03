@@ -3,6 +3,7 @@ import {
   Account,
   AccountRToken,
   AccountRTokenDailySnapshot,
+  Deployer,
   FinancialsDailySnapshot,
   Protocol,
   RewardToken,
@@ -70,6 +71,20 @@ export function getOrCreateProtocol(): Protocol {
     protocol.save();
   }
   return protocol;
+}
+
+export function getOrCreateDeployer(deployerAddress: Address): Deployer {
+  let deployer = Deployer.load(deployerAddress.toHexString());
+
+  // fetch info if null
+  if (!deployer) {
+    deployer = new Deployer(deployerAddress.toHexString());
+    deployer.deployerVersion = "";
+    deployer.blockNumber = BIGINT_ZERO;
+
+    deployer.save();
+  }
+  return deployer;
 }
 
 export function getOrCreateUsageMetricDailySnapshot(

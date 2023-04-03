@@ -45,6 +45,21 @@ enum GovernanceFrameworkType {
   Alexios
 }
 
+###########################
+#### Deployer Metadata ####
+###########################
+
+type Deployer @entity {
+  " Smart contract address of the Deployer "
+  id: ID!
+
+  " Deployer version, in SemVer format (e.g. 2.1.0)"
+  deployerVersion: String!
+
+  " Block number of Deployer registration "
+  blockNumber: BigInt!
+}
+
 #############################
 ##### Protocol Metadata #####
 #############################
