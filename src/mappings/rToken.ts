@@ -8,7 +8,6 @@ import {
 } from "../../generated/schema";
 import {
   BackingManager,
-  Deployer,
   Distributor as DistributorTemplate,
   Governance as GovernanceTemplate,
   Main as MainTemplate,
