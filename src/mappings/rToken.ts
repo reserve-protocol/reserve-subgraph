@@ -387,7 +387,7 @@ export function handleRevenueDistributed(event: RevenueDistributed): void {
       event.params.amount
     );
   } else {
-    rToken.cumulativeStakerRevenue = rToken.cumulativeRTokenRevenue.plus(
+    rToken.cumulativeRTokenRevenue = rToken.cumulativeRTokenRevenue.plus(
       event.params.amount
     );
   }
