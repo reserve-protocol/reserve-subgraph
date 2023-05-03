@@ -297,6 +297,8 @@ templates:
       eventHandlers:
         - event: DistributionSet(address,uint16,uint16)
           handler: handleDistribution
+        - event: RevenueDistributed(indexed address,indexed address,indexed uint256)
+          handler: handleRevenueDistributed
       file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract

@@ -364,6 +364,12 @@ type RToken @entity {
   " Revenue given to RToken holders "
   cumulativeRTokenRevenueUSD: BigDecimal!
 
+  " Revenue given to RToken holders "
+  cumulativeRTokenRevenue: BigInt!
+
+  " Revenue given to RSR Stakers "
+  cumulativeStakerRevenue: BigInt!
+
   " Revenue given to RSR Stakers "
   cumulativeInsuranceRevenueUSD: BigDecimal!
 

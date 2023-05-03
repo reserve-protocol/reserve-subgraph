@@ -82,11 +82,12 @@ export namespace Roles {
 
 export namespace ContractName {
   export const BACKING_MANAGER = "BACKING_MANAGER";
-  export const REVENUE_TRADER = "REVENUE_TRADER";
+  export const RTOKEN_TRADER = "RTOKEN_TRADER";
   export const MAIN = "MAIN";
   export const DISTRIBUTOR = "DISTRIBUTOR";
   export const TIMELOCK = "TIMELOCK";
   export const GOVERNOR = "GOVERNOR";
+  export const RSR_TRADER = "RSR_TRADER";
 }
 
 export namespace ProposalState {

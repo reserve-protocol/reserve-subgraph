@@ -1,8 +1,8 @@
 import { Address, Value } from "@graphprotocol/graph-ts";
 import {
-  RevenueDistribution,
   RToken,
   RTokenContract,
+  RevenueDistribution,
   Token,
   Trade,
 } from "../../generated/schema";
@@ -11,11 +11,11 @@ import {
   Distributor as DistributorTemplate,
   Governance as GovernanceTemplate,
   Main as MainTemplate,
-  RevenueTrader,
   RToken as RTokenTemplate,
+  RevenueTrader,
+  Timelock as TimelockTemplate,
   stRSR as stRSRTemplate,
   stRSRVotes as stRSRVotesTemplate,
-  Timelock as TimelockTemplate,
 } from "../../generated/templates";
 import {
   BasketsNeededChanged,
@@ -26,9 +26,9 @@ import {
 import {
   getOrCreateEntry,
   getOrCreateProtocol,
-  getOrCreateRewardToken,
   getOrCreateRTokenDailySnapshot,
   getOrCreateRTokenHourlySnapshot,
+  getOrCreateRewardToken,
   getOrCreateToken,
   getTokenAccount,
 } from "../common/getters";
@@ -48,7 +48,10 @@ import {
   RoleGranted,
   RoleRevoked,
 } from "./../../generated/templates/Deployer/Main";
-import { DistributionSet } from "./../../generated/templates/Distributor/Distributor";
+import {
+  DistributionSet,
+  RevenueDistributed,
+} from "./../../generated/templates/Distributor/Distributor";
 import { Timelock } from "./../../generated/templates/Main/Timelock";
 import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
@@ -63,6 +66,7 @@ import {
   EntryType,
   FACADE_ADDRESS,
   INT_ONE,
+  RSR_ADDRESS,
   Roles,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
@@ -124,6 +128,8 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.backingInsurance = BIGINT_ZERO;
   rToken.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
   rToken.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+  rToken.cumulativeRTokenRevenue = BIGINT_ZERO;
+  rToken.cumulativeStakerRevenue = BIGINT_ZERO;
   rToken.targetUnits = targets.join(",");
   rToken.save();
 
@@ -158,8 +164,14 @@ export function handleCreateToken(event: RTokenCreated): void {
   let revenueTraderAddress = mainContract.rTokenTrader();
   let revenueTrader = new RTokenContract(revenueTraderAddress.toHexString());
   revenueTrader.rToken = rToken.id;
-  revenueTrader.name = ContractName.REVENUE_TRADER;
+  revenueTrader.name = ContractName.RTOKEN_TRADER;
   revenueTrader.save();
+
+  let rsrTraderAddress = mainContract.rsrTrader();
+  let rsrTrader = new RTokenContract(rsrTraderAddress.toHexString());
+  rsrTrader.rToken = rToken.id;
+  rsrTrader.name = ContractName.RSR_TRADER;
+  rsrTrader.save();
 
   let distributorAddress = mainContract.distributor();
 
@@ -176,6 +188,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   DistributorTemplate.create(distributorAddress);
   BackingManager.create(backingManagerAddress);
   RevenueTrader.create(revenueTraderAddress);
+  RevenueTrader.create(rsrTraderAddress);
 }
 
 export function handleTokenTransfer(event: TransferEvent): void {
@@ -362,6 +375,23 @@ export function handleDistribution(event: DistributionSet): void {
   distribution.rTokenDist = event.params.rTokenDist;
   distribution.rsrDist = event.params.rsrDist;
   distribution.save();
+}
+
+export function handleRevenueDistributed(event: RevenueDistributed): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+
+  // Revenue for stakers
+  if (event.params.erc20.equals(RSR_ADDRESS)) {
+    rToken.cumulativeStakerRevenue = rToken.cumulativeStakerRevenue.plus(
+      event.params.amount
+    );
+  } else {
+    rToken.cumulativeStakerRevenue = rToken.cumulativeRTokenRevenue.plus(
+      event.params.amount
+    );
+  }
+  rToken.save();
 }
 
 function roleToProp(role: string): string {
