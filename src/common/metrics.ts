@@ -136,11 +136,16 @@ export function updateRTokenMetrics(
 ): void {
   let protocol = getOrCreateProtocol();
   let rToken = RToken.load(rTokenAddress.toHexString())!;
-  let token = Token.load(rToken.token)!;
+  let token = getTokenUpdated(rToken.id, event);
   let rsrPrice = rToken.rsrPriceUSD;
 
   if (rToken.rsrPriceLastBlock.lt(event.block.number)) {
-    rsrPrice = getRSRPrice();
+    let priceQuote = getRSRPrice();
+
+    if (!priceQuote.equals(BIGDECIMAL_ZERO)) {
+      rToken.rsrPriceUSD = priceQuote;
+      rsrPrice = priceQuote;
+    }
     rToken.rsrPriceLastBlock = event.block.number;
   }
 
@@ -391,6 +396,97 @@ export function updateTokenMetrics(
     getOrCreateRTokenAccount(fromAddress, tokenAddress);
     updateRTokenMetrics(event, Address.fromString(rTokenId), amount, entryType);
   }
+}
+
+export function updateRTokenRevenueDistributed(
+  rToken: RToken,
+  amount: BigInt,
+  holdersShare: BigDecimal,
+  event: ethereum.Event
+): void {
+  let protocol = getOrCreateProtocol();
+  let token = getTokenUpdated(rToken.id, event);
+
+  rToken.cumulativeRTokenRevenue = rToken.cumulativeStakerRevenue.plus(
+    holdersShare
+  );
+  rToken.totalDistributedRTokenRevenue = rToken.totalDistributedRSRRevenue.plus(
+    amount
+  );
+  rToken.save();
+
+  // Protocol metrics
+  protocol.cumulativeTotalRevenueUSD = protocol.cumulativeTotalRevenueUSD.plus(
+    bigIntToBigDecimal(amount).times(token.lastPriceUSD)
+  );
+  protocol.cumulativeRTokenRevenueUSD = protocol.cumulativeRTokenRevenueUSD.plus(
+    holdersShare.times(token.lastPriceUSD)
+  );
+  protocol.save();
+}
+
+export function updateRSRRevenueDistributed(
+  rToken: RToken,
+  amount: BigInt,
+  stakersShare: BigDecimal,
+  event: ethereum.Event
+): void {
+  let rsrPrice = fetchAndUpdateRSRPrice(rToken, event);
+  let protocol = getOrCreateProtocol();
+
+  rToken.cumulativeStakerRevenue = rToken.cumulativeStakerRevenue.plus(
+    stakersShare
+  );
+  rToken.totalDistributedRSRRevenue = rToken.totalDistributedRSRRevenue.plus(
+    amount
+  );
+  rToken.save();
+
+  // Protocol metrics
+  protocol.cumulativeTotalRevenueUSD = protocol.cumulativeTotalRevenueUSD.plus(
+    bigIntToBigDecimal(amount).times(rsrPrice)
+  );
+  protocol.cumulativeInsuranceRevenueUSD = protocol.cumulativeInsuranceRevenueUSD.plus(
+    stakersShare.times(rsrPrice)
+  );
+  protocol.save();
+}
+
+// Update RToken entity RSR price without saving it, returns current RSR price
+function fetchAndUpdateRSRPrice(
+  rToken: RToken,
+  event: ethereum.Event
+): BigDecimal {
+  let rsrPrice = rToken.rsrPriceUSD;
+
+  if (rToken.rsrPriceLastBlock.lt(event.block.number)) {
+    let priceQuote = getRSRPrice();
+    rToken.rsrPriceLastBlock = event.block.number;
+
+    if (!priceQuote.equals(BIGDECIMAL_ZERO)) {
+      rToken.rsrPriceUSD = priceQuote;
+      rsrPrice = priceQuote;
+    }
+  }
+
+  return rsrPrice;
+}
+
+// Get the RToken "Token" entity with its price updated
+function getTokenUpdated(rTokenId: string, event: ethereum.Event): Token {
+  let token = Token.load(rTokenId)!;
+
+  // Update token price
+  if (token.lastPriceBlockNumber.lt(event.block.number)) {
+    let price = getRTokenPrice(Address.fromString(rTokenId));
+    token.lastPriceUSD = price.equals(BIGDECIMAL_ZERO)
+      ? token.lastPriceUSD
+      : price;
+    token.lastPriceBlockNumber = event.block.number;
+    token.save();
+  }
+
+  return token;
 }
 
 function updateTokenHolder(

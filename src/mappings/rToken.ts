@@ -1,4 +1,4 @@
-import { Address, Value } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, Value } from "@graphprotocol/graph-ts";
 import {
   RToken,
   RTokenContract,
@@ -32,13 +32,20 @@ import {
   getOrCreateToken,
   getTokenAccount,
 } from "../common/getters";
-import { updateRTokenMetrics } from "../common/metrics";
+import {
+  updateRSRRevenueDistributed,
+  updateRTokenMetrics,
+  updateRTokenRevenueDistributed,
+} from "../common/metrics";
 import {
   fetchTokenDecimals,
   fetchTokenSymbol,
   getRSRPrice,
 } from "../common/tokens";
-import { bigIntToBigDecimal } from "../common/utils/numbers";
+import {
+  bigIntToBigDecimal,
+  exponentToBigDecimal,
+} from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
@@ -65,9 +72,11 @@ import {
   ContractName,
   EntryType,
   FACADE_ADDRESS,
+  FURNACE_ADDRESS,
   INT_ONE,
   RSR_ADDRESS,
   Roles,
+  ST_RSR_ADDRESS,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
 
@@ -126,10 +135,12 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.basketRate = BIGDECIMAL_ONE;
   rToken.backing = BIGINT_ZERO;
   rToken.backingInsurance = BIGINT_ZERO;
+  rToken.stakersRewardShare = BIGDECIMAL_ZERO;
+  rToken.holdersRewardShare = BIGDECIMAL_ZERO;
   rToken.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
   rToken.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
-  rToken.cumulativeRTokenRevenue = BIGINT_ZERO;
-  rToken.cumulativeStakerRevenue = BIGINT_ZERO;
+  rToken.cumulativeRTokenRevenue = BIGDECIMAL_ZERO;
+  rToken.cumulativeStakerRevenue = BIGDECIMAL_ZERO;
   rToken.targetUnits = targets.join(",");
   rToken.save();
 
@@ -360,6 +371,8 @@ export function handleRoleRevoked(event: RoleRevoked): void {
 
 export function handleDistribution(event: DistributionSet): void {
   let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+
   let id = event.params.dest
     .toHexString()
     .concat("-")
@@ -375,23 +388,53 @@ export function handleDistribution(event: DistributionSet): void {
   distribution.rTokenDist = event.params.rTokenDist;
   distribution.rsrDist = event.params.rsrDist;
   distribution.save();
+
+  const totalShares = BigDecimal.fromString("10000");
+
+  if (event.params.dest.toHexString() === FURNACE_ADDRESS) {
+    rToken.holdersRewardShare = exponentToBigDecimal(event.params.rTokenDist)
+      .times(BigDecimal.fromString("100"))
+      .div(totalShares);
+    rToken.save();
+  } else if (event.params.dest.toHexString() === ST_RSR_ADDRESS) {
+    exponentToBigDecimal(event.params.rsrDist)
+      .times(BigDecimal.fromString("100"))
+      .div(totalShares);
+    rToken.save();
+  }
 }
 
 export function handleRevenueDistributed(event: RevenueDistributed): void {
   let rTokenContract = RTokenContract.load(event.address.toHexString())!;
   let rToken = RToken.load(rTokenContract.rToken)!;
+  let amount = bigIntToBigDecimal(event.params.amount);
 
   // Revenue for stakers
   if (event.params.erc20.equals(RSR_ADDRESS)) {
-    rToken.cumulativeStakerRevenue = rToken.cumulativeStakerRevenue.plus(
-      event.params.amount
+    // Calculate shares for stakers
+    let stakersRevenue = amount
+      .times(rToken.stakersRewardShare)
+      .div(BigDecimal.fromString("100"));
+
+    updateRSRRevenueDistributed(
+      rToken,
+      event.params.amount,
+      stakersRevenue,
+      event
     );
   } else {
-    rToken.cumulativeRTokenRevenue = rToken.cumulativeRTokenRevenue.plus(
-      event.params.amount
+    // Calculate shares for stakers
+    let holdersRevenue = amount
+      .times(rToken.holdersRewardShare)
+      .div(BigDecimal.fromString("100"));
+
+    updateRTokenRevenueDistributed(
+      rToken,
+      event.params.amount,
+      holdersRevenue,
+      event
     );
   }
-  rToken.save();
 }
 
 function roleToProp(role: string): string {

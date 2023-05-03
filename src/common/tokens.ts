@@ -139,13 +139,11 @@ class StaticTokenDefinition {
 }
 
 export function getTokenPrice(address: Address): BigDecimal {
-  let tokenPrice: BigDecimal;
+  let tokenPrice = BIGDECIMAL_ZERO;
   let fetchPrice = getUsdPricePerToken(address);
+
   if (!fetchPrice.reverted) {
     tokenPrice = fetchPrice.usdPrice.div(fetchPrice.decimalsBaseTen);
-  } else {
-    // default value of this variable, if reverted is BigDecimal Zero
-    tokenPrice = fetchPrice.usdPrice;
   }
 
   return tokenPrice;

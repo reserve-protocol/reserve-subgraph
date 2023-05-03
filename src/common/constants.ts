@@ -164,6 +164,9 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 ///// Protocol Specific /////
 /////////////////////////////
 
+export const FURNACE_ADDRESS = "0x0000000000000000000000000000000000000001";
+export const ST_RSR_ADDRESS = "0x0000000000000000000000000000000000000002";
+
 export const FACADE_ADDRESS = "0x80b24e984e4fc92a4846b044286DcCcd66564DB9";
 
 // Tokens

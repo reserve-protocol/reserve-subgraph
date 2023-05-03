@@ -358,20 +358,38 @@ type RToken @entity {
   " Total RSR unStaked "
   rsrUnstaked: BigInt!
 
+  " Total RToken revenue distributed "
+  distributedRTokenRevenue: BigInt!
+
+  " Total RSR revenue distributed "
+  distributedRSRRevenue: BigInt!
+
   " Exchange rate between basket units to totalSupply of rToken "
   basketRate: BigDecimal!
 
-  " Revenue given to RToken holders "
+  " holders rewards distribution share "
+  holdersRewardShare: BigDecimal!
+
+  " Stakers rewards distribution share % "
+  stakersRewardShare: BigDecimal!
+
+  " Revenue given to RToken holders /TODO: Remove "
   cumulativeRTokenRevenueUSD: BigDecimal!
 
   " Revenue given to RToken holders "
-  cumulativeRTokenRevenue: BigInt!
+  cumulativeRTokenRevenue: BigDecimal!
 
   " Revenue given to RSR Stakers "
-  cumulativeStakerRevenue: BigInt!
+  cumulativeStakerRevenue: BigDecimal!
 
-  " Revenue given to RSR Stakers "
+  " Revenue given to RSR Stakers /TODO: Remove"
   cumulativeInsuranceRevenueUSD: BigDecimal!
+
+  " Total revenue distributed in RSR "
+  totalDistributedRSRRevenue: BigInt!
+
+  " Total revenue distributed in RToken "
+  totalDistributedRTokenRevenue: BigInt!
 
   " Targets units for the primary basket"
   targetUnits: String!
