@@ -78,6 +78,7 @@ export namespace Roles {
   export const PAUSER = "PAUSER";
   export const SHORT_FREEZER = "SHORT_FREEZER";
   export const LONG_FREEZER = "LONG_FREEZER";
+  export const GUARDIAN = "CANCELLER_ROLE";
 }
 
 export namespace ContractName {

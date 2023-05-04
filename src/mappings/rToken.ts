@@ -111,6 +111,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.freezers = [];
   rToken.pausers = [];
   rToken.longFreezers = [];
+  rToken.guardians = [];
   rToken.cumulativeUniqueUsers = INT_ONE;
   rToken.rewardTokenSupply = BIGINT_ZERO;
   rToken.rsrPriceUSD = getRSRPrice();
@@ -371,6 +372,8 @@ function roleToProp(role: string): string {
     return "pausers";
   } else if (role == Roles.SHORT_FREEZER) {
     return "freezers";
+  } else if (role == Roles.GUARDIAN) {
+    return "guardians";
   }
 
   return "longFreezers";

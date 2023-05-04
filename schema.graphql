@@ -327,6 +327,9 @@ type RToken @entity {
   " long freezers (this role is revoked after action) "
   longFreezers: [String!]!
 
+  " Guardians "
+  guardians: [String!]!
+
   ##### Quantitative Data ####
   " Collaterization of this rToken %"
   backing: BigInt!
