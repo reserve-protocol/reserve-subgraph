@@ -321,7 +321,7 @@ templates:
           file: ./abis/ERC20.json
       eventHandlers:
         - event: TradeStarted(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleTrade
+          handler: handistributedRTokenRevenuedleTrade
       file: ./src/mappings/rToken.ts
   - name: BackingManager
     kind: ethereum/contract

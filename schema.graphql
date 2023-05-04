@@ -358,12 +358,6 @@ type RToken @entity {
   " Total RSR unStaked "
   rsrUnstaked: BigInt!
 
-  " Total RToken revenue distributed "
-  distributedRTokenRevenue: BigInt!
-
-  " Total RSR revenue distributed "
-  distributedRSRRevenue: BigInt!
-
   " Exchange rate between basket units to totalSupply of rToken "
   basketRate: BigDecimal!
 
