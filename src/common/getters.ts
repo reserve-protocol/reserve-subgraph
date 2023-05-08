@@ -50,12 +50,14 @@ export function getOrCreateProtocol(): Protocol {
     protocol.subgraphVersion = PROTOCOL_SUBGRAPH_VERSION;
     protocol.methodologyVersion = PROTOCOL_METHODOLOGY_VERSION;
 
-    protocol.insurance = BIGINT_ZERO;
-    protocol.insuranceUSD = BIGDECIMAL_ZERO;
+    protocol.rsrStaked = BIGINT_ZERO;
+    protocol.rsrStakedUSD = BIGDECIMAL_ZERO;
+    protocol.totalRsrStaked = BIGINT_ZERO;
+    protocol.totalRsrStakedUSD = BIGDECIMAL_ZERO;
     protocol.totalValueLockedUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
-    protocol.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+    protocol.cumulativeRSRRevenueUSD = BIGDECIMAL_ZERO;
     protocol.transactionCount = BIGINT_ZERO;
     protocol.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeUniqueUsers = INT_ZERO;
@@ -63,8 +65,8 @@ export function getOrCreateProtocol(): Protocol {
 
     protocol.rsrStaked = BIGINT_ZERO;
     protocol.rsrStakedUSD = BIGDECIMAL_ZERO;
-    protocol.rsrUnstaked = BIGINT_ZERO;
-    protocol.rsrUnstakedUSD = BIGDECIMAL_ZERO;
+    protocol.totalRsrUnstaked = BIGINT_ZERO;
+    protocol.totalRsrUnstakedUSD = BIGDECIMAL_ZERO;
     protocol.totalRTokenUSD = BIGDECIMAL_ZERO; // Maybe duplicated from cumulative volume
     protocol.rTokenCount = INT_ZERO;
 
@@ -170,15 +172,15 @@ export function getOrCreateFinancialsDailySnapshot(
     financialMetrics = new FinancialsDailySnapshot(id);
     financialMetrics.protocol = PROTOCOL_SLUG;
 
-    financialMetrics.insurance = BIGINT_ZERO;
-    financialMetrics.insuranceUSD = BIGDECIMAL_ZERO;
+    financialMetrics.rsrStaked = BIGINT_ZERO;
+    financialMetrics.rsrStakedUSD = BIGDECIMAL_ZERO;
 
     financialMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
     financialMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;
     financialMetrics.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
 
     financialMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
-    financialMetrics.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+    financialMetrics.cumulativeRSRRevenueUSD = BIGDECIMAL_ZERO;
     financialMetrics.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
     financialMetrics.totalRTokenUSD = BIGDECIMAL_ZERO;
 
@@ -211,7 +213,7 @@ export function getOrCreateRTokenDailySnapshot(
 
     rTokenMetrics.dailyActiveUsers = INT_ZERO;
     rTokenMetrics.cumulativeUniqueUsers = INT_ZERO;
-    rTokenMetrics.insurance = BIGINT_ZERO;
+    rTokenMetrics.rsrStaked = BIGINT_ZERO;
     rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
     rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.dailyRSRStaked = BIGINT_ZERO;
@@ -223,8 +225,8 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics.basketRate = BIGDECIMAL_ZERO;
     rTokenMetrics.dailyRTokenRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.dailyInsuranceRevenueUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.dailyRSRRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.cumulativeRSRRevenueUSD = BIGDECIMAL_ZERO;
 
     rTokenMetrics.save();
   }
@@ -253,7 +255,7 @@ export function getOrCreateRTokenHourlySnapshot(
 
     rTokenMetrics.hourlyActiveUsers = INT_ZERO;
     rTokenMetrics.cumulativeUniqueUsers = INT_ZERO;
-    rTokenMetrics.insurance = BIGINT_ZERO;
+    rTokenMetrics.rsrStaked = BIGINT_ZERO;
     rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
     rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.hourlyRSRStaked = BIGINT_ZERO;
@@ -265,8 +267,8 @@ export function getOrCreateRTokenHourlySnapshot(
     rTokenMetrics.basketRate = BIGDECIMAL_ZERO;
     rTokenMetrics.hourlyRTokenRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.hourlyInsuranceRevenueUSD = BIGDECIMAL_ZERO;
-    rTokenMetrics.cumulativeInsuranceRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.hourlyRSRRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.cumulativeRSRRevenueUSD = BIGDECIMAL_ZERO;
 
     rTokenMetrics.save();
   }

@@ -43,15 +43,15 @@ export function updateFinancials(
     amountUSD
   );
   financialMetricsDaily.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD;
-  financialMetricsDaily.insurance = protocol.insurance;
-  financialMetricsDaily.insuranceUSD = protocol.insuranceUSD;
+  financialMetricsDaily.rsrStaked = protocol.rsrStaked;
+  financialMetricsDaily.rsrStakedUSD = protocol.rsrStakedUSD;
 
   financialMetricsDaily.cumulativeTotalRevenueUSD =
     protocol.cumulativeRTokenRevenueUSD;
   financialMetricsDaily.cumulativeRTokenRevenueUSD =
     protocol.cumulativeRTokenRevenueUSD;
-  financialMetricsDaily.cumulativeInsuranceRevenueUSD =
-    protocol.cumulativeInsuranceRevenueUSD;
+  financialMetricsDaily.cumulativeRSRRevenueUSD =
+    protocol.cumulativeRSRRevenueUSD;
   financialMetricsDaily.totalRTokenUSD = protocol.totalRTokenUSD;
 
   financialMetricsDaily.save();
@@ -182,10 +182,11 @@ export function updateRTokenMetrics(
     protocol.totalRTokenUSD = protocol.totalRTokenUSD.minus(amountUSD);
   } else if (entryType === EntryType.STAKE) {
     protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
-    protocol.insurance = protocol.insurance.plus(amount);
-    protocol.insuranceUSD = getUsdValue(protocol.insurance, rsrPrice);
     protocol.rsrStaked = protocol.rsrStaked.plus(amount);
     protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsrPrice);
+
+    protocol.totalRsrStaked = protocol.totalRsrStaked.plus(amount);
+    protocol.totalRsrStakedUSD = getUsdValue(protocol.totalRsrStaked, rsrPrice);
 
     usageMetricsDaily.dailyRSRStaked = usageMetricsDaily.dailyRSRStaked.plus(
       amount
@@ -204,14 +205,17 @@ export function updateRTokenMetrics(
     );
 
     // rToken
-    rToken.insurance = rToken.insurance.plus(amount);
     rToken.rsrStaked = rToken.rsrStaked.plus(amount);
+    rToken.totalRsrStaked = rToken.totalRsrStaked.plus(amount);
 
     rTokenDaily.dailyRSRStaked = rTokenDaily.dailyRSRStaked.plus(amount);
     rTokenHourly.hourlyRSRStaked = rTokenHourly.hourlyRSRStaked.plus(amount);
   } else if (entryType === EntryType.UNSTAKE) {
-    protocol.rsrUnstaked = protocol.rsrUnstaked.plus(amount);
-    protocol.rsrUnstakedUSD = getUsdValue(protocol.rsrUnstaked, rsrPrice);
+    protocol.totalRsrUnstaked = protocol.totalRsrUnstaked.plus(amount);
+    protocol.totalRsrUnstakedUSD = getUsdValue(
+      protocol.totalRsrUnstaked,
+      rsrPrice
+    );
 
     usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRUnstaked.plus(
       amount
@@ -229,17 +233,17 @@ export function updateRTokenMetrics(
     );
 
     // rToken
-    rToken.rsrUnstaked = rToken.rsrUnstaked.plus(amount);
+    rToken.totalRsrUnstaked = rToken.totalRsrUnstaked.plus(amount);
 
     rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
     rTokenHourly.hourlyRSRUnstaked = rTokenHourly.hourlyRSRUnstaked.plus(
       amount
     );
   } else if (entryType === EntryType.WITHDRAW) {
-    rToken.insurance = rToken.insurance.minus(amount);
+    rToken.rsrStaked = rToken.rsrStaked.minus(amount);
 
-    protocol.insurance = protocol.insurance.minus(amount);
-    protocol.insuranceUSD = getUsdValue(protocol.insurance, rsrPrice);
+    protocol.rsrStaked = protocol.rsrStaked.minus(amount);
+    protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsrPrice);
     protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.minus(
       amountUSD
     );
@@ -255,8 +259,8 @@ export function updateRTokenMetrics(
   // Usage metrics daily cumulative data
   usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
   usageMetricsDaily.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
-  usageMetricsDaily.cumulativeRSRUnstaked = protocol.rsrUnstaked;
-  usageMetricsDaily.cumulativeRSRUnstakedUSD = protocol.rsrUnstakedUSD;
+  usageMetricsDaily.cumulativeRSRUnstaked = protocol.totalRsrUnstaked;
+  usageMetricsDaily.cumulativeRSRUnstakedUSD = protocol.totalRsrUnstakedUSD;
   usageMetricsDaily.blockNumber = event.block.number;
   usageMetricsDaily.timestamp = event.block.timestamp;
   usageMetricsDaily.dailyTransactionCount += INT_ONE;
@@ -266,8 +270,8 @@ export function updateRTokenMetrics(
   // Usage metrics hourly cumulative data
   usageMetricsHourly.cumulativeRSRStaked = protocol.rsrStaked;
   usageMetricsHourly.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
-  usageMetricsHourly.cumulativeRSRUnstaked = protocol.rsrUnstaked;
-  usageMetricsHourly.cumulativeRSRUnstakedUSD = protocol.rsrUnstakedUSD;
+  usageMetricsHourly.cumulativeRSRUnstaked = protocol.totalRsrUnstaked;
+  usageMetricsHourly.cumulativeRSRUnstakedUSD = protocol.totalRsrUnstakedUSD;
   usageMetricsHourly.blockNumber = event.block.number;
   usageMetricsHourly.timestamp = event.block.timestamp;
   usageMetricsHourly.hourlyTransactionCount += INT_ONE;
@@ -277,9 +281,9 @@ export function updateRTokenMetrics(
   // rToken daily cumulative data
   rTokenDaily.rsrExchangeRate = rToken.rsrExchangeRate;
   rTokenDaily.basketRate = rToken.basketRate;
-  rTokenDaily.insurance = rToken.insurance;
-  rTokenDaily.cumulativeRSRStaked = rToken.rsrStaked;
-  rTokenDaily.cumulativeRSRUnstaked = rToken.rsrUnstaked;
+  rTokenDaily.rsrStaked = rToken.rsrStaked;
+  rTokenDaily.cumulativeRSRStaked = rToken.totalRsrStaked;
+  rTokenDaily.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
   rTokenDaily.blockNumber = event.block.number;
   rTokenDaily.timestamp = event.block.timestamp;
   rTokenDaily.save();
@@ -287,9 +291,9 @@ export function updateRTokenMetrics(
   // rToken hourly cumulative data
   rTokenHourly.rsrExchangeRate = rToken.rsrExchangeRate;
   rTokenHourly.basketRate = rToken.basketRate;
-  rTokenHourly.insurance = rToken.insurance;
-  rTokenHourly.cumulativeRSRStaked = rToken.rsrStaked;
-  rTokenHourly.cumulativeRSRUnstaked = rToken.rsrUnstaked;
+  rTokenHourly.rsrStaked = rToken.rsrStaked;
+  rTokenHourly.cumulativeRSRStaked = rToken.totalRsrStaked;
+  rTokenHourly.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
   rTokenHourly.blockNumber = event.block.number;
   rTokenHourly.timestamp = event.block.timestamp;
   rTokenHourly.save();
@@ -446,7 +450,7 @@ export function updateRSRRevenueDistributed(
   protocol.cumulativeTotalRevenueUSD = protocol.cumulativeTotalRevenueUSD.plus(
     bigIntToBigDecimal(amount).times(rsrPrice)
   );
-  protocol.cumulativeInsuranceRevenueUSD = protocol.cumulativeInsuranceRevenueUSD.plus(
+  protocol.cumulativeRSRRevenueUSD = protocol.cumulativeRSRRevenueUSD.plus(
     stakersShare.times(rsrPrice)
   );
   protocol.save();
