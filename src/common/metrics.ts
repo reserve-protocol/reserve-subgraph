@@ -411,10 +411,10 @@ export function updateRTokenRevenueDistributed(
   let protocol = getOrCreateProtocol();
   let token = getTokenUpdated(rToken.id, event);
 
-  rToken.cumulativeRTokenRevenue = rToken.cumulativeStakerRevenue.plus(
+  rToken.cumulativeRTokenRevenue = rToken.cumulativeRTokenRevenue.plus(
     holdersShare
   );
-  rToken.totalDistributedRTokenRevenue = rToken.totalDistributedRSRRevenue.plus(
+  rToken.totalDistributedRTokenRevenue = rToken.totalDistributedRTokenRevenue.plus(
     amount
   );
   rToken.save();
@@ -453,6 +453,7 @@ export function updateRSRRevenueDistributed(
   protocol.cumulativeRSRRevenueUSD = protocol.cumulativeRSRRevenueUSD.plus(
     stakersShare.times(rsrPrice)
   );
+  protocol.rsrRevenue = protocol.rsrRevenue.plus(stakersShare);
   protocol.save();
 }
 

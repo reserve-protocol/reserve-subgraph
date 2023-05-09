@@ -57,6 +57,7 @@ export function getOrCreateProtocol(): Protocol {
     protocol.totalValueLockedUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeVolumeUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
+    protocol.rsrRevenue = BIGDECIMAL_ZERO;
     protocol.cumulativeRSRRevenueUSD = BIGDECIMAL_ZERO;
     protocol.transactionCount = BIGINT_ZERO;
     protocol.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;

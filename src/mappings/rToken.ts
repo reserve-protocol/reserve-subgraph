@@ -1,4 +1,10 @@
-import { Address, BigDecimal, BigInt, Value } from "@graphprotocol/graph-ts";
+import {
+  Address,
+  BigDecimal,
+  BigInt,
+  Value,
+  log,
+} from "@graphprotocol/graph-ts";
 import {
   RToken,
   RTokenContract,
@@ -108,7 +114,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   for (let i = 0; i < targetBytes.length; i++) {
     let targetName = targetBytes[i].toString();
 
-    if (targets.indexOf(targetName) === -1) {
+    if (targets.indexOf(targetName) == -1) {
       targets.push(targetName);
     }
   }
@@ -310,7 +316,7 @@ export function handleRoleGranted(event: RoleGranted): void {
   let role = roleToProp(event.params.role.toString());
   let current = rToken.get(role)!.toStringArray();
 
-  if (current.indexOf(event.params.account.toHexString()) === -1) {
+  if (current.indexOf(event.params.account.toHexString()) == -1) {
     current.push(event.params.account.toHexString());
     rToken.set(role, Value.fromStringArray(current));
     rToken.save();
@@ -360,7 +366,7 @@ export function handleRoleRevoked(event: RoleRevoked): void {
   let current = rToken.get(role)!.toStringArray();
   let index = current.indexOf(event.params.account.toHexString());
 
-  if (index !== -1) {
+  if (index != -1) {
     rToken.set(
       role,
       Value.fromStringArray(removeFromArrayAtIndex(current, index))
@@ -391,15 +397,21 @@ export function handleDistribution(event: DistributionSet): void {
 
   const totalShares = BigDecimal.fromString("10000");
 
-  if (event.params.dest.toHexString() === FURNACE_ADDRESS) {
-    rToken.holdersRewardShare = exponentToBigDecimal(event.params.rTokenDist)
+  if (event.params.dest.toHexString() == FURNACE_ADDRESS) {
+    rToken.holdersRewardShare = BigDecimal.fromString(
+      event.params.rTokenDist.toString()
+    )
       .times(BigDecimal.fromString("100"))
       .div(totalShares);
+
     rToken.save();
-  } else if (event.params.dest.toHexString() === ST_RSR_ADDRESS) {
-    exponentToBigDecimal(event.params.rsrDist)
+  } else if (event.params.dest.toHexString() == ST_RSR_ADDRESS) {
+    rToken.stakersRewardShare = BigDecimal.fromString(
+      event.params.rsrDist.toString()
+    )
       .times(BigDecimal.fromString("100"))
       .div(totalShares);
+
     rToken.save();
   }
 }
