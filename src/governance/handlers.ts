@@ -366,7 +366,7 @@ export function _handleProposalQueued(
   proposal.executionETA = eta;
   if (!executionDelay.reverted) {
     proposal.executionStartBlock = event.block.number.plus(
-      executionDelay.value
+      executionDelay.value.div(BigInt.fromI32(12))
     );
   }
   proposal.save();
