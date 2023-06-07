@@ -27,6 +27,7 @@ import {
   VotingDelaySet,
   VotingPeriodSet,
 } from "./../../generated/templates/Governance/Governor";
+import { Timelock } from "../../generated/templates/Main/Timelock";
 
 // ProposalCanceled(proposalId)
 export function handleProposalCanceled(event: ProposalCanceled): void {
@@ -169,11 +170,14 @@ export function getGovernanceFramework(
     governanceFramework = new GovernanceFramework(contractAddress);
     let rTokenContract = RTokenContract.load(contractAddress)!;
     const contract = Governor.bind(Address.fromString(contractAddress));
+    const timelockAddress = contract.timelock();
+    const timelockContract = Timelock.bind(timelockAddress);
 
     governanceFramework.name = contract.name();
 
     governanceFramework.contractAddress = contractAddress;
-    governanceFramework.timelockAddress = contract.timelock().toHexString();
+    governanceFramework.timelockAddress = timelockAddress.toHexString();
+    governanceFramework.executionDelay = timelockContract.getMinDelay();
 
     governanceFramework.votingDelay = contract.votingDelay();
     governanceFramework.votingPeriod = contract.votingPeriod();
@@ -181,6 +185,7 @@ export function getGovernanceFramework(
     governanceFramework.quorumNumerator = contract.quorumNumerator(blockNumber);
     governanceFramework.quorumDenominator = contract.quorumDenominator();
     governanceFramework.governance = rTokenContract.rToken;
+    governanceFramework.save();
   }
 
   return governanceFramework;

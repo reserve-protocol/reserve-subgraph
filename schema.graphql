@@ -1049,6 +1049,9 @@ type Governance @entity {
   governanceFrameworks: [GovernanceFramework!]!
     @derivedFrom(field: "governance")
 
+  "Guardian role"
+  guardians: [String!]!
+
   " Proposal list "
   proposalList: [Proposal!]! @derivedFrom(field: "governance")
 }
@@ -1062,6 +1065,8 @@ type GovernanceFramework @entity {
   contractAddress: String!
   "The contract address associated with the contract that manages the delay of administrative actions for the governance framework"
   timelockAddress: String!
+  "timelock execution delay"
+  executionDelay: BigInt!
 
   "The delay before voting on a proposal may take place in blocks"
   votingDelay: BigInt!

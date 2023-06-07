@@ -76,7 +76,9 @@ export function getGovernance(id: string): Governance {
     governance.proposalsQueued = BIGINT_ZERO;
     governance.proposalsExecuted = BIGINT_ZERO;
     governance.proposalsCanceled = BIGINT_ZERO;
+    governance.guardians = [];
     governance.rToken = id;
+    governance.save();
   }
 
   return governance;
