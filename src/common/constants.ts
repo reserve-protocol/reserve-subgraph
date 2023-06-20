@@ -63,6 +63,7 @@ export namespace EntryType {
   export const CLAIM = "CLAIM";
   export const STAKE = "STAKE";
   export const UNSTAKE = "UNSTAKE";
+  export const UNSTAKE_CANCELLED = "UNSTAKE_CANCELLED";
   export const WITHDRAW = "WITHDRAW";
   export const BURN = "BURN";
   export const MINT = "MINT";
