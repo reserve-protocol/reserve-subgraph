@@ -1,3 +1,4 @@
+import { DutchTrade } from "./../../generated/templates/BackingManager/DutchTrade";
 import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   Account,
@@ -7,11 +8,13 @@ import {
   FinancialsDailySnapshot,
   Protocol,
   RewardToken,
+  RTokenContract,
   RTokenDailySnapshot,
   RTokenHourlySnapshot,
   Token,
   TokenDailySnapshot,
   TokenHourlySnapshot,
+  Trade,
   UsageMetricsDailySnapshot,
   UsageMetricsHourlySnapshot,
 } from "../../generated/schema";
@@ -30,6 +33,7 @@ import {
   RSV_ADDRESS,
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
+  TradeKind,
 } from "../common/constants";
 import {
   AccountBalance,
@@ -38,6 +42,12 @@ import {
 } from "./../../generated/schema";
 import { updateRTokenUniqueUsers } from "./metrics";
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
+import { GnosisTrade } from "../../generated/templates/BackingManager/GnosisTrade";
+import {
+  TradeSettled,
+  TradeStarted,
+} from "../../generated/templates/RevenueTrader/RevenueTrader";
+import { bigIntToBigDecimal } from "./utils/numbers";
 
 export function getOrCreateProtocol(): Protocol {
   let protocol = Protocol.load(PROTOCOL_SLUG);
@@ -580,6 +590,65 @@ export function getTokenAccount(
   }
 
   return account;
+}
+
+export function getOrCreateTrade(event: TradeStarted | TradeSettled): Trade {
+  let trade = Trade.load(event.params.trade.toHexString());
+
+  if (!trade) {
+    trade = new Trade(event.params.trade.toHexString());
+
+    let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+    let tradeContract = GnosisTrade.bind(event.params.trade);
+
+    // Check if its a batch trade
+    let auctionId = tradeContract.try_auctionId();
+
+    if (auctionId.reverted) {
+      let dutchTrade = DutchTrade.bind(event.params.trade);
+      trade.worstCasePrice = bigIntToBigDecimal(dutchTrade.worstPrice());
+      trade.endAt = dutchTrade.endTime();
+      trade.endblock = dutchTrade.endBlock();
+      trade.startBlock = dutchTrade.startBlock();
+      trade.kind = TradeKind.DUTCH_AUCTION;
+    } else {
+      trade.worstCasePrice = bigIntToBigDecimal(tradeContract.worstCasePrice());
+      trade.endAt = tradeContract.endTime();
+      trade.auctionId = auctionId.value;
+      trade.kind = TradeKind.BATCH_AUCTION;
+    }
+
+    let buyTokenDecimals = fetchTokenDecimals(event.params.buy);
+    let sellTokenDecimals = fetchTokenDecimals(event.params.sell);
+
+    trade.amount = bigIntToBigDecimal(
+      event.params.sellAmount,
+      sellTokenDecimals
+    );
+    if (event instanceof TradeStarted) {
+      trade.minBuyAmount = bigIntToBigDecimal(
+        event.params.minBuyAmount,
+        buyTokenDecimals
+      );
+    } else {
+      trade.minBuyAmount = bigIntToBigDecimal(
+        event.params.buyAmount,
+        buyTokenDecimals
+      );
+    }
+
+    trade.sellingTokenSymbol = fetchTokenSymbol(event.params.sell);
+    trade.buyingTokenSymbol = fetchTokenSymbol(event.params.buy);
+    trade.selling = event.params.sell.toHexString();
+    trade.buying = event.params.buy.toHexString();
+    trade.startedAt = event.block.timestamp;
+    trade.rToken = rTokenContract.rToken;
+    trade.isSettled = false;
+
+    trade.save();
+  }
+
+  return trade;
 }
 
 export function getDaysSinceEpoch(secondsSinceEpoch: number): string {

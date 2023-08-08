@@ -532,14 +532,16 @@ type RTokenHourlySnapshot @entity {
 }
 
 type Trade @entity {
-  " { RTokenId }-{ Smart contract address of the auction } "
+  " { Smart contract address of the auction } "
   id: ID!
-  " GnosisAuctionId "
-  auctionId: BigInt!
+  " GnosisAuctionId - Optional not required for dutchTrades "
+  auctionId: BigInt
   " Auction trade amount "
   amount: BigDecimal!
   " Min buy amount "
   minBuyAmount: BigDecimal!
+  " amount bought (on settle) "
+  boughtAmount: BigDecimal
   " Worst case price "
   worstCasePrice: BigDecimal!
   " Selling token "
@@ -552,10 +554,18 @@ type Trade @entity {
   buyingTokenSymbol: String!
   " started At timestamp "
   startedAt: BigInt!
+  " Started block (dutch) "
+  startBlock: BigInt
+  " End Block "
+  endblock: BigInt
   " End time timestamp "
   endAt: BigInt!
   " rToken id "
   rToken: RToken!
+  " is Settled "
+  isSettled: Boolean!
+  " Trade kind 0 = dutch 1 = batch "
+  kind: Int!
 }
 
 #############################

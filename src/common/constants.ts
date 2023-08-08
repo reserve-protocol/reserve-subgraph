@@ -177,3 +177,8 @@ export const RSR_ADDRESS = Address.fromString(
 export const RSV_ADDRESS = Address.fromString(
   "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
 );
+
+export enum TradeKind {
+  DUTCH_AUCTION,
+  BATCH_AUCTION,
+}
