@@ -542,11 +542,7 @@ export function getOrCreateEntry(
   amount: BigInt,
   type: string
 ): Entry {
-  let id = tokenId
-    .concat("-")
-    .concat(event.transaction.hash.toHexString())
-    .concat("-")
-    .concat(event.transactionLogIndex.toHexString());
+  let id = tokenId.concat("-").concat(event.transaction.hash.toHexString());
   let entry = Entry.load(id);
 
   if (!entry) {
@@ -592,7 +588,7 @@ export function getTokenAccount(
   return account;
 }
 
-export function getOrCreateTrade(event: TradeStarted | TradeSettled): Trade {
+export function getOrCreateTrade(event: TradeStarted): Trade {
   let trade = Trade.load(event.params.trade.toHexString());
 
   if (!trade) {
@@ -608,7 +604,7 @@ export function getOrCreateTrade(event: TradeStarted | TradeSettled): Trade {
       let dutchTrade = DutchTrade.bind(event.params.trade);
       trade.worstCasePrice = bigIntToBigDecimal(dutchTrade.worstPrice());
       trade.endAt = dutchTrade.endTime();
-      trade.endblock = dutchTrade.endBlock();
+      trade.endBlock = dutchTrade.endBlock();
       trade.startBlock = dutchTrade.startBlock();
       trade.kind = TradeKind.DUTCH_AUCTION;
     } else {
@@ -625,25 +621,19 @@ export function getOrCreateTrade(event: TradeStarted | TradeSettled): Trade {
       event.params.sellAmount,
       sellTokenDecimals
     );
-    if (event instanceof TradeStarted) {
-      trade.minBuyAmount = bigIntToBigDecimal(
-        event.params.minBuyAmount,
-        buyTokenDecimals
-      );
-    } else {
-      trade.minBuyAmount = bigIntToBigDecimal(
-        event.params.buyAmount,
-        buyTokenDecimals
-      );
-    }
 
+    trade.minBuyAmount = bigIntToBigDecimal(
+      event.params.minBuyAmount,
+      buyTokenDecimals
+    );
+
+    trade.isSettled = false;
     trade.sellingTokenSymbol = fetchTokenSymbol(event.params.sell);
     trade.buyingTokenSymbol = fetchTokenSymbol(event.params.buy);
     trade.selling = event.params.sell.toHexString();
     trade.buying = event.params.buy.toHexString();
     trade.startedAt = event.block.timestamp;
     trade.rToken = rTokenContract.rToken;
-    trade.isSettled = false;
 
     trade.save();
   }

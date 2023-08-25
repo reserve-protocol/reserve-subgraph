@@ -51,7 +51,7 @@ export function handleStake(event: Staked): void {
       event,
       rTokenId,
       account.id,
-      event.params.rsrAmount,
+      event.params.stRSRAmount,
       EntryType.STAKE
     );
 

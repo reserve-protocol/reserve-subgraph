@@ -557,13 +557,15 @@ type Trade @entity {
   " Started block (dutch) "
   startBlock: BigInt
   " End Block "
-  endblock: BigInt
+  endBlock: BigInt
   " End time timestamp "
   endAt: BigInt!
   " rToken id "
   rToken: RToken!
-  " is Settled "
+  " Is settle check "
   isSettled: Boolean!
+  " Settle tx hash "
+  settleTxHash: String
   " Trade kind 0 = dutch 1 = batch "
   kind: Int!
 }

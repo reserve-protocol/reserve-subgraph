@@ -4,6 +4,7 @@ import {
   RTokenContract,
   RevenueDistribution,
   Token,
+  Trade,
 } from "../../generated/schema";
 import {
   BackingManager,
@@ -274,11 +275,12 @@ export function handleTrade(event: TradeStarted): void {
   getOrCreateTrade(event);
 }
 
-export function handleTradeSettled(event: TradeSettled): void {
-  const trade = getOrCreateTrade(event);
+export function handleTradeSettle(event: TradeSettled): void {
+  const trade = Trade.load(event.params.trade.toHexString())!;
   let buyTokenDecimals = fetchTokenDecimals(event.params.buy);
 
   trade.isSettled = true;
+  trade.settleTxHash = event.transaction.hash.toHexString();
   trade.boughtAmount = bigIntToBigDecimal(
     event.params.buyAmount,
     buyTokenDecimals
