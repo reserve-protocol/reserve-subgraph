@@ -239,7 +239,11 @@ export function updateRTokenMetrics(
     rTokenHourly.hourlyRSRUnstaked = rTokenHourly.hourlyRSRUnstaked.plus(
       amount
     );
-  } else if (entryType === EntryType.WITHDRAW) {
+  } else if (
+    entryType === EntryType.WITHDRAW ||
+    entryType === EntryType.UNSTAKE_CANCELLED
+  ) {
+    // When an "unstake_cancelled" happens, is basically unstake -> stake so we consider it a withdraw
     rToken.rsrStaked = rToken.rsrStaked.minus(amount);
 
     protocol.rsrStaked = protocol.rsrStaked.minus(amount);

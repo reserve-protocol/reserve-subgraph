@@ -2,13 +2,12 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
-  # Deployer Registry
   - kind: ethereum/contract
     name: DeployerRegistry
     network: mainnet
     source:
-      address: "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe"
       abi: DeployerRegistry
+      address: "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe"
       startBlock: 16680990
     mapping:
       kind: ethereum/events
@@ -23,7 +22,6 @@ dataSources:
         - event: DeploymentRegistered(string,address)
           handler: handleDeploymentRegistered
       file: ./src/mappings/deployerRegistry.ts
-  # RSV tracks ERC20 transactions
   - name: RSV
     kind: ethereum/contract
     network: mainnet
@@ -46,13 +44,8 @@ dataSources:
           file: ./abis/ERC20.json
         - name: Facade
           file: ./abis/Facade.json
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
         - name: PriceOracleERC20
           file: ./abis/Prices/ERC20.json
-        # Chainlink Contracts
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -61,14 +54,12 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
       file: ./src/mappings/common.ts
-  # Deployer v1.0 - required because contract added to registry after eUSD deployment
-  # duplicate of template definition below
   - kind: ethereum/contract
     name: Deployer
     network: mainnet
     source:
-      address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
       abi: Deployer
+      address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
       startBlock: 16680990
     mapping:
       kind: ethereum/events
@@ -90,13 +81,8 @@ dataSources:
           file: ./abis/ERC20.json
         - name: Facade
           file: ./abis/Facade.json
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
         - name: PriceOracleERC20
           file: ./abis/Prices/ERC20.json
-        # Chainlink Contracts
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -106,7 +92,6 @@ dataSources:
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
 templates:
-  # Deployer
   - kind: ethereum/contract
     name: Deployer
     network: mainnet
@@ -132,22 +117,17 @@ templates:
           file: ./abis/ERC20.json
         - name: Facade
           file: ./abis/Facade.json
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
         - name: PriceOracleERC20
           file: ./abis/Prices/ERC20.json
-        # Chainlink Contracts
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
           file: ./abis/Prices/ChainlinkAggregator.json
       eventHandlers:
-        - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
+        - event: RTokenCreated(indexed address,indexed address,address,indexed
+            address,string)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
-  # Track RToken ERC20 events
   - name: RToken
     kind: ethereum/contract
     network: mainnet
@@ -171,14 +151,8 @@ templates:
           file: ./abis/Facade.json
         - name: ERC20
           file: ./abis/ERC20.json
-
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
         - name: PriceOracleERC20
           file: ./abis/Prices/ERC20.json
-        # Chainlink Contracts
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -197,7 +171,7 @@ templates:
     kind: ethereum/contract
     network: mainnet
     source:
-      abi: stRSR # RToken Main
+      abi: stRSR
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -216,27 +190,25 @@ templates:
           file: ./abis/stRSR.json
         - name: Facade
           file: ./abis/Facade.json
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
         - name: PriceOracleERC20
           file: ./abis/Prices/ERC20.json
-        # Chainlink Contracts
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
           file: ./abis/Prices/ChainlinkAggregator.json
       eventHandlers:
-        # Staking events
         - event: Staked(indexed uint256,indexed address,uint256,indexed uint256)
           handler: handleStake
         - event: UnstakingStarted(indexed uint256,indexed uint256,indexed address,uint256,uint256,uint256)
           handler: handleUnstakeStarted
-        - event: UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed address,uint256)
+        - event:
+            UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
+            address,uint256)
           handler: handleUnstake
         - event: ExchangeRateSet(indexed uint192,indexed uint192)
           handler: handleExchangeRate
+        - event: UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed address,uint256)
+          handler: handleUnstakeCancel
       file: ./src/mappings/stRSR.ts
   - name: Main
     kind: ethereum/contract
@@ -280,7 +252,7 @@ templates:
         - event: RoleGranted(indexed bytes32,indexed address,indexed address)
           handler: handleTimelockRoleGranted
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleRevoked
+          handler: handleTimelockRoleRevoked
       file: ./src/mappings/rToken.ts
   - name: Distributor
     kind: ethereum/contract
@@ -297,13 +269,10 @@ templates:
       abis:
         - name: Distributor
           file: ./abis/distributor.json
-        ###########################################
-        ############## Price Oracle ###############
-        ###########################################
-        # ERC20
         - name: PriceOracleERC20
           file: ./abis/Prices/ERC20.json
-        # Chainlink Contracts
+        - name: Facade
+          file: ./abis/Facade.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -331,11 +300,17 @@ templates:
           file: ./abis/RevenueTrader.json
         - name: GnosisTrade
           file: ./abis/GnosisTrade.json
+        - name: DutchTrade
+          file: ./abis/DutchTrade.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        - event: TradeStarted(indexed address,indexed address,indexed address,uint256,uint256)
+        - event: TradeStarted(indexed address,indexed address,indexed
+            address,uint256,uint256)
           handler: handleTrade
+        - event: TradeSettled(indexed address,indexed address,indexed
+            address,uint256,uint256)
+          handler: handleTradeSettle
       file: ./src/mappings/rToken.ts
   - name: BackingManager
     kind: ethereum/contract
@@ -354,11 +329,17 @@ templates:
           file: ./abis/BackingManager.json
         - name: GnosisTrade
           file: ./abis/GnosisTrade.json
+        - name: DutchTrade
+          file: ./abis/DutchTrade.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        - event: TradeStarted(indexed address,indexed address,indexed address,uint256,uint256)
+        - event: TradeStarted(indexed address,indexed address,indexed
+            address,uint256,uint256)
           handler: handleTrade
+        - event: TradeSettled(indexed address,indexed address,indexed
+            address,uint256,uint256)
+          handler: handleTradeSettle
       file: ./src/mappings/rToken.ts
   - name: Governance
     kind: ethereum/contract

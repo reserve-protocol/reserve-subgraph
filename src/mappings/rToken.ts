@@ -1,10 +1,4 @@
-import {
-  Address,
-  BigDecimal,
-  BigInt,
-  Value,
-  log,
-} from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, Value } from "@graphprotocol/graph-ts";
 import {
   RToken,
   RTokenContract,
@@ -36,6 +30,7 @@ import {
   getOrCreateRTokenHourlySnapshot,
   getOrCreateRewardToken,
   getOrCreateToken,
+  getOrCreateTrade,
   getTokenAccount,
 } from "../common/getters";
 import {
@@ -43,20 +38,11 @@ import {
   updateRTokenMetrics,
   updateRTokenRevenueDistributed,
 } from "../common/metrics";
-import {
-  fetchTokenDecimals,
-  fetchTokenSymbol,
-  getRSRPrice,
-} from "../common/tokens";
-import {
-  bigIntToBigDecimal,
-  exponentToBigDecimal,
-} from "../common/utils/numbers";
+import { fetchTokenDecimals, getRSRPrice } from "../common/tokens";
+import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
-// import { DeploymentRegistered } from "./../../generated/Register/Register";
-import { GnosisTrade } from "./../../generated/templates/BackingManager/GnosisTrade";
 import {
   RoleGranted,
   RoleRevoked,
@@ -66,7 +52,10 @@ import {
   RevenueDistributed,
 } from "./../../generated/templates/Distributor/Distributor";
 import { Timelock } from "./../../generated/templates/Main/Timelock";
-import { TradeStarted } from "./../../generated/templates/RevenueTrader/RevenueTrader";
+import {
+  TradeSettled,
+  TradeStarted,
+} from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
 import { removeFromArrayAtIndex } from "../common/utils/arrays";
 import { getGovernance } from "../governance/handlers";
@@ -85,11 +74,6 @@ import {
   ST_RSR_ADDRESS,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
-
-// * Tracks new deployments of the protocol
-// export function handleProtocolDeployed(event: DeploymentRegistered): void {
-//   Deployer.create(event.params.deployer);
-// }
 
 // * Deployer events
 export function handleCreateToken(event: RTokenCreated): void {
@@ -282,30 +266,19 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
 }
 
 export function handleTrade(event: TradeStarted): void {
-  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
-  let tradeContract = GnosisTrade.bind(event.params.trade);
-  let auctionId = tradeContract.auctionId();
-  let worstCasePrice = tradeContract.worstCasePrice();
-  let endAt = tradeContract.endTime();
-  let buyTokenDecimals = fetchTokenDecimals(event.params.buy);
-  let sellTokenDecimals = fetchTokenDecimals(event.params.sell);
+  getOrCreateTrade(event);
+}
 
-  let trade = new Trade(event.params.trade.toHexString());
-  trade.amount = bigIntToBigDecimal(event.params.sellAmount, sellTokenDecimals);
-  trade.minBuyAmount = bigIntToBigDecimal(
-    event.params.minBuyAmount,
+export function handleTradeSettle(event: TradeSettled): void {
+  const trade = Trade.load(event.params.trade.toHexString())!;
+  let buyTokenDecimals = fetchTokenDecimals(event.params.buy);
+
+  trade.isSettled = true;
+  trade.settleTxHash = event.transaction.hash.toHexString();
+  trade.boughtAmount = bigIntToBigDecimal(
+    event.params.buyAmount,
     buyTokenDecimals
   );
-  trade.sellingTokenSymbol = fetchTokenSymbol(event.params.sell);
-  trade.buyingTokenSymbol = fetchTokenSymbol(event.params.buy);
-  trade.worstCasePrice = bigIntToBigDecimal(worstCasePrice);
-  trade.auctionId = auctionId;
-  trade.selling = event.params.sell.toHexString();
-  trade.buying = event.params.buy.toHexString();
-  trade.startedAt = event.block.timestamp;
-  trade.endAt = endAt;
-  trade.rToken = rTokenContract.rToken;
-
   trade.save();
 }
 

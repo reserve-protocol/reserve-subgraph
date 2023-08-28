@@ -8,6 +8,7 @@ import { Account, RToken } from "../../generated/schema";
 import {
   ExchangeRateSet,
   Staked,
+  UnstakingCancelled,
   UnstakingCompleted,
   UnstakingStarted,
 } from "../../generated/templates/stRSR/stRSR";
@@ -50,7 +51,7 @@ export function handleStake(event: Staked): void {
       event,
       rTokenId,
       account.id,
-      event.params.rsrAmount,
+      event.params.stRSRAmount,
       EntryType.STAKE
     );
 
@@ -112,6 +113,44 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
 
     entry.rToken = rTokenId;
     entry.stAmount = event.params.stRSRAmount;
+    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
+      rToken.rsrPriceUSD
+    );
+    entry.save();
+  }
+}
+
+export function handleUnstakeCancel(event: UnstakingCancelled): void {
+  let rTokenId = getRTokenId(event.address);
+
+  if (rTokenId) {
+    updateRTokenAccountBalance(
+      event.params.staker,
+      Address.fromString(rTokenId),
+      BIGINT_ZERO.plus(event.params.rsrAmount),
+      event
+    );
+
+    updateRTokenMetrics(
+      event,
+      Address.fromString(rTokenId),
+      event.params.rsrAmount,
+      EntryType.UNSTAKE_CANCELLED
+    );
+
+    // Load rToken to get RSR price
+    let rToken = RToken.load(rTokenId)!;
+
+    let entry = getOrCreateEntry(
+      event,
+      rTokenId,
+      event.params.staker.toHexString(),
+      event.params.rsrAmount,
+      EntryType.UNSTAKE_CANCELLED
+    );
+
+    entry.rToken = rTokenId;
+    entry.amount = event.params.rsrAmount;
     entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
       rToken.rsrPriceUSD
     );
