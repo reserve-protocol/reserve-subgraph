@@ -43,7 +43,6 @@ import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
-// import { DeploymentRegistered } from "./../../generated/Register/Register";
 import {
   RoleGranted,
   RoleRevoked,
@@ -75,11 +74,6 @@ import {
   ST_RSR_ADDRESS,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
-
-// * Tracks new deployments of the protocol
-// export function handleProtocolDeployed(event: DeploymentRegistered): void {
-//   Deployer.create(event.params.deployer);
-// }
 
 // * Deployer events
 export function handleCreateToken(event: RTokenCreated): void {

@@ -174,13 +174,13 @@ export const FURNACE_ADDRESS = "0x0000000000000000000000000000000000000001";
 export const ST_RSR_ADDRESS = "0x0000000000000000000000000000000000000002";
 
 export const FACADE_ADDRESS =
-  dataSource.network() === "mainnet"
+  dataSource.network() == "mainnet"
     ? "0x80b24e984e4fc92a4846b044286DcCcd66564DB9"
     : "0xe1aa15DA8b993c6312BAeD91E0b470AE405F91BF";
 
 // Tokens
 export const RSR_ADDRESS = Address.fromString(
-  dataSource.network() === "mainnet"
+  dataSource.network() == "mainnet"
     ? "0x320623b8e4ff03373931769a31fc52a4e78b5d70"
     : "0xc8058960a9d7E7d81143BDBA38d19e6824165932"
 );
