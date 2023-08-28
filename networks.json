@@ -1,16 +1,12 @@
 {
   "mainnet": {
     "Deployer": {
-      "address": "0x687bB6c57915aa2529EfC7D2a26668855e022fAE",
-      "startBlock": 17147502
-    },
-    "DeployerNew": {
-      "address": "0x81b9Ae0740CcA7cDc5211b2737de735FBC4BeB3C",
-      "startBlock": 17330699
+      "address": "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377",
+      "startBlock": 16680990
     },
     "DeployerRegistry": {
       "address": "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe",
-      "startBlock": 8865604
+      "startBlock": 16680990
     },
     "RSV": {
       "address": "0x196f4727526eA7FB1e17b2071B3d8eAA38486988",
@@ -27,10 +23,6 @@
       "startBlock": 99815302
     },
     "RSV": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 99815302
-    },
-    "DeployerNew": {
       "address": "0x0000000000000000000000000000000000000000",
       "startBlock": 99815302
     }
