@@ -891,6 +891,21 @@ type AccountRToken @entity {
   " Stake stRSR balance "
   stake: BigDecimal!
 
+  " Total staked stRSR "
+  totalStaked: BigInt!
+
+  " Pending stRSR to be unstaked "
+  pendingUnstake: BigInt!
+
+  " Total Unstaked stRSR "
+  totalUnstaked: BigInt!
+
+  " Total historical stake RSR "
+  totalRSRStaked: BigInt!
+
+  " Total Unstaked "
+  totalRSRUnstaked: BigInt!
+
   " Block number in which the stake was last modified "
   blockNumber: BigInt!
 
@@ -972,6 +987,18 @@ type AccountRTokenDailySnapshot @entity {
 
   " Stake stRSR balance "
   stake: BigDecimal!
+
+  " Total staked stRSR "
+  totalStaked: BigInt!
+
+  " Total Unstaked stRSR "
+  totalUnstaked: BigInt!
+
+  " Total historical stake RSR "
+  totalRSRStaked: BigInt!
+
+  " Total Unstaked "
+  totalRSRUnstaked: BigInt!
 
   " Block number in which the stake was last modified "
   blockNumber: BigInt!

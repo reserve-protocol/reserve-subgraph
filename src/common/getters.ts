@@ -434,6 +434,11 @@ export function getOrCreateRTokenAccount(
     accountRToken.rToken = tokenBalance.token;
     accountRToken.balance = tokenBalance.id;
     accountRToken.stake = BIGDECIMAL_ZERO;
+    accountRToken.totalStaked = BIGINT_ZERO;
+    accountRToken.totalUnstaked = BIGINT_ZERO;
+    accountRToken.totalRSRStaked = BIGINT_ZERO;
+    accountRToken.totalRSRUnstaked = BIGINT_ZERO;
+    accountRToken.pendingUnstake = BIGINT_ZERO;
     accountRToken.blockNumber = BIGINT_ZERO;
     accountRToken.timestamp = BIGINT_ZERO;
 
@@ -470,6 +475,10 @@ export function getOrCreateAccountRTokenDailySnapshot(
     accountMetric.rToken = rTokenAddress.toHexString();
     accountMetric.balance = balanceSnapshot.id;
     accountMetric.stake = BIGDECIMAL_ZERO;
+    accountMetric.totalStaked = BIGINT_ZERO;
+    accountMetric.totalRSRStaked = BIGINT_ZERO;
+    accountMetric.totalUnstaked = BIGINT_ZERO;
+    accountMetric.totalRSRUnstaked = BIGINT_ZERO;
     accountMetric.blockNumber = event.block.number;
     accountMetric.timestamp = event.block.timestamp;
 

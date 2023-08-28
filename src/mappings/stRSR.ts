@@ -1,8 +1,3 @@
-import {
-  DelegateChanged,
-  DelegateVotesChanged,
-  Transfer,
-} from "./../../generated/templates/stRSRVotes/stRSRVotes";
 import { Address } from "@graphprotocol/graph-ts";
 import { Account, RToken } from "../../generated/schema";
 import {
@@ -14,9 +9,10 @@ import {
 } from "../../generated/templates/stRSR/stRSR";
 import {
   getOrCreateEntry,
-  getOrCreateRewardToken,
+  getOrCreateRTokenAccount,
   getOrCreateRTokenDailySnapshot,
   getOrCreateRTokenHourlySnapshot,
+  getOrCreateRewardToken,
 } from "../common/getters";
 import {
   updateRTokenAccountBalance,
@@ -29,6 +25,11 @@ import {
   _handleDelegateVotesChanged,
   _handleTransfer,
 } from "../governance/tokenHandlers";
+import {
+  DelegateChanged,
+  DelegateVotesChanged,
+  Transfer,
+} from "./../../generated/templates/stRSRVotes/stRSRVotes";
 
 import { BIGINT_ZERO, EntryType } from "./../common/constants";
 
@@ -51,14 +52,24 @@ export function handleStake(event: Staked): void {
       event,
       rTokenId,
       account.id,
-      event.params.stRSRAmount,
+      event.params.rsrAmount,
       EntryType.STAKE
     );
+
+    // Load rToken to get RSR price
+    let rToken = RToken.load(rTokenId)!;
+    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
+      rToken.rsrPriceUSD
+    );
+    entry.rToken = rTokenId;
+    entry.stAmount = event.params.stRSRAmount;
+    entry.save();
 
     updateRTokenAccountBalance(
       event.params.staker,
       Address.fromString(rTokenId),
       BIGINT_ZERO.plus(event.params.stRSRAmount),
+      event.params.rsrAmount,
       event
     );
 
@@ -68,16 +79,6 @@ export function handleStake(event: Staked): void {
       event.params.rsrAmount,
       EntryType.STAKE
     );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.rToken = rTokenId;
-    entry.stAmount = event.params.stRSRAmount;
-    entry.save();
   }
 }
 
@@ -86,12 +87,14 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
-    updateRTokenAccountBalance(
+    let accountBalance = getOrCreateRTokenAccount(
       event.params.staker,
-      Address.fromString(rTokenId),
-      BIGINT_ZERO.minus(event.params.stRSRAmount),
-      event
+      Address.fromString(rTokenId)
     );
+    accountBalance.pendingUnstake = accountBalance.pendingUnstake.plus(
+      event.params.stRSRAmount
+    );
+    accountBalance.save();
 
     updateRTokenMetrics(
       event,
@@ -124,20 +127,6 @@ export function handleUnstakeCancel(event: UnstakingCancelled): void {
   let rTokenId = getRTokenId(event.address);
 
   if (rTokenId) {
-    updateRTokenAccountBalance(
-      event.params.staker,
-      Address.fromString(rTokenId),
-      BIGINT_ZERO.plus(event.params.rsrAmount),
-      event
-    );
-
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.UNSTAKE_CANCELLED
-    );
-
     // Load rToken to get RSR price
     let rToken = RToken.load(rTokenId)!;
 
@@ -155,6 +144,20 @@ export function handleUnstakeCancel(event: UnstakingCancelled): void {
       rToken.rsrPriceUSD
     );
     entry.save();
+
+    let accountBalance = getOrCreateRTokenAccount(
+      event.params.staker,
+      Address.fromString(rTokenId)
+    );
+    accountBalance.pendingUnstake = BIGINT_ZERO;
+    accountBalance.save();
+
+    updateRTokenMetrics(
+      event,
+      Address.fromString(rTokenId),
+      event.params.rsrAmount,
+      EntryType.UNSTAKE_CANCELLED
+    );
   }
 }
 
@@ -177,6 +180,22 @@ export function handleUnstake(event: UnstakingCompleted): void {
       Address.fromString(rTokenId),
       event.params.rsrAmount,
       EntryType.WITHDRAW
+    );
+
+    let accountBalance = getOrCreateRTokenAccount(
+      event.params.staker,
+      Address.fromString(rTokenId)
+    );
+    let stAmount = accountBalance.pendingUnstake;
+    accountBalance.pendingUnstake = BIGINT_ZERO;
+    accountBalance.save();
+
+    updateRTokenAccountBalance(
+      event.params.staker,
+      Address.fromString(rTokenId),
+      BIGINT_ZERO.minus(stAmount),
+      event.params.rsrAmount,
+      event
     );
 
     // Load rToken to get RSR price

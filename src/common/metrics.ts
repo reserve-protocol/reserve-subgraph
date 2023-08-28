@@ -106,10 +106,26 @@ export function updateRTokenAccountBalance(
   accountAddress: Address,
   rTokenAddress: Address,
   amount: BigInt, // RewardToken amount
+  rsrAmount: BigInt,
   event: ethereum.Event
 ): void {
   let accountBalance = getOrCreateRTokenAccount(accountAddress, rTokenAddress);
   let stakeAmount = accountBalance.stake.plus(bigIntToBigDecimal(amount));
+
+  // Stake
+  if (amount.gt(BIGINT_ZERO)) {
+    accountBalance.totalStaked = accountBalance.totalStaked.plus(amount);
+    accountBalance.totalRSRStaked = accountBalance.totalRSRStaked.plus(
+      rsrAmount
+    );
+  } else {
+    accountBalance.totalUnstaked = accountBalance.totalUnstaked.plus(
+      amount.abs()
+    );
+    accountBalance.totalRSRUnstaked = accountBalance.totalRSRUnstaked.plus(
+      rsrAmount
+    );
+  }
 
   accountBalance.stake = stakeAmount;
   accountBalance.blockNumber = event.block.number;
@@ -123,6 +139,11 @@ export function updateRTokenAccountBalance(
     event
   );
   accountBalanceSnapshot.stake = stakeAmount;
+  accountBalanceSnapshot.totalStaked = accountBalance.totalStaked;
+  accountBalanceSnapshot.totalRSRStaked = accountBalance.totalRSRStaked;
+  accountBalanceSnapshot.totalUnstaked = accountBalance.totalUnstaked;
+  accountBalanceSnapshot.totalRSRUnstaked = accountBalance.totalRSRUnstaked;
+
   accountBalanceSnapshot.blockNumber = event.block.number;
   accountBalanceSnapshot.timestamp = event.block.timestamp;
   accountBalanceSnapshot.save();

@@ -197,7 +197,6 @@ export function handleTokenTransfer(event: TransferEvent): void {
 }
 
 // * rToken Events
-
 export function handleIssuance(event: Issuance): void {
   let account = getTokenAccount(event.params.issuer, event.address);
   let token = getOrCreateToken(event.address);
