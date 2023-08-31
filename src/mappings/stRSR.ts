@@ -1,5 +1,5 @@
-import { Address } from "@graphprotocol/graph-ts";
-import { Account, RToken } from "../../generated/schema";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { RToken } from "../../generated/schema";
 import {
   ExchangeRateSet,
   Staked,
@@ -13,11 +13,11 @@ import {
   getOrCreateRTokenDailySnapshot,
   getOrCreateRTokenHourlySnapshot,
   getOrCreateRewardToken,
+  getOrCreateStakeRecord,
 } from "../common/getters";
 import {
   updateRTokenAccountBalance,
   updateRTokenMetrics,
-  updateRTokenUniqueUsers,
 } from "../common/metrics";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import {
@@ -33,51 +33,104 @@ import {
 
 import { BIGINT_ZERO, EntryType } from "./../common/constants";
 
-/** Staking mapping */
+function _handleStake(
+  accountAddress: Address,
+  rTokenAddress: Address,
+  amount: BigInt,
+  rsrAmount: BigInt,
+  event: ethereum.Event
+): void {
+  updateRTokenAccountBalance(
+    accountAddress,
+    rTokenAddress,
+    amount,
+    rsrAmount,
+    event
+  );
 
+  let rToken = RToken.load(rTokenAddress.toHexString())!; // Load rToken to get RSR price
+
+  let entry = getOrCreateEntry(
+    event,
+    rTokenAddress.toHexString(),
+    accountAddress.toHexString(),
+    rsrAmount,
+    EntryType.STAKE
+  );
+
+  entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rToken.rsrPriceUSD);
+  entry.rToken = rTokenAddress.toHexString();
+  entry.stAmount = amount;
+  entry.save();
+
+  getOrCreateStakeRecord(
+    accountAddress,
+    rTokenAddress,
+    amount,
+    rsrAmount,
+    rToken.rawRsrExchangeRate,
+    rToken.rsrPriceUSD,
+    true,
+    event
+  );
+
+  updateRTokenMetrics(event, rTokenAddress, rsrAmount, EntryType.STAKE);
+}
+
+function _handleUnstake(
+  accountAddress: Address,
+  rTokenAddress: Address,
+  amount: BigInt,
+  rsrAmount: BigInt,
+  event: ethereum.Event
+): void {
+  updateRTokenAccountBalance(
+    accountAddress,
+    rTokenAddress,
+    BIGINT_ZERO.minus(amount),
+    rsrAmount,
+    event
+  );
+
+  // Load rToken to get RSR price
+  let rToken = RToken.load(rTokenAddress.toHexString())!;
+
+  let entry = getOrCreateEntry(
+    event,
+    rTokenAddress.toHexString(),
+    accountAddress.toHexString(),
+    rsrAmount,
+    EntryType.WITHDRAW
+  );
+  entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rToken.rsrPriceUSD);
+  entry.rToken = rTokenAddress.toHexString();
+  entry.save();
+
+  updateRTokenMetrics(event, rTokenAddress, rsrAmount, EntryType.WITHDRAW);
+
+  getOrCreateStakeRecord(
+    accountAddress,
+    rTokenAddress,
+    amount,
+    rsrAmount,
+    rToken.rawRsrExchangeRate,
+    rToken.rsrPriceUSD,
+    false,
+    event
+  );
+}
+
+/** Staking mapping */
 export function handleStake(event: Staked): void {
   let rTokenId = getRTokenId(event.address);
 
-  // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
-    let account = Account.load(event.params.staker.toHexString());
-
-    if (!account) {
-      account = new Account(event.params.staker.toHexString());
-      account.save();
-      updateRTokenUniqueUsers(rTokenId);
-    }
-
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      account.id,
-      event.params.rsrAmount,
-      EntryType.STAKE
-    );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.rToken = rTokenId;
-    entry.stAmount = event.params.stRSRAmount;
-    entry.save();
-
-    updateRTokenAccountBalance(
+    _handleStake(
       event.params.staker,
       Address.fromString(rTokenId),
-      BIGINT_ZERO.plus(event.params.stRSRAmount),
+      event.params.stRSRAmount,
       event.params.rsrAmount,
       event
-    );
-
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.STAKE
     );
   }
 }
@@ -166,46 +219,24 @@ export function handleUnstake(event: UnstakingCompleted): void {
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
-    let account = Account.load(event.params.staker.toHexString())!;
-    let entry = getOrCreateEntry(
-      event,
-      rTokenId,
-      account.id,
-      event.params.rsrAmount,
-      EntryType.WITHDRAW
-    );
+    const rTokenAddress = Address.fromString(rTokenId);
 
-    updateRTokenMetrics(
-      event,
-      Address.fromString(rTokenId),
-      event.params.rsrAmount,
-      EntryType.WITHDRAW
-    );
-
+    // Grab st balance from pendingUnstake and update record
     let accountBalance = getOrCreateRTokenAccount(
       event.params.staker,
-      Address.fromString(rTokenId)
+      rTokenAddress
     );
     let stAmount = accountBalance.pendingUnstake;
     accountBalance.pendingUnstake = BIGINT_ZERO;
     accountBalance.save();
 
-    updateRTokenAccountBalance(
+    _handleUnstake(
       event.params.staker,
-      Address.fromString(rTokenId),
-      BIGINT_ZERO.minus(stAmount),
+      rTokenAddress,
+      stAmount,
       event.params.rsrAmount,
       event
     );
-
-    // Load rToken to get RSR price
-    let rToken = RToken.load(rTokenId)!;
-
-    entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
-    );
-    entry.rToken = rTokenId;
-    entry.save();
   }
 }
 
@@ -218,6 +249,7 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
     let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
     rToken.rsrExchangeRate = bigIntToBigDecimal(event.params.newVal);
+    rToken.rawRsrExchangeRate = event.params.newVal;
     rToken.save();
 
     daily.rsrExchangeRate = rToken.rsrExchangeRate;
@@ -259,6 +291,28 @@ export function handleTransfer(event: Transfer): void {
     event.params.value,
     event
   );
+
+  let rTokenId = getRTokenId(event.address);
+
+  if (rTokenId) {
+    let rToken = RToken.load(rTokenId)!;
+    let rsrAmount = event.params.value.times(rToken.rawRsrExchangeRate);
+
+    updateRTokenAccountBalance(
+      event.params.from,
+      Address.fromString(rTokenId),
+      BIGINT_ZERO.minus(event.params.value),
+      rsrAmount,
+      event
+    );
+    updateRTokenAccountBalance(
+      event.params.to,
+      Address.fromString(rTokenId),
+      event.params.value,
+      rsrAmount,
+      event
+    );
+  }
 }
 
 function getRTokenId(rewardTokenAddress: Address): string | null {

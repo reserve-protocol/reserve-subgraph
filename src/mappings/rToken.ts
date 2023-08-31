@@ -131,6 +131,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.cumulativeStakerRevenue = BIGDECIMAL_ZERO;
   rToken.totalDistributedRSRRevenue = BIGINT_ZERO;
   rToken.totalDistributedRTokenRevenue = BIGINT_ZERO;
+  rToken.rawRsrExchangeRate = BIGINT_ONE;
   rToken.targetUnits = targets.join(",");
   rToken.save();
 

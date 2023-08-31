@@ -4,6 +4,7 @@ import {
   Account,
   AccountRToken,
   AccountRTokenDailySnapshot,
+  AccountStakeRecord,
   Deployer,
   FinancialsDailySnapshot,
   Protocol,
@@ -426,6 +427,8 @@ export function getOrCreateRTokenAccount(
   let accountRToken = AccountRToken.load(id);
 
   if (!accountRToken) {
+    // Make sure the account record exists
+    getOrCreateAccount(accountAddress, rTokenAddress);
     // Create account-token balance record
     let tokenBalance = getOrCreateAccountBalance(accountAddress, rTokenAddress);
 
@@ -446,6 +449,45 @@ export function getOrCreateRTokenAccount(
   }
 
   return accountRToken;
+}
+
+export function getOrCreateStakeRecord(
+  accountAddress: Address,
+  rTokenAddress: Address,
+  amount: BigInt,
+  rsrAmount: BigInt,
+  exchangeRate: BigInt,
+  rsrPrice: BigDecimal,
+  isStake: boolean,
+  event: ethereum.Event
+): AccountStakeRecord {
+  let id = accountAddress
+    .toHexString()
+    .concat("-")
+    .concat(rTokenAddress.toHexString())
+    .concat("-")
+    .concat(event.transaction.hash.toHexString());
+
+  let record = AccountStakeRecord.load(id);
+
+  if (!record) {
+    record = new AccountStakeRecord(id);
+    record.hash = event.transaction.hash.toHexString();
+    record.account = accountAddress.toHexString();
+    record.amountRaw = amount;
+    record.amount = bigIntToBigDecimal(amount);
+    record.rsrAmount = bigIntToBigDecimal(rsrAmount);
+    record.rsrAmountRaw = rsrAmount;
+    record.exchangeRate = bigIntToBigDecimal(exchangeRate);
+    record.exchangeRateRaw = exchangeRate;
+    record.rsrPriceUSD = rsrPrice;
+    record.isStake = isStake;
+    record.blockNumber = event.block.number;
+    record.timestamp = event.block.timestamp;
+    record.save();
+  }
+
+  return record;
 }
 
 export function getOrCreateAccountRTokenDailySnapshot(
@@ -486,6 +528,21 @@ export function getOrCreateAccountRTokenDailySnapshot(
   }
 
   return accountMetric;
+}
+
+export function getOrCreateAccount(
+  accountAddress: Address,
+  rTokenAddress: Address
+): Account {
+  let account = Account.load(accountAddress.toHexString());
+
+  if (!account) {
+    account = new Account(accountAddress.toHexString());
+    account.save();
+    updateRTokenUniqueUsers(rTokenAddress.toHexString());
+  }
+
+  return account;
 }
 
 export function getOrCreateAccountBalance(

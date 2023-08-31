@@ -352,6 +352,9 @@ type RToken @entity {
   " Reward token exchange rate "
   rsrExchangeRate: BigDecimal!
 
+  " Exchange rate on big int for internal calculations "
+  rawRsrExchangeRate: BigInt!
+
   " How much RSR is currently locked in this RToken "
   rsrStaked: BigInt!
 
@@ -534,38 +537,55 @@ type RTokenHourlySnapshot @entity {
 type Trade @entity {
   " { Smart contract address of the auction } "
   id: ID!
+
   " GnosisAuctionId - Optional not required for dutchTrades "
   auctionId: BigInt
+
   " Auction trade amount "
   amount: BigDecimal!
+
   " Min buy amount "
   minBuyAmount: BigDecimal!
+
   " amount bought (on settle) "
   boughtAmount: BigDecimal
+
   " Worst case price "
   worstCasePrice: BigDecimal!
+
   " Selling token "
   selling: String!
+
   " Buying token "
   buying: String!
+
   " Sell tokens symbol "
   sellingTokenSymbol: String!
+
   " Buy token symbol "
   buyingTokenSymbol: String!
+
   " started At timestamp "
   startedAt: BigInt!
+
   " Started block (dutch) "
   startBlock: BigInt
+
   " End Block "
   endBlock: BigInt
+
   " End time timestamp "
   endAt: BigInt!
+
   " rToken id "
   rToken: RToken!
+
   " Is settle check "
   isSettled: Boolean!
+
   " Settle tx hash "
   settleTxHash: String
+
   " Trade kind 0 = dutch 1 = batch "
   kind: Int!
 }
@@ -577,10 +597,13 @@ type Trade @entity {
 type RewardToken @entity {
   " { Reward token type }-{ Smart contract address of the reward token } "
   id: ID!
+
   " Reference to the actual token "
   token: Token!
+
   " RToken relation "
   rToken: RToken
+
   " The type of the reward token "
   type: RewardTokenType!
 }
@@ -911,6 +934,50 @@ type AccountRToken @entity {
 
   " Timestamp in which the stake was last modified "
   timestamp: BigInt!
+
+  " Records "
+  records: [AccountStakeRecord!]! @derivedFrom(field: "account")
+}
+
+type AccountStakeRecord @entity {
+  " { Address Of the Account }-{ Address of the rToken }-{ tx hash } "
+  id: ID!
+
+  " tx hash "
+  hash: String!
+
+  " Account related to "
+  account: AccountRToken!
+
+  " stRSR amount "
+  amountRaw: BigInt!
+
+  " readable amount "
+  amount: BigDecimal!
+
+  " RSR amount "
+  rsrAmountRaw: BigInt!
+
+  " Readable RSR amount "
+  rsrAmount: BigDecimal!
+
+  " Exchange rate "
+  exchangeRateRaw: BigInt!
+
+  " readable exchange rate "
+  exchangeRate: BigDecimal!
+
+  " rsrPrice "
+  rsrPriceUSD: BigDecimal!
+
+  " isStake "
+  isStake: Boolean!
+
+  " Block number "
+  blockNumber: BigInt!
+
+  " Timestamp "
+  timestamp: BigInt!
 }
 
 type AccountBalance @entity {
@@ -1062,25 +1129,34 @@ type Governance @entity {
 
   "Total Supply of token"
   totalTokenSupply: BigInt!
+
   "Total number of token holders currently"
   currentTokenHolders: BigInt!
+
   "Total number of token holders"
   totalTokenHolders: BigInt!
+
   "Total number of delegates participating on the governance currently"
   currentDelegates: BigInt!
+
   "Total number of delegates that held delegated votes"
   totalDelegates: BigInt!
+
   "Total number of votes delegated expressed in the smallest unit of the token"
   delegatedVotesRaw: BigInt!
+
   "Total number of votes delegated expressed as a BigDecimal normalized value for the token"
   delegatedVotes: BigDecimal!
 
   "Total number of proposals created"
   proposals: BigInt!
+
   "Number of proposals currently queued for execution"
   proposalsQueued: BigInt!
+
   "Number of proposals currently executed"
   proposalsExecuted: BigInt!
+
   "Number of proposals currently canceled"
   proposalsCanceled: BigInt!
 

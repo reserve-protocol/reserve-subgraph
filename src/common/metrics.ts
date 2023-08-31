@@ -110,13 +110,15 @@ export function updateRTokenAccountBalance(
   event: ethereum.Event
 ): void {
   let accountBalance = getOrCreateRTokenAccount(accountAddress, rTokenAddress);
-  let stakeAmount = accountBalance.stake.plus(bigIntToBigDecimal(amount));
 
   // Stake
   if (amount.gt(BIGINT_ZERO)) {
     accountBalance.totalStaked = accountBalance.totalStaked.plus(amount);
     accountBalance.totalRSRStaked = accountBalance.totalRSRStaked.plus(
       rsrAmount
+    );
+    accountBalance.stake = accountBalance.stake.plus(
+      bigIntToBigDecimal(amount)
     );
   } else {
     accountBalance.totalUnstaked = accountBalance.totalUnstaked.plus(
@@ -125,9 +127,11 @@ export function updateRTokenAccountBalance(
     accountBalance.totalRSRUnstaked = accountBalance.totalRSRUnstaked.plus(
       rsrAmount
     );
+    accountBalance.stake = accountBalance.stake.minus(
+      bigIntToBigDecimal(amount.abs())
+    );
   }
 
-  accountBalance.stake = stakeAmount;
   accountBalance.blockNumber = event.block.number;
   accountBalance.timestamp = event.block.timestamp;
   accountBalance.save();
@@ -138,7 +142,7 @@ export function updateRTokenAccountBalance(
     rTokenAddress,
     event
   );
-  accountBalanceSnapshot.stake = stakeAmount;
+  accountBalanceSnapshot.stake = accountBalance.stake;
   accountBalanceSnapshot.totalStaked = accountBalance.totalStaked;
   accountBalanceSnapshot.totalRSRStaked = accountBalance.totalRSRStaked;
   accountBalanceSnapshot.totalUnstaked = accountBalance.totalUnstaked;
@@ -191,8 +195,6 @@ export function updateRTokenMetrics(
   let rTokenDaily = getOrCreateRTokenDailySnapshot(rToken.id, event);
   let rTokenHourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
 
-  // TODO: Total value lock
-  // TODO: Revenue
   if (entryType === EntryType.MINT) {
     protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
     protocol.totalRTokenUSD = protocol.totalRTokenUSD.plus(amountUSD);
