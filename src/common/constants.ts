@@ -176,7 +176,7 @@ export const ST_RSR_ADDRESS = "0x0000000000000000000000000000000000000002";
 export const FACADE_ADDRESS =
   dataSource.network() == "mainnet"
     ? "0x80b24e984e4fc92a4846b044286DcCcd66564DB9"
-    : "0xe1aa15DA8b993c6312BAeD91E0b470AE405F91BF";
+    : "0x6490D66B17A1E9a460Ab54131165C8F921aCcDeB";
 
 // Tokens
 export const RSR_ADDRESS = Address.fromString(

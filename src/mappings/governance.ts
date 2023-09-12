@@ -2,17 +2,26 @@ import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
   GovernanceFramework,
   Proposal,
+  RToken,
   RTokenContract,
 } from "../../generated/schema";
-import { BIGINT_ONE, ProposalState } from "../common/constants";
+import { Governance as GovernanceTemplate } from "../../generated/templates";
 import {
-  getGovernance,
-  getProposal,
+  Cancelled,
+  RoleGranted,
+  RoleRevoked,
+  Timelock,
+} from "../../generated/templates/Main/Timelock";
+import { BIGINT_ONE, ContractName, ProposalState } from "../common/constants";
+import { removeFromArrayAtIndex } from "../common/utils/arrays";
+import {
   _handleProposalCanceled,
   _handleProposalCreated,
   _handleProposalExecuted,
   _handleProposalQueued,
   _handleVoteCast,
+  getGovernance,
+  getProposal,
 } from "../governance/handlers";
 import {
   Governor,
@@ -27,7 +36,6 @@ import {
   VotingDelaySet,
   VotingPeriodSet,
 } from "./../../generated/templates/Governance/Governor";
-import { Timelock } from "../../generated/templates/Main/Timelock";
 
 // ProposalCanceled(proposalId)
 export function handleProposalCanceled(event: ProposalCanceled): void {
@@ -157,6 +165,58 @@ export function handleVotingPeriodSet(event: VotingPeriodSet): void {
   );
   governanceFramework.votingPeriod = event.params.newVotingPeriod;
   governanceFramework.save();
+}
+
+export function handleTimelockRoleGranted(event: RoleGranted): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+  let gov = getGovernance(rToken.id);
+
+  let timelockContract = Timelock.bind(event.address);
+  let proposalRole = timelockContract.PROPOSER_ROLE();
+  let guardianRole = timelockContract.CANCELLER_ROLE();
+
+  if (event.params.role.equals(proposalRole)) {
+    // Init governance
+    // TODO: Multiple governance are supported but not really the case
+    let governorContract = new RTokenContract(
+      event.params.account.toHexString()
+    );
+    governorContract.rToken = rToken.id;
+    governorContract.name = ContractName.GOVERNOR;
+    governorContract.save();
+    GovernanceTemplate.create(event.params.account);
+  } else if (event.params.role.equals(guardianRole)) {
+    // TODO: guardians should be related to the governanceFramework and not the Governance entity
+    // TODO: Leave it on the governance entity in the meantime, the issue is getting the proposal role from timelock and figure out the proposal address
+    let current = gov.get("guardians")!.toStringArray();
+    current.push(event.params.account.toHexString());
+    gov.guardians = current;
+    gov.save();
+  }
+}
+
+export function handleTimelockRoleRevoked(event: RoleRevoked): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+
+  let timelockContract = Timelock.bind(event.address);
+  let guardianRole = timelockContract.CANCELLER_ROLE();
+
+  if (event.params.role.equals(guardianRole)) {
+    let gov = getGovernance(rToken.id);
+    let current = gov.guardians;
+    let index = current.indexOf(event.params.account.toHexString());
+
+    if (index != -1) {
+      gov.guardians = removeFromArrayAtIndex(current, index);
+      gov.save();
+    }
+  }
+}
+
+export function handleTimelockProposalCanceled(event: Cancelled): void {
+  _handleProposalCanceled(event.params.id.toString(), event);
 }
 
 // Helper function that imports and binds the contract

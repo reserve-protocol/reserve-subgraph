@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { RToken } from "../../generated/schema";
 import {
   ExchangeRateSet,
@@ -73,8 +73,6 @@ function _handleStake(
     true,
     event
   );
-
-  updateRTokenMetrics(event, rTokenAddress, rsrAmount, EntryType.STAKE);
 }
 
 function _handleUnstake(
@@ -106,8 +104,6 @@ function _handleUnstake(
   entry.rToken = rTokenAddress.toHexString();
   entry.save();
 
-  updateRTokenMetrics(event, rTokenAddress, rsrAmount, EntryType.WITHDRAW);
-
   getOrCreateStakeRecord(
     accountAddress,
     rTokenAddress,
@@ -125,12 +121,54 @@ export function handleStake(event: Staked): void {
   let rTokenId = getRTokenId(event.address);
 
   if (rTokenId) {
+    const rTokenAddress = Address.fromString(rTokenId);
+
     _handleStake(
       event.params.staker,
-      Address.fromString(rTokenId),
+      rTokenAddress,
       event.params.stRSRAmount,
       event.params.rsrAmount,
       event
+    );
+
+    updateRTokenMetrics(
+      event,
+      rTokenAddress,
+      event.params.rsrAmount,
+      EntryType.STAKE
+    );
+  }
+}
+
+export function handleUnstake(event: UnstakingCompleted): void {
+  let rTokenId = getRTokenId(event.address);
+
+  // Avoid error, but is this needed? it should always exist
+  if (rTokenId) {
+    const rTokenAddress = Address.fromString(rTokenId);
+
+    // Grab st balance from pendingUnstake and update record
+    let accountBalance = getOrCreateRTokenAccount(
+      event.params.staker,
+      rTokenAddress
+    );
+    let stAmount = accountBalance.pendingUnstake;
+    accountBalance.pendingUnstake = BIGINT_ZERO;
+    accountBalance.save();
+
+    _handleUnstake(
+      event.params.staker,
+      rTokenAddress,
+      stAmount,
+      event.params.rsrAmount,
+      event
+    );
+
+    updateRTokenMetrics(
+      event,
+      rTokenAddress,
+      event.params.rsrAmount,
+      EntryType.WITHDRAW
     );
   }
 }
@@ -214,32 +252,6 @@ export function handleUnstakeCancel(event: UnstakingCancelled): void {
   }
 }
 
-export function handleUnstake(event: UnstakingCompleted): void {
-  let rTokenId = getRTokenId(event.address);
-
-  // Avoid error, but is this needed? it should always exist
-  if (rTokenId) {
-    const rTokenAddress = Address.fromString(rTokenId);
-
-    // Grab st balance from pendingUnstake and update record
-    let accountBalance = getOrCreateRTokenAccount(
-      event.params.staker,
-      rTokenAddress
-    );
-    let stAmount = accountBalance.pendingUnstake;
-    accountBalance.pendingUnstake = BIGINT_ZERO;
-    accountBalance.save();
-
-    _handleUnstake(
-      event.params.staker,
-      rTokenAddress,
-      stAmount,
-      event.params.rsrAmount,
-      event
-    );
-  }
-}
-
 export function handleExchangeRate(event: ExchangeRateSet): void {
   let rTokenId = getRTokenId(event.address);
 
@@ -298,15 +310,16 @@ export function handleTransfer(event: Transfer): void {
     let rToken = RToken.load(rTokenId)!;
     let rsrAmount = event.params.value.times(rToken.rawRsrExchangeRate);
 
-    updateRTokenAccountBalance(
-      event.params.from,
+    _handleStake(
+      event.params.to,
       Address.fromString(rTokenId),
-      BIGINT_ZERO.minus(event.params.value),
+      event.params.value,
       rsrAmount,
       event
     );
-    updateRTokenAccountBalance(
-      event.params.to,
+
+    _handleUnstake(
+      event.params.from,
       Address.fromString(rTokenId),
       event.params.value,
       rsrAmount,

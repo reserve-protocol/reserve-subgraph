@@ -26,8 +26,8 @@ dataSources:
     kind: ethereum/contract
     network: mainnet
     source:
-      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
       abi: ERC20
+      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
       startBlock: 16815302
     mapping:
       kind: ethereum/events
@@ -88,7 +88,8 @@ dataSources:
         - name: ChainLinkAggregator
           file: ./abis/Prices/ChainlinkAggregator.json
       eventHandlers:
-        - event: RTokenCreated(indexed address,indexed address,address,indexed address,string)
+        - event: RTokenCreated(indexed address,indexed address,address,indexed
+            address,string)
           handler: handleCreateToken
       file: ./src/mappings/rToken.ts
 templates:
@@ -162,7 +163,11 @@ templates:
           handler: handleTokenTransfer
         - event: Issuance(indexed address,indexed address,indexed uint256,uint192)
           handler: handleIssuance
+        - event: Issuance(indexed address,indexed address,uint256,uint192)
+          handler: handleIssuance
         - event: Redemption(indexed address,indexed address,indexed uint256,uint192)
+          handler: handleRedemption
+        - event: Redemption(indexed address,indexed address,uint256,uint192)
           handler: handleRedemption
         - event: BasketsNeededChanged(uint192,uint192)
           handler: handleRTokenBaskets
@@ -199,7 +204,10 @@ templates:
       eventHandlers:
         - event: Staked(indexed uint256,indexed address,uint256,indexed uint256)
           handler: handleStake
-        - event: UnstakingStarted(indexed uint256,indexed uint256,indexed address,uint256,uint256,uint256)
+        - event: Staked(indexed uint256,indexed address,uint256,uint256)
+          handler: handleStake
+        - event: UnstakingStarted(indexed uint256,indexed uint256,indexed
+            address,uint256,uint256,uint256)
           handler: handleUnstakeStarted
         - event:
             UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
@@ -207,7 +215,11 @@ templates:
           handler: handleUnstake
         - event: ExchangeRateSet(indexed uint192,indexed uint192)
           handler: handleExchangeRate
-        - event: UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed address,uint256)
+        - event: ExchangeRateSet(uint192,uint192)
+          handler: handleExchangeRate
+        - event:
+            UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
+            address,uint256)
           handler: handleUnstakeCancel
       file: ./src/mappings/stRSR.ts
   - name: Main
@@ -253,7 +265,9 @@ templates:
           handler: handleTimelockRoleGranted
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleTimelockRoleRevoked
-      file: ./src/mappings/rToken.ts
+        - event: Cancelled(indexed bytes32)
+          handler: handleTimelockProposalCanceled
+      file: ./src/mappings/governance.ts
   - name: Distributor
     kind: ethereum/contract
     network: mainnet
@@ -279,6 +293,8 @@ templates:
           file: ./abis/Prices/ChainlinkAggregator.json
       eventHandlers:
         - event: DistributionSet(address,uint16,uint16)
+          handler: handleDistribution
+        - event: DistributionSet(indexed address,uint16,uint16)
           handler: handleDistribution
         - event: RevenueDistributed(indexed address,indexed address,indexed uint256)
           handler: handleRevenueDistributed
@@ -403,6 +419,16 @@ templates:
       abis:
         - name: stRSRVotes
           file: ./abis/StRSRVotes.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        - name: ChainLinkAggregator
+          file: ./abis/Prices/ChainlinkAggregator.json
       eventHandlers:
         - event: DelegateChanged(indexed address,indexed address,indexed address)
           handler: handleDelegateChanged

@@ -15,8 +15,8 @@
   },
   "base-testnet": {
     "Deployer": {
-      "address": "0xf1B06c2305445E34CF0147466352249724c2EAC1",
-      "startBlock": 8865604
+      "address": "0xE77c43F499524FF354D2aFFbE815729613d8F856",
+      "startBlock": 9450019
     },
     "DeployerRegistry": {
       "address": "0x0000000000000000000000000000000000000000",

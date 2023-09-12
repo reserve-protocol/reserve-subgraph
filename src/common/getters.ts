@@ -473,7 +473,10 @@ export function getOrCreateStakeRecord(
   if (!record) {
     record = new AccountStakeRecord(id);
     record.hash = event.transaction.hash.toHexString();
-    record.account = accountAddress.toHexString();
+    record.account = accountAddress
+      .toHexString()
+      .concat("-")
+      .concat(rTokenAddress.toHexString());
     record.amountRaw = amount;
     record.amount = bigIntToBigDecimal(amount);
     record.rsrAmount = bigIntToBigDecimal(rsrAmount);

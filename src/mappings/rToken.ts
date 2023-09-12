@@ -9,7 +9,6 @@ import {
 import {
   BackingManager,
   Distributor as DistributorTemplate,
-  Governance as GovernanceTemplate,
   Main as MainTemplate,
   RToken as RTokenTemplate,
   RevenueTrader,
@@ -58,7 +57,6 @@ import {
 } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
 import { removeFromArrayAtIndex } from "../common/utils/arrays";
-import { getGovernance } from "../governance/handlers";
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
@@ -308,54 +306,6 @@ export function handleRoleGranted(event: RoleGranted): void {
         timelockContract.save();
         TimelockTemplate.create(event.params.account);
       }
-    }
-  }
-}
-
-export function handleTimelockRoleGranted(event: RoleGranted): void {
-  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
-  let rToken = RToken.load(rTokenContract.rToken)!;
-  let gov = getGovernance(rToken.id);
-
-  let timelockContract = Timelock.bind(event.address);
-  let proposalRole = timelockContract.PROPOSER_ROLE();
-  let guardianRole = timelockContract.CANCELLER_ROLE();
-
-  if (event.params.role.equals(proposalRole)) {
-    // Init governance
-    // TODO: Multiple governance are supported but not really the case
-    let governorContract = new RTokenContract(
-      event.params.account.toHexString()
-    );
-    governorContract.rToken = rToken.id;
-    governorContract.name = ContractName.GOVERNOR;
-    governorContract.save();
-    GovernanceTemplate.create(event.params.account);
-  } else if (event.params.role.equals(guardianRole)) {
-    // TODO: guardians should be related to the governanceFramework and not the Governance entity
-    // TODO: Leave it on the governance entity in the meantime, the issue is getting the proposal role from timelock and figure out the proposal address
-    let current = gov.get("guardians")!.toStringArray();
-    current.push(event.params.account.toHexString());
-    gov.guardians = current;
-    gov.save();
-  }
-}
-
-export function handleTimelockRoleRevoked(event: RoleRevoked): void {
-  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
-  let rToken = RToken.load(rTokenContract.rToken)!;
-
-  let timelockContract = Timelock.bind(event.address);
-  let guardianRole = timelockContract.CANCELLER_ROLE();
-
-  if (event.params.role.equals(guardianRole)) {
-    let gov = getGovernance(rToken.id);
-    let current = gov.guardians;
-    let index = current.indexOf(event.params.account.toHexString());
-
-    if (index != -1) {
-      gov.guardians = removeFromArrayAtIndex(current, index);
-      gov.save();
     }
   }
 }
