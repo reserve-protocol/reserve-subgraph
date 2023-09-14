@@ -914,6 +914,8 @@ type AccountRToken @entity {
   " Stake stRSR balance "
   stake: BigDecimal!
 
+  governance: [TokenHolder!]! @derivedFrom(field: "accountRToken")
+
   " Total staked stRSR "
   totalStaked: BigInt!
 
@@ -1201,8 +1203,16 @@ type GovernanceFramework @entity {
   governance: Governance!
 }
 
+" Match timelock id with proposal id "
+type TimelockProposal @entity {
+  " Timelock id "
+  id: ID!
+  " Proposal entity ID "
+  proposalId: String!
+}
+
 type Proposal @entity {
-  "Internal proposal ID, rtokenId-proposalNumber"
+  " Internal proposal ID (uint256) "
   id: ID!
   "Transaction hash of the proposal creation"
   txnHash: String!
@@ -1346,6 +1356,8 @@ type TokenHolder @entity {
   totalTokensHeldRaw: BigInt!
   "Total amount of tokens ever held by this address expressed as a BigDecimal normalized value"
   totalTokensHeld: BigDecimal!
+  "AccountRToken relationship"
+  accountRToken: AccountRToken!
 }
 
 type Delegate @entity {

@@ -257,6 +257,8 @@ templates:
       entities:
         - RToken
         - RTokenContract
+        - TimelockProposal
+        - Proposal
       abis:
         - name: Timelock
           file: ./abis/Timelock.json
@@ -265,8 +267,6 @@ templates:
           handler: handleTimelockRoleGranted
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleTimelockRoleRevoked
-        - event: Cancelled(indexed bytes32)
-          handler: handleTimelockProposalCanceled
       file: ./src/mappings/governance.ts
   - name: Distributor
     kind: ethereum/contract
@@ -374,6 +374,7 @@ templates:
         - Vote
         - TokenHolder
         - Delegate
+        - TimelockProposal
       abis:
         - name: Governor
           file: ./abis/Governor.json
@@ -416,6 +417,11 @@ templates:
         - Vote
         - TokenHolder
         - Delegate
+        - RToken
+        - Account
+        - User
+        - Entry
+        - Transaction
       abis:
         - name: stRSRVotes
           file: ./abis/StRSRVotes.json

@@ -31,7 +31,11 @@ import {
   Transfer,
 } from "./../../generated/templates/stRSRVotes/stRSRVotes";
 
-import { BIGINT_ZERO, EntryType } from "./../common/constants";
+import {
+  BIGINT_TEN_TO_EIGHTEENTH,
+  BIGINT_ZERO,
+  EntryType,
+} from "./../common/constants";
 
 function _handleStake(
   accountAddress: Address,
@@ -308,7 +312,10 @@ export function handleTransfer(event: Transfer): void {
 
   if (rTokenId) {
     let rToken = RToken.load(rTokenId)!;
-    let rsrAmount = event.params.value.times(rToken.rawRsrExchangeRate);
+
+    let rsrAmount = event.params.value
+      .times(rToken.rawRsrExchangeRate)
+      .div(BIGINT_TEN_TO_EIGHTEENTH);
 
     _handleStake(
       event.params.to,

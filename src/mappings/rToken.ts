@@ -61,6 +61,7 @@ import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
   BIGINT_ONE,
+  BIGINT_TEN_TO_EIGHTEENTH,
   BIGINT_ZERO,
   ContractName,
   EntryType,
@@ -129,7 +130,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.cumulativeStakerRevenue = BIGDECIMAL_ZERO;
   rToken.totalDistributedRSRRevenue = BIGINT_ZERO;
   rToken.totalDistributedRTokenRevenue = BIGINT_ZERO;
-  rToken.rawRsrExchangeRate = BIGINT_ONE;
+  rToken.rawRsrExchangeRate = BIGINT_TEN_TO_EIGHTEENTH;
   rToken.targetUnits = targets.join(",");
   rToken.save();
 

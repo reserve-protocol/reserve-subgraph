@@ -1,9 +1,10 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt, crypto, ethereum } from "@graphprotocol/graph-ts";
 import {
   GovernanceFramework,
   Proposal,
   RToken,
   RTokenContract,
+  TimelockProposal,
 } from "../../generated/schema";
 import { Governance as GovernanceTemplate } from "../../generated/templates";
 import {
@@ -48,6 +49,22 @@ export function handleProposalCreated(event: ProposalCreated): void {
     event.address,
     event.block.number.minus(BIGINT_ONE)
   );
+
+  // let tupleArray: Array<ethereum.Value> = [
+  //   ethereum.Value.fromAddressArray(event.params.targets),
+  //   ethereum.Value.fromUnsignedBigIntArray(event.params.values),
+  //   ethereum.Value.fromBytesArray(event.params.calldatas),
+  //   ethereum.Value.fromI32(0),
+  //   ethereum.Value.fromString(event.params.description),
+  // ];
+
+  // let encoded = crypto.keccak256(
+  //   ethereum.encode(ethereum.Value.fromArray(tupleArray))!
+  // );
+
+  // let timelockProposal = new TimelockProposal(encoded.toHexString());
+  // timelockProposal.proposalId = event.params.proposalId.toString();
+  // timelockProposal.save();
 
   // FIXME: Prefer to use a single object arg for params
   // e.g.  { proposalId: event.params.proposalId, proposer: event.params.proposer, ...}
@@ -216,7 +233,10 @@ export function handleTimelockRoleRevoked(event: RoleRevoked): void {
 }
 
 export function handleTimelockProposalCanceled(event: Cancelled): void {
-  _handleProposalCanceled(event.params.id.toString(), event);
+  _handleProposalCanceled(
+    BigInt.fromByteArray(crypto.keccak256(event.params.id)).toString(),
+    event
+  );
 }
 
 // Helper function that imports and binds the contract

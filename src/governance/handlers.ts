@@ -133,10 +133,9 @@ export function createDelegateVotingPowerChange(
 }
 
 export function getProposal(id: string, contractAddress: string): Proposal {
-  let proposalId = contractAddress.concat("-").concat(id);
-  let proposal = Proposal.load(proposalId);
+  let proposal = Proposal.load(id);
   if (!proposal) {
-    proposal = new Proposal(proposalId);
+    proposal = new Proposal(id);
     let rTokenContract = RTokenContract.load(contractAddress)!;
     proposal.governance = rTokenContract.rToken;
     proposal.tokenHoldersAtStart = BIGINT_ZERO;
@@ -176,7 +175,7 @@ export function getOrCreateTokenHolder(
   address: string,
   governor: string
 ): TokenHolder {
-  let holderId = governor.concat("-").concat(address);
+  let holderId = address.concat("-").concat(governor);
   let tokenHolder = TokenHolder.load(holderId);
   if (!tokenHolder) {
     tokenHolder = new TokenHolder(holderId);
@@ -186,6 +185,7 @@ export function getOrCreateTokenHolder(
     tokenHolder.totalTokensHeldRaw = BIGINT_ZERO;
     tokenHolder.totalTokensHeld = BIGDECIMAL_ZERO;
     tokenHolder.governance = governor;
+    tokenHolder.accountRToken = holderId;
     tokenHolder.save();
 
     if (address != ZERO_ADDRESS) {
