@@ -13,14 +13,14 @@
       "startBlock": 16815302
     }
   },
-  "base-testnet": {
+  "base": {
     "Deployer": {
-      "address": "0xE77c43F499524FF354D2aFFbE815729613d8F856",
+      "address": "0x0000000000000000000000000000000000000000",
       "startBlock": 9450019
     },
     "DeployerRegistry": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 99815302
+      "address": "0x1265Ec05FD621d82F224814902c925a600307fb3",
+      "startBlock": 4521504
     },
     "RSV": {
       "address": "0x0000000000000000000000000000000000000000",
