@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: DeployerRegistry
-    network: mainnet
+    network: base
     source:
       abi: DeployerRegistry
-      address: "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe"
-      startBlock: 16680990
+      address: "0x1265Ec05FD621d82F224814902c925a600307fb3"
+      startBlock: 4521504
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -24,11 +24,11 @@ dataSources:
       file: ./src/mappings/deployerRegistry.ts
   - name: RSV
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: ERC20
-      address: "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
-      startBlock: 16815302
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 99815302
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -56,11 +56,11 @@ dataSources:
       file: ./src/mappings/common.ts
   - kind: ethereum/contract
     name: Deployer
-    network: mainnet
+    network: base
     source:
       abi: Deployer
-      address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
-      startBlock: 16680990
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 9450019
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -95,7 +95,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Deployer
-    network: mainnet
+    network: base
     source:
       abi: Deployer
     mapping:
@@ -131,7 +131,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: RToken
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: RToken
     mapping:
@@ -174,7 +174,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: stRSR
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: stRSR
     mapping:
@@ -222,7 +222,7 @@ templates:
       file: ./src/mappings/stRSR.ts
   - name: Main
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Main
     mapping:
@@ -245,7 +245,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Timelock
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Timelock
     mapping:
@@ -268,7 +268,7 @@ templates:
       file: ./src/mappings/governance.ts
   - name: Distributor
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Distributor
     mapping:
@@ -296,10 +296,12 @@ templates:
           handler: handleDistribution
         - event: RevenueDistributed(indexed address,indexed address,indexed uint256)
           handler: handleRevenueDistributed
+        - event: RevenueDistributed(indexed address,indexed address,uint256)
+          handler: handleRevenueDistributed
       file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: RevenueTrader
     mapping:
@@ -328,7 +330,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: BackingManager
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: BackingManager
     mapping:
@@ -357,7 +359,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Governance
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Governor
     mapping:
@@ -402,7 +404,7 @@ templates:
       file: ./src/mappings/governance.ts
   - name: stRSRVotes
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: stRSRVotes
     mapping:

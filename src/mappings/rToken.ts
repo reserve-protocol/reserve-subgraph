@@ -134,6 +134,9 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.targetUnits = targets.join(",");
   rToken.save();
 
+  protocol.rTokenCount += INT_ONE;
+  protocol.save();
+
   let currentPrice = facadeContract.price(event.params.rToken);
   token.rToken = rToken.id;
   token.lastPriceUSD = bigIntToBigDecimal(
