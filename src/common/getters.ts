@@ -5,6 +5,7 @@ import {
   AccountRToken,
   AccountRTokenDailySnapshot,
   AccountStakeRecord,
+  Collateral,
   Deployer,
   FinancialsDailySnapshot,
   Protocol,
@@ -49,6 +50,18 @@ import {
   TradeStarted,
 } from "../../generated/templates/RevenueTrader/RevenueTrader";
 import { bigIntToBigDecimal } from "./utils/numbers";
+
+export function getOrCreateCollateral(address: Address): Collateral {
+  let collateral = Collateral.load(address.toHexString());
+
+  if (!collateral) {
+    collateral = new Collateral(address.toHexString());
+    collateral.symbol = fetchTokenSymbol(address);
+    collateral.save();
+  }
+
+  return collateral;
+}
 
 export function getOrCreateProtocol(): Protocol {
   let protocol = Protocol.load(PROTOCOL_SLUG);

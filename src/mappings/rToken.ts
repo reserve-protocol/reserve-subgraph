@@ -1,4 +1,4 @@
-import { Address, BigDecimal, Value } from "@graphprotocol/graph-ts";
+import { BigDecimal, Value } from "@graphprotocol/graph-ts";
 import {
   RToken,
   RTokenContract,
@@ -6,16 +6,7 @@ import {
   Token,
   Trade,
 } from "../../generated/schema";
-import {
-  BackingManager,
-  Distributor as DistributorTemplate,
-  Main as MainTemplate,
-  RToken as RTokenTemplate,
-  RevenueTrader,
-  Timelock as TimelockTemplate,
-  stRSR as stRSRTemplate,
-  stRSRVotes as stRSRVotesTemplate,
-} from "../../generated/templates";
+import { Timelock as TimelockTemplate } from "../../generated/templates";
 import {
   BasketsNeededChanged,
   Issuance,
@@ -23,11 +14,10 @@ import {
   Transfer as TransferEvent,
 } from "../../generated/templates/RToken/RToken";
 import {
+  getOrCreateCollateral,
   getOrCreateEntry,
-  getOrCreateProtocol,
   getOrCreateRTokenDailySnapshot,
   getOrCreateRTokenHourlySnapshot,
-  getOrCreateRewardToken,
   getOrCreateToken,
   getOrCreateTrade,
   getTokenAccount,
@@ -37,11 +27,9 @@ import {
   updateRTokenMetrics,
   updateRTokenRevenueDistributed,
 } from "../common/metrics";
-import { fetchTokenDecimals, getRSRPrice } from "../common/tokens";
+import { fetchTokenDecimals } from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
-import { RTokenCreated } from "./../../generated/Deployer/Deployer";
-import { Facade } from "./../../generated/Deployer/Facade";
-import { Main } from "./../../generated/Deployer/Main";
+import { PrimeBasketSet } from "./../../generated/templates/BasketHandler/BasketHandler";
 import {
   RoleGranted,
   RoleRevoked,
@@ -58,145 +46,29 @@ import {
 
 import { removeFromArrayAtIndex } from "../common/utils/arrays";
 import {
-  BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
-  BIGINT_ONE,
-  BIGINT_TEN_TO_EIGHTEENTH,
   BIGINT_ZERO,
   ContractName,
   EntryType,
-  FACADE_ADDRESS,
   FURNACE_ADDRESS,
-  INT_ONE,
   RSR_ADDRESS,
   Roles,
   ST_RSR_ADDRESS,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
 
-// * Deployer events
-export function handleCreateToken(event: RTokenCreated): void {
-  let protocol = getOrCreateProtocol();
-
-  // Create related tokens
-  let token = getOrCreateToken(event.params.rToken);
-  let rewardToken = getOrCreateRewardToken(event.params.stRSR);
-  let stToken = Token.load(event.params.stRSR.toHexString())!;
-
-  let facadeContract = Facade.bind(Address.fromString(FACADE_ADDRESS));
-  let basketBreakdown = facadeContract.try_basketBreakdown(event.params.rToken);
-
-  // Error on collateral, don't map token
-  if (basketBreakdown.reverted) {
-    return;
-  }
-
-  let targets: string[] = [];
-  let targetBytes = basketBreakdown.value.getTargets();
-
-  for (let i = 0; i < targetBytes.length; i++) {
-    let targetName = targetBytes[i].toString();
-
-    if (targets.indexOf(targetName) == -1) {
-      targets.push(targetName);
-    }
-  }
-
-  // Create new RToken
-  let rToken = new RToken(event.params.rToken.toHexString());
-  rToken.protocol = protocol.id;
-  rToken.token = token.id;
-  rToken.rewardToken = rewardToken.id;
-  rToken.createdTimestamp = event.block.timestamp;
-  rToken.createdBlockNumber = event.block.number;
-  rToken.owners = [event.params.owner.toHexString()];
-  rToken.freezers = [];
-  rToken.pausers = [];
-  rToken.longFreezers = [];
-  rToken.cumulativeUniqueUsers = INT_ONE;
-  rToken.rewardTokenSupply = BIGINT_ZERO;
-  rToken.rsrPriceUSD = getRSRPrice();
-  rToken.rsrPriceLastBlock = event.block.number;
-  rToken.rsrExchangeRate = BIGDECIMAL_ONE;
-  rToken.rsrStaked = BIGINT_ZERO;
-  rToken.totalRsrStaked = BIGINT_ZERO;
-  rToken.totalRsrUnstaked = BIGINT_ZERO;
-  rToken.basketRate = BIGDECIMAL_ONE;
-  rToken.backing = BIGINT_ZERO;
-  rToken.backingRSR = BIGINT_ZERO;
-  rToken.stakersRewardShare = BIGDECIMAL_ZERO;
-  rToken.holdersRewardShare = BIGDECIMAL_ZERO;
-  rToken.cumulativeRTokenRevenue = BIGDECIMAL_ZERO;
-  rToken.cumulativeStakerRevenue = BIGDECIMAL_ZERO;
-  rToken.totalDistributedRSRRevenue = BIGINT_ZERO;
-  rToken.totalDistributedRTokenRevenue = BIGINT_ZERO;
-  rToken.rawRsrExchangeRate = BIGINT_TEN_TO_EIGHTEENTH;
-  rToken.targetUnits = targets.join(",");
-  rToken.save();
-
-  protocol.rTokenCount += INT_ONE;
-  protocol.save();
-
-  let currentPrice = facadeContract.price(event.params.rToken);
-  token.rToken = rToken.id;
-  token.lastPriceUSD = bigIntToBigDecimal(
-    currentPrice
-      .getHigh()
-      .plus(currentPrice.getLow())
-      .div(BIGINT_ONE.plus(BIGINT_ONE))
-  );
-  token.save();
-
-  rewardToken.rToken = rToken.id;
-  rewardToken.save();
-
-  stToken.rToken = rToken.id;
-  stToken.save();
-
-  let mainContract = Main.bind(event.params.main);
-  let main = new RTokenContract(event.params.main.toHexString());
-  main.rToken = rToken.id;
-  main.name = ContractName.MAIN;
-  main.save();
-
-  let backingManagerAddress = mainContract.backingManager();
-  let backingManager = new RTokenContract(backingManagerAddress.toHexString());
-  backingManager.rToken = rToken.id;
-  backingManager.name = ContractName.BACKING_MANAGER;
-  backingManager.save();
-
-  let revenueTraderAddress = mainContract.rTokenTrader();
-  let revenueTrader = new RTokenContract(revenueTraderAddress.toHexString());
-  revenueTrader.rToken = rToken.id;
-  revenueTrader.name = ContractName.RTOKEN_TRADER;
-  revenueTrader.save();
-
-  let rsrTraderAddress = mainContract.rsrTrader();
-  let rsrTrader = new RTokenContract(rsrTraderAddress.toHexString());
-  rsrTrader.rToken = rToken.id;
-  rsrTrader.name = ContractName.RSR_TRADER;
-  rsrTrader.save();
-
-  let distributorAddress = mainContract.distributor();
-
-  let distributor = new RTokenContract(distributorAddress.toHexString());
-  distributor.rToken = rToken.id;
-  distributor.name = ContractName.DISTRIBUTOR;
-  distributor.save();
-
-  // Initialize dynamic mappings for the new RToken system
-  RTokenTemplate.create(event.params.rToken);
-  stRSRTemplate.create(event.params.stRSR);
-  stRSRVotesTemplate.create(event.params.stRSR);
-  MainTemplate.create(event.params.main);
-  DistributorTemplate.create(distributorAddress);
-  BackingManager.create(backingManagerAddress);
-  RevenueTrader.create(revenueTraderAddress);
-  RevenueTrader.create(rsrTraderAddress);
-}
-
 export function handleTokenTransfer(event: TransferEvent): void {
   handleTransfer(event);
+}
+
+export function handleBasketSet(event: PrimeBasketSet): void {
+  let rTokenContract = RTokenContract.load(event.address.toHexString())!;
+  let rToken = RToken.load(rTokenContract.rToken)!;
+
+  rToken.collaterals = event.params.erc20s.map<string>(
+    (value) => getOrCreateCollateral(value).id
+  );
+  rToken.save();
 }
 
 // * rToken Events

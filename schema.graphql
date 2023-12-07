@@ -298,6 +298,14 @@ type FinancialsDailySnapshot @entity {
 #### RToken-Level Data ####
 ###########################
 
+type Collateral @entity {
+  " Collateral erc20 address "
+  id: ID!
+
+  " Collateral erc20 symbol "
+  symbol: String!
+}
+
 type RToken @entity {
   " RToken address "
   id: ID!
@@ -387,6 +395,9 @@ type RToken @entity {
 
   " Targets units for the primary basket"
   targetUnits: String!
+
+  " Collaterals "
+  collaterals: [Collateral!]!
 
   " Related auctions "
   trades: [Trade!]! @derivedFrom(field: "rToken")

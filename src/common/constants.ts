@@ -94,6 +94,7 @@ export namespace ContractName {
   export const TIMELOCK = "TIMELOCK";
   export const GOVERNOR = "GOVERNOR";
   export const RSR_TRADER = "RSR_TRADER";
+  export const BASKET_HANDLER = "BASKET_HANDLER";
 }
 
 export namespace ProposalState {
