@@ -399,6 +399,9 @@ type RToken @entity {
   " Collaterals "
   collaterals: [Collateral!]!
 
+  " Collateral distribution "
+  collateralDistribution: String!
+
   " Related auctions "
   trades: [Trade!]! @derivedFrom(field: "rToken")
 

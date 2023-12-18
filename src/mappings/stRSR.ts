@@ -35,6 +35,7 @@ import {
   BIGINT_TEN_TO_EIGHTEENTH,
   BIGINT_ZERO,
   EntryType,
+  ZERO_ADDRESS,
 } from "./../common/constants";
 
 function _handleStake(
@@ -42,7 +43,8 @@ function _handleStake(
   rTokenAddress: Address,
   amount: BigInt,
   rsrAmount: BigInt,
-  event: ethereum.Event
+  event: ethereum.Event,
+  createEntry: boolean = true
 ): void {
   updateRTokenAccountBalance(
     accountAddress,
@@ -54,18 +56,20 @@ function _handleStake(
 
   let rToken = RToken.load(rTokenAddress.toHexString())!; // Load rToken to get RSR price
 
-  let entry = getOrCreateEntry(
-    event,
-    rTokenAddress.toHexString(),
-    accountAddress.toHexString(),
-    rsrAmount,
-    EntryType.STAKE
-  );
+  if (createEntry) {
+    let entry = getOrCreateEntry(
+      event,
+      rTokenAddress.toHexString(),
+      accountAddress.toHexString(),
+      rsrAmount,
+      EntryType.STAKE
+    );
 
-  entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rToken.rsrPriceUSD);
-  entry.rToken = rTokenAddress.toHexString();
-  entry.stAmount = amount;
-  entry.save();
+    entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rToken.rsrPriceUSD);
+    entry.rToken = rTokenAddress.toHexString();
+    entry.stAmount = amount;
+    entry.save();
+  }
 
   getOrCreateStakeRecord(
     accountAddress,
@@ -84,7 +88,8 @@ function _handleUnstake(
   rTokenAddress: Address,
   amount: BigInt,
   rsrAmount: BigInt,
-  event: ethereum.Event
+  event: ethereum.Event,
+  createEntry: boolean = true
 ): void {
   updateRTokenAccountBalance(
     accountAddress,
@@ -97,16 +102,18 @@ function _handleUnstake(
   // Load rToken to get RSR price
   let rToken = RToken.load(rTokenAddress.toHexString())!;
 
-  let entry = getOrCreateEntry(
-    event,
-    rTokenAddress.toHexString(),
-    accountAddress.toHexString(),
-    rsrAmount,
-    EntryType.WITHDRAW
-  );
-  entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rToken.rsrPriceUSD);
-  entry.rToken = rTokenAddress.toHexString();
-  entry.save();
+  if (createEntry) {
+    let entry = getOrCreateEntry(
+      event,
+      rTokenAddress.toHexString(),
+      accountAddress.toHexString(),
+      rsrAmount,
+      EntryType.WITHDRAW
+    );
+    entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rToken.rsrPriceUSD);
+    entry.rToken = rTokenAddress.toHexString();
+    entry.save();
+  }
 
   getOrCreateStakeRecord(
     accountAddress,
@@ -301,37 +308,45 @@ export function handleDelegateVotesChanged(event: DelegateVotesChanged): void {
 
 // // Transfer(indexed address,indexed address,uint256)
 export function handleTransfer(event: Transfer): void {
-  _handleTransfer(
-    event.params.from.toHexString(),
-    event.params.to.toHexString(),
-    event.params.value,
-    event
-  );
-
-  let rTokenId = getRTokenId(event.address);
-
-  if (rTokenId) {
-    let rToken = RToken.load(rTokenId)!;
-
-    let rsrAmount = event.params.value
-      .times(rToken.rawRsrExchangeRate)
-      .div(BIGINT_TEN_TO_EIGHTEENTH);
-
-    _handleStake(
-      event.params.to,
-      Address.fromString(rTokenId),
+  // Only track user transfers
+  if (
+    event.params.from.toHexString() != ZERO_ADDRESS &&
+    event.params.to.toHexString() != ZERO_ADDRESS
+  ) {
+    _handleTransfer(
+      event.params.from.toHexString(),
+      event.params.to.toHexString(),
       event.params.value,
-      rsrAmount,
       event
     );
 
-    _handleUnstake(
-      event.params.from,
-      Address.fromString(rTokenId),
-      event.params.value,
-      rsrAmount,
-      event
-    );
+    let rTokenId = getRTokenId(event.address);
+
+    if (rTokenId) {
+      let rToken = RToken.load(rTokenId)!;
+
+      let rsrAmount = event.params.value
+        .times(rToken.rawRsrExchangeRate)
+        .div(BIGINT_TEN_TO_EIGHTEENTH);
+
+      _handleStake(
+        event.params.to,
+        Address.fromString(rTokenId),
+        event.params.value,
+        rsrAmount,
+        event,
+        false
+      );
+
+      _handleUnstake(
+        event.params.from,
+        Address.fromString(rTokenId),
+        event.params.value,
+        rsrAmount,
+        event,
+        false
+      );
+    }
   }
 }
 

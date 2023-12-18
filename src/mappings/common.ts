@@ -33,7 +33,7 @@ export function handleTransfer(event: TransferEvent): void {
   }
 
   // dont update zero address
-  if (entryType !== EntryType.MINT) {
+  if (entryType != EntryType.MINT) {
     updateAccountBalance(
       event.params.from,
       event.address,
@@ -42,7 +42,7 @@ export function handleTransfer(event: TransferEvent): void {
     );
   }
 
-  if (entryType !== EntryType.BURN) {
+  if (entryType != EntryType.BURN) {
     updateAccountBalance(
       event.params.to,
       event.address,
@@ -53,7 +53,7 @@ export function handleTransfer(event: TransferEvent): void {
 
   let userAddress = event.params.from;
 
-  if (entryType === EntryType.MINT) {
+  if (entryType == EntryType.MINT) {
     userAddress = event.params.to;
   }
 

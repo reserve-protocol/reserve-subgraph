@@ -1,11 +1,13 @@
 import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { ActiveAccount, RToken, Token } from "../../generated/schema";
+import { ActiveAccount, Protocol, RToken, Token } from "../../generated/schema";
 import {
   BIGDECIMAL_ZERO,
   BIGINT_ONE,
   BIGINT_ZERO,
   EntryType,
   INT_ONE,
+  RSR_ADDRESS,
+  RSV_ADDRESS,
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
 } from "./constants";
@@ -26,36 +28,6 @@ import {
 } from "./getters";
 import { getRSRPrice, getRTokenPrice } from "./tokens";
 import { bigIntToBigDecimal, getUsdValue } from "./utils/numbers";
-
-export function updateFinancials(
-  event: ethereum.Event,
-  amountUSD: BigDecimal
-): void {
-  let financialMetricsDaily = getOrCreateFinancialsDailySnapshot(event);
-  let protocol = getOrCreateProtocol();
-
-  // Update the block number and timestamp to that of the last transaction of that day
-  financialMetricsDaily.blockNumber = event.block.number;
-  financialMetricsDaily.timestamp = event.block.timestamp;
-
-  financialMetricsDaily.totalValueLockedUSD = protocol.totalValueLockedUSD;
-  financialMetricsDaily.dailyVolumeUSD = financialMetricsDaily.dailyVolumeUSD.plus(
-    amountUSD
-  );
-  financialMetricsDaily.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD;
-  financialMetricsDaily.rsrStaked = protocol.rsrStaked;
-  financialMetricsDaily.rsrStakedUSD = protocol.rsrStakedUSD;
-
-  financialMetricsDaily.cumulativeTotalRevenueUSD =
-    protocol.cumulativeRTokenRevenueUSD;
-  financialMetricsDaily.cumulativeRTokenRevenueUSD =
-    protocol.cumulativeRTokenRevenueUSD;
-  financialMetricsDaily.cumulativeRSRRevenueUSD =
-    protocol.cumulativeRSRRevenueUSD;
-  financialMetricsDaily.totalRTokenUSD = protocol.totalRTokenUSD;
-
-  financialMetricsDaily.save();
-}
 
 export function updateRTokenUniqueUsers(rTokenId: string): void {
   let protocol = getOrCreateProtocol();
@@ -153,6 +125,67 @@ export function updateRTokenAccountBalance(
   accountBalanceSnapshot.save();
 }
 
+// Get Token entity and refresh USD price
+export function getTokenWithRefreshedPrice(
+  address: Address,
+  currentBlock: BigInt
+): Token {
+  let token = getOrCreateToken(address);
+
+  if (token.lastPriceBlockNumber.lt(currentBlock)) {
+    let priceQuote = BIGDECIMAL_ZERO;
+
+    if (address.equals(RSR_ADDRESS)) {
+      priceQuote = getRSRPrice();
+    } else {
+      priceQuote = getRTokenPrice(address);
+    }
+
+    if (!priceQuote.equals(BIGDECIMAL_ZERO)) {
+      token.lastPriceUSD = priceQuote;
+      token.lastPriceBlockNumber = currentBlock;
+    }
+  }
+
+  return token;
+}
+
+export function updateProtocolRTokenMetrics(
+  event: ethereum.Event,
+  rTokenId: string,
+  amount: BigInt,
+  amountUSD: BigDecimal,
+  oldMarketCap: BigDecimal,
+  newMarketCap: BigDecimal
+): void {
+  const protocol = getOrCreateProtocol();
+  const rToken = RToken.load(rTokenId)!;
+
+  // Always track accurate marketcap in usd terms
+  protocol.totalRTokenUSD = protocol.totalRTokenUSD
+    .minus(oldMarketCap)
+    .plus(newMarketCap);
+  // Protocol cumulative data
+  protocol.totalValueLockedUSD = protocol.totalRTokenUSD.plus(
+    protocol.rsrStakedUSD
+  );
+
+  // Protocol cumulative data
+  protocol.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD.plus(amountUSD);
+  protocol.transactionCount = protocol.transactionCount.plus(BIGINT_ONE);
+  protocol.save();
+
+  // Update snapshots
+  updateUsageAndFinancialMetrics(
+    event,
+    rToken,
+    protocol,
+    amount,
+    amountUSD,
+    ""
+  );
+}
+
 export function updateRTokenMetrics(
   event: ethereum.Event,
   rTokenAddress: Address,
@@ -161,107 +194,31 @@ export function updateRTokenMetrics(
 ): void {
   let protocol = getOrCreateProtocol();
   let rToken = RToken.load(rTokenAddress.toHexString())!;
-  let token = getTokenUpdated(rToken.id, event);
-  let rsrPrice = rToken.rsrPriceUSD;
+  let rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.number);
+  let amountUSD = getUsdValue(amount, rsr.lastPriceUSD);
 
-  if (rToken.rsrPriceLastBlock.lt(event.block.number)) {
-    let priceQuote = getRSRPrice();
-
-    if (!priceQuote.equals(BIGDECIMAL_ZERO)) {
-      rToken.rsrPriceUSD = priceQuote;
-      rsrPrice = priceQuote;
-    }
-    rToken.rsrPriceLastBlock = event.block.number;
-  }
-
-  let amountUSD = BIGDECIMAL_ZERO;
-
-  if (
-    entryType === EntryType.MINT ||
-    entryType === EntryType.BURN ||
-    entryType === EntryType.TRANSFER ||
-    entryType === EntryType.CLAIM
-  ) {
-    amountUSD = getUsdValue(amount, token.lastPriceUSD);
-  } else {
-    amountUSD = getUsdValue(amount, rsrPrice);
-  }
-
-  // protocol metrics
-  let usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
-  let usageMetricsHourly = getOrCreateUsageMetricHourlySnapshot(event);
-
-  // rToken metrics
-  let rTokenDaily = getOrCreateRTokenDailySnapshot(rToken.id, event);
-  let rTokenHourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
-
-  if (entryType === EntryType.MINT) {
-    protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
-    protocol.totalRTokenUSD = protocol.totalRTokenUSD.plus(amountUSD);
-  } else if (entryType === EntryType.BURN) {
-    protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.minus(
-      amountUSD
-    );
-    protocol.totalRTokenUSD = protocol.totalRTokenUSD.minus(amountUSD);
-  } else if (entryType === EntryType.STAKE) {
-    protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
+  if (entryType === EntryType.STAKE) {
     protocol.rsrStaked = protocol.rsrStaked.plus(amount);
-    protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsrPrice);
+    protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsr.lastPriceUSD);
 
     protocol.totalRsrStaked = protocol.totalRsrStaked.plus(amount);
-    protocol.totalRsrStakedUSD = getUsdValue(protocol.totalRsrStaked, rsrPrice);
-
-    usageMetricsDaily.dailyRSRStaked = usageMetricsDaily.dailyRSRStaked.plus(
-      amount
-    );
-    usageMetricsDaily.dailyRSRStakedUSD = getUsdValue(
-      usageMetricsDaily.dailyRSRStaked,
-      rsrPrice
-    );
-
-    usageMetricsHourly.hourlyRSRStaked = usageMetricsHourly.hourlyRSRStaked.plus(
-      amount
-    );
-    usageMetricsHourly.hourlyRSRStakedUSD = getUsdValue(
-      usageMetricsHourly.hourlyRSRStaked,
-      rsrPrice
+    protocol.totalRsrStakedUSD = getUsdValue(
+      protocol.totalRsrStaked,
+      rsr.lastPriceUSD
     );
 
     // rToken
     rToken.rsrStaked = rToken.rsrStaked.plus(amount);
     rToken.totalRsrStaked = rToken.totalRsrStaked.plus(amount);
-
-    rTokenDaily.dailyRSRStaked = rTokenDaily.dailyRSRStaked.plus(amount);
-    rTokenHourly.hourlyRSRStaked = rTokenHourly.hourlyRSRStaked.plus(amount);
   } else if (entryType === EntryType.UNSTAKE) {
     protocol.totalRsrUnstaked = protocol.totalRsrUnstaked.plus(amount);
     protocol.totalRsrUnstakedUSD = getUsdValue(
       protocol.totalRsrUnstaked,
-      rsrPrice
-    );
-
-    usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRUnstaked.plus(
-      amount
-    );
-    usageMetricsDaily.dailyRSRUnstakedUSD = getUsdValue(
-      usageMetricsDaily.dailyRSRUnstaked,
-      rsrPrice
-    );
-
-    usageMetricsHourly.hourlyRSRUnstaked = usageMetricsHourly.hourlyRSRStaked.plus(
-      amount
-    );
-    usageMetricsHourly.hourlyRSRStakedUSD = usageMetricsHourly.hourlyRSRUnstakedUSD.plus(
-      amountUSD
+      rsr.lastPriceUSD
     );
 
     // rToken
     rToken.totalRsrUnstaked = rToken.totalRsrUnstaked.plus(amount);
-
-    rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
-    rTokenHourly.hourlyRSRUnstaked = rTokenHourly.hourlyRSRUnstaked.plus(
-      amount
-    );
   } else if (
     entryType === EntryType.WITHDRAW ||
     entryType === EntryType.UNSTAKE_CANCELLED
@@ -270,63 +227,29 @@ export function updateRTokenMetrics(
     rToken.rsrStaked = rToken.rsrStaked.minus(amount);
 
     protocol.rsrStaked = protocol.rsrStaked.minus(amount);
-    protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsrPrice);
-    protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.minus(
-      amountUSD
-    );
+    protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsr.lastPriceUSD);
   }
+
   // Save rToken data
   rToken.save();
 
   // Protocol cumulative data
+  protocol.totalValueLockedUSD = protocol.totalRTokenUSD.plus(
+    protocol.rsrStakedUSD
+  );
   protocol.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD.plus(amountUSD);
   protocol.transactionCount = protocol.transactionCount.plus(BIGINT_ONE);
   protocol.save();
 
-  // Usage metrics daily cumulative data
-  usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
-  usageMetricsDaily.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
-  usageMetricsDaily.cumulativeRSRUnstaked = protocol.totalRsrUnstaked;
-  usageMetricsDaily.cumulativeRSRUnstakedUSD = protocol.totalRsrUnstakedUSD;
-  usageMetricsDaily.blockNumber = event.block.number;
-  usageMetricsDaily.timestamp = event.block.timestamp;
-  usageMetricsDaily.dailyTransactionCount += INT_ONE;
-  usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
-  usageMetricsDaily.save();
-
-  // Usage metrics hourly cumulative data
-  usageMetricsHourly.cumulativeRSRStaked = protocol.rsrStaked;
-  usageMetricsHourly.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
-  usageMetricsHourly.cumulativeRSRUnstaked = protocol.totalRsrUnstaked;
-  usageMetricsHourly.cumulativeRSRUnstakedUSD = protocol.totalRsrUnstakedUSD;
-  usageMetricsHourly.blockNumber = event.block.number;
-  usageMetricsHourly.timestamp = event.block.timestamp;
-  usageMetricsHourly.hourlyTransactionCount += INT_ONE;
-  usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
-  usageMetricsHourly.save();
-
-  // rToken daily cumulative data
-  rTokenDaily.rsrExchangeRate = rToken.rsrExchangeRate;
-  rTokenDaily.basketRate = rToken.basketRate;
-  rTokenDaily.rsrStaked = rToken.rsrStaked;
-  rTokenDaily.cumulativeRSRStaked = rToken.totalRsrStaked;
-  rTokenDaily.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
-  rTokenDaily.blockNumber = event.block.number;
-  rTokenDaily.timestamp = event.block.timestamp;
-  rTokenDaily.save();
-
-  // rToken hourly cumulative data
-  rTokenHourly.rsrExchangeRate = rToken.rsrExchangeRate;
-  rTokenHourly.basketRate = rToken.basketRate;
-  rTokenHourly.rsrStaked = rToken.rsrStaked;
-  rTokenHourly.cumulativeRSRStaked = rToken.totalRsrStaked;
-  rTokenHourly.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
-  rTokenHourly.blockNumber = event.block.number;
-  rTokenHourly.timestamp = event.block.timestamp;
-  rTokenHourly.save();
-
-  // Update protocol financial metrics snapshot
-  updateFinancials(event, amountUSD);
+  // Update snapshots
+  updateUsageAndFinancialMetrics(
+    event,
+    rToken,
+    protocol,
+    amount,
+    amountUSD,
+    entryType
+  );
 }
 
 // Update token metrics and snapshots
@@ -338,12 +261,19 @@ export function updateTokenMetrics(
   entryType: string
 ): void {
   let token = getOrCreateToken(tokenAddress);
+  const marketCapUsdSnapshot = getUsdValue(
+    token.totalSupply,
+    token.lastPriceUSD
+  );
   // Token snapshots
   let tokenDaily = getOrCreateTokenDailySnapshot(token.id, event);
   let tokenHourly = getOrCreateTokenHourlySnapshot(token.id, event);
 
   // Update token price
-  if (token.lastPriceBlockNumber.lt(event.block.number)) {
+  if (
+    (tokenAddress.equals(RSV_ADDRESS) || token.rToken) &&
+    token.lastPriceBlockNumber.lt(event.block.number)
+  ) {
     token.lastPriceUSD = getRTokenPrice(tokenAddress);
     token.lastPriceBlockNumber = event.block.number;
   }
@@ -425,7 +355,14 @@ export function updateTokenMetrics(
   if (rTokenId) {
     // create AccountRToken relationship
     getOrCreateRTokenAccount(fromAddress, tokenAddress);
-    updateRTokenMetrics(event, Address.fromString(rTokenId), amount, entryType);
+    updateProtocolRTokenMetrics(
+      event,
+      rTokenId,
+      amount,
+      getUsdValue(amount, token.lastPriceUSD),
+      marketCapUsdSnapshot,
+      getUsdValue(token.totalSupply, token.lastPriceUSD)
+    );
   }
 }
 
@@ -436,7 +373,10 @@ export function updateRTokenRevenueDistributed(
   event: ethereum.Event
 ): void {
   let protocol = getOrCreateProtocol();
-  let token = getTokenUpdated(rToken.id, event);
+  let token = getTokenWithRefreshedPrice(
+    Address.fromString(rToken.id),
+    event.block.number
+  );
 
   rToken.cumulativeRTokenRevenue = rToken.cumulativeRTokenRevenue.plus(
     holdersShare
@@ -462,7 +402,7 @@ export function updateRSRRevenueDistributed(
   stakersShare: BigDecimal,
   event: ethereum.Event
 ): void {
-  let rsrPrice = fetchAndUpdateRSRPrice(rToken, event);
+  let rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.number);
   let protocol = getOrCreateProtocol();
 
   rToken.cumulativeStakerRevenue = rToken.cumulativeStakerRevenue.plus(
@@ -475,50 +415,13 @@ export function updateRSRRevenueDistributed(
 
   // Protocol metrics
   protocol.cumulativeTotalRevenueUSD = protocol.cumulativeTotalRevenueUSD.plus(
-    bigIntToBigDecimal(amount).times(rsrPrice)
+    bigIntToBigDecimal(amount).times(rsr.lastPriceUSD)
   );
   protocol.cumulativeRSRRevenueUSD = protocol.cumulativeRSRRevenueUSD.plus(
-    stakersShare.times(rsrPrice)
+    stakersShare.times(rsr.lastPriceUSD)
   );
   protocol.rsrRevenue = protocol.rsrRevenue.plus(stakersShare);
   protocol.save();
-}
-
-// Update RToken entity RSR price without saving it, returns current RSR price
-function fetchAndUpdateRSRPrice(
-  rToken: RToken,
-  event: ethereum.Event
-): BigDecimal {
-  let rsrPrice = rToken.rsrPriceUSD;
-
-  if (rToken.rsrPriceLastBlock.lt(event.block.number)) {
-    let priceQuote = getRSRPrice();
-    rToken.rsrPriceLastBlock = event.block.number;
-
-    if (!priceQuote.equals(BIGDECIMAL_ZERO)) {
-      rToken.rsrPriceUSD = priceQuote;
-      rsrPrice = priceQuote;
-    }
-  }
-
-  return rsrPrice;
-}
-
-// Get the RToken "Token" entity with its price updated
-function getTokenUpdated(rTokenId: string, event: ethereum.Event): Token {
-  let token = Token.load(rTokenId)!;
-
-  // Update token price
-  if (token.lastPriceBlockNumber.lt(event.block.number)) {
-    let price = getRTokenPrice(Address.fromString(rTokenId));
-    token.lastPriceUSD = price.equals(BIGDECIMAL_ZERO)
-      ? token.lastPriceUSD
-      : price;
-    token.lastPriceBlockNumber = event.block.number;
-    token.save();
-  }
-
-  return token;
 }
 
 function updateTokenHolder(
@@ -541,6 +444,130 @@ function updateTokenHolder(
   dailyMetrics.save();
   hourlyMetrics.save();
   token.save();
+}
+
+export function updateUsageAndFinancialMetrics(
+  event: ethereum.Event,
+  rToken: RToken,
+  protocol: Protocol,
+  amount: BigInt,
+  usdPrice: BigDecimal,
+  entryType: string
+): void {
+  // protocol metrics
+  const financialMetricsDaily = getOrCreateFinancialsDailySnapshot(event);
+  const usageMetricsDaily = getOrCreateUsageMetricDailySnapshot(event);
+  const usageMetricsHourly = getOrCreateUsageMetricHourlySnapshot(event);
+
+  // rToken metrics
+  const rTokenDaily = getOrCreateRTokenDailySnapshot(rToken.id, event);
+  const rTokenHourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
+
+  // TODO: Track issuances?
+  if (entryType === EntryType.STAKE) {
+    usageMetricsDaily.dailyRSRStaked = usageMetricsDaily.dailyRSRStaked.plus(
+      amount
+    );
+    usageMetricsDaily.dailyRSRStakedUSD = getUsdValue(
+      usageMetricsDaily.dailyRSRStaked,
+      usdPrice
+    );
+
+    usageMetricsHourly.hourlyRSRStaked = usageMetricsHourly.hourlyRSRStaked.plus(
+      amount
+    );
+    usageMetricsHourly.hourlyRSRStakedUSD = getUsdValue(
+      usageMetricsHourly.hourlyRSRStaked,
+      usdPrice
+    );
+
+    // rToken
+    rTokenDaily.dailyRSRStaked = rTokenDaily.dailyRSRStaked.plus(amount);
+    rTokenHourly.hourlyRSRStaked = rTokenHourly.hourlyRSRStaked.plus(amount);
+  } else if (entryType === EntryType.UNSTAKE) {
+    usageMetricsDaily.dailyRSRUnstaked = usageMetricsDaily.dailyRSRUnstaked.plus(
+      amount
+    );
+    usageMetricsDaily.dailyRSRUnstakedUSD = getUsdValue(
+      usageMetricsDaily.dailyRSRUnstaked,
+      usdPrice
+    );
+
+    usageMetricsHourly.hourlyRSRUnstaked = usageMetricsHourly.hourlyRSRStaked.plus(
+      amount
+    );
+    usageMetricsHourly.hourlyRSRStakedUSD = getUsdValue(
+      usageMetricsHourly.hourlyRSRStaked,
+      usdPrice
+    );
+
+    rTokenDaily.dailyRSRUnstaked = rTokenDaily.dailyRSRUnstaked.plus(amount);
+    rTokenHourly.hourlyRSRUnstaked = rTokenHourly.hourlyRSRUnstaked.plus(
+      amount
+    );
+  }
+
+  financialMetricsDaily.blockNumber = event.block.number;
+  financialMetricsDaily.timestamp = event.block.timestamp;
+
+  financialMetricsDaily.totalValueLockedUSD = protocol.totalValueLockedUSD;
+  financialMetricsDaily.dailyVolumeUSD = financialMetricsDaily.dailyVolumeUSD.plus(
+    getUsdValue(amount, usdPrice)
+  );
+  financialMetricsDaily.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD;
+  financialMetricsDaily.rsrStaked = protocol.rsrStaked;
+  financialMetricsDaily.rsrStakedUSD = protocol.rsrStakedUSD;
+
+  financialMetricsDaily.cumulativeTotalRevenueUSD =
+    protocol.cumulativeRTokenRevenueUSD;
+  financialMetricsDaily.cumulativeRTokenRevenueUSD =
+    protocol.cumulativeRTokenRevenueUSD;
+  financialMetricsDaily.cumulativeRSRRevenueUSD =
+    protocol.cumulativeRSRRevenueUSD;
+  financialMetricsDaily.totalRTokenUSD = protocol.totalRTokenUSD;
+
+  financialMetricsDaily.save();
+
+  usageMetricsDaily.cumulativeRSRStaked = protocol.rsrStaked;
+  usageMetricsDaily.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
+  usageMetricsDaily.cumulativeRSRUnstaked = protocol.totalRsrUnstaked;
+  usageMetricsDaily.cumulativeRSRUnstakedUSD = protocol.totalRsrUnstakedUSD;
+  usageMetricsDaily.blockNumber = event.block.number;
+  usageMetricsDaily.timestamp = event.block.timestamp;
+  usageMetricsDaily.dailyTransactionCount += INT_ONE;
+  usageMetricsDaily.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+  usageMetricsDaily.save();
+
+  // Usage metrics hourly cumulative data
+  usageMetricsHourly.cumulativeRSRStaked = protocol.rsrStaked;
+  usageMetricsHourly.cumulativeRSRStakedUSD = protocol.rsrStakedUSD;
+  usageMetricsHourly.cumulativeRSRUnstaked = protocol.totalRsrUnstaked;
+  usageMetricsHourly.cumulativeRSRUnstakedUSD = protocol.totalRsrUnstakedUSD;
+  usageMetricsHourly.blockNumber = event.block.number;
+  usageMetricsHourly.timestamp = event.block.timestamp;
+  usageMetricsHourly.hourlyTransactionCount += INT_ONE;
+  usageMetricsHourly.cumulativeUniqueUsers = protocol.cumulativeUniqueUsers;
+  usageMetricsHourly.save();
+
+  // rToken daily cumulative data
+  rTokenDaily.rsrExchangeRate = rToken.rsrExchangeRate;
+  rTokenDaily.basketRate = rToken.basketRate;
+  rTokenDaily.rsrStaked = rToken.rsrStaked;
+  rTokenDaily.cumulativeRSRStaked = rToken.totalRsrStaked;
+  rTokenDaily.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
+  rTokenDaily.blockNumber = event.block.number;
+  rTokenDaily.timestamp = event.block.timestamp;
+  rTokenDaily.save();
+
+  // rToken hourly cumulative data
+  rTokenHourly.rsrExchangeRate = rToken.rsrExchangeRate;
+  rTokenHourly.basketRate = rToken.basketRate;
+  rTokenHourly.rsrStaked = rToken.rsrStaked;
+  rTokenHourly.cumulativeRSRStaked = rToken.totalRsrStaked;
+  rTokenHourly.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
+  rTokenHourly.blockNumber = event.block.number;
+  rTokenHourly.timestamp = event.block.timestamp;
+  rTokenHourly.save();
 }
 
 function getDayId(event: ethereum.Event): string {

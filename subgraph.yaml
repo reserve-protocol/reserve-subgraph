@@ -163,14 +163,6 @@ templates:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTokenTransfer
-        - event: Issuance(indexed address,indexed address,indexed uint256,uint192)
-          handler: handleIssuance
-        - event: Issuance(indexed address,indexed address,uint256,uint192)
-          handler: handleIssuance
-        - event: Redemption(indexed address,indexed address,indexed uint256,uint192)
-          handler: handleRedemption
-        - event: Redemption(indexed address,indexed address,uint256,uint192)
-          handler: handleRedemption
         - event: BasketsNeededChanged(uint192,uint192)
           handler: handleRTokenBaskets
       file: ./src/mappings/rToken.ts
@@ -203,6 +195,8 @@ templates:
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
           file: ./abis/Prices/ChainlinkAggregator.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: Staked(indexed uint256,indexed address,uint256,indexed uint256)
           handler: handleStake
@@ -211,14 +205,16 @@ templates:
         - event: UnstakingStarted(indexed uint256,indexed uint256,indexed
             address,uint256,uint256,uint256)
           handler: handleUnstakeStarted
-        - event: UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
+        - event:
+            UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstake
         - event: ExchangeRateSet(indexed uint192,indexed uint192)
           handler: handleExchangeRate
         - event: ExchangeRateSet(uint192,uint192)
           handler: handleExchangeRate
-        - event: UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
+        - event:
+            UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstakeCancel
       file: ./src/mappings/stRSR.ts
@@ -239,6 +235,8 @@ templates:
           file: ./abis/BasketHandler.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
       eventHandlers:
         - event: PrimeBasketSet(address[],uint192[],bytes32[])
           handler: handleBasketSet

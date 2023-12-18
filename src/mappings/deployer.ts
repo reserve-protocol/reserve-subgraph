@@ -32,6 +32,7 @@ import {
   FACADE_ADDRESS,
   INT_ONE,
 } from "./../common/constants";
+import { hexToNumberString } from "../common/utils/strings";
 
 // * Deployer events
 export function handleCreateToken(event: RTokenCreated): void {
@@ -50,15 +51,27 @@ export function handleCreateToken(event: RTokenCreated): void {
     return;
   }
 
-  let targets: string[] = [];
+  let shares = basketBreakdown.value.getUoaShares();
+  let erc20s = basketBreakdown.value.getErc20s();
   let targetBytes = basketBreakdown.value.getTargets();
 
-  for (let i = 0; i < targetBytes.length; i++) {
+  let collaterals: string[] = [];
+  let distribution: string[] = [];
+  let targets: string[] = [];
+
+  for (let i = 0; i < erc20s.length; i++) {
     let targetName = targetBytes[i].toString();
 
     if (targets.indexOf(targetName) == -1) {
       targets.push(targetName);
     }
+
+    collaterals.push(getOrCreateCollateral(erc20s[i]).id);
+    distribution.push(
+      `"${erc20s[i].toHexString()}":{"dist":"${hexToNumberString(
+        shares[i].toHex()
+      )}","target":"${targetName}"}`
+    );
   }
 
   // Create new RToken
@@ -90,9 +103,8 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.totalDistributedRSRRevenue = BIGINT_ZERO;
   rToken.totalDistributedRTokenRevenue = BIGINT_ZERO;
   rToken.rawRsrExchangeRate = BIGINT_TEN_TO_EIGHTEENTH;
-  rToken.collaterals = basketBreakdown.value
-    .getErc20s()
-    .map<string>((value) => getOrCreateCollateral(value).id);
+  rToken.collaterals = collaterals;
+  rToken.collateralDistribution = `{${distribution.join(",")}}`;
   rToken.targetUnits = targets.join(",");
   rToken.save();
 

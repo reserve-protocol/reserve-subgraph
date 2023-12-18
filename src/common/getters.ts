@@ -624,7 +624,13 @@ export function getOrCreateEntry(
   amount: BigInt,
   type: string
 ): Entry {
-  let id = tokenId.concat("-").concat(event.transaction.hash.toHexString());
+  let id = tokenId
+    .concat("-")
+    .concat(event.transaction.hash.toHexString())
+    .concat("-")
+    .concat(event.transactionLogIndex.toHexString())
+    .concat("-")
+    .concat(type);
   let entry = Entry.load(id);
 
   if (!entry) {

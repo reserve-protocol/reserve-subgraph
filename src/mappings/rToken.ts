@@ -1,4 +1,4 @@
-import { BigDecimal, Value } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, Value } from "@graphprotocol/graph-ts";
 import {
   RToken,
   RTokenContract,
@@ -9,22 +9,16 @@ import {
 import { Timelock as TimelockTemplate } from "../../generated/templates";
 import {
   BasketsNeededChanged,
-  Issuance,
-  Redemption,
   Transfer as TransferEvent,
 } from "../../generated/templates/RToken/RToken";
 import {
   getOrCreateCollateral,
-  getOrCreateEntry,
   getOrCreateRTokenDailySnapshot,
   getOrCreateRTokenHourlySnapshot,
-  getOrCreateToken,
   getOrCreateTrade,
-  getTokenAccount,
 } from "../common/getters";
 import {
   updateRSRRevenueDistributed,
-  updateRTokenMetrics,
   updateRTokenRevenueDistributed,
 } from "../common/metrics";
 import { fetchTokenDecimals } from "../common/tokens";
@@ -44,12 +38,13 @@ import {
   TradeStarted,
 } from "./../../generated/templates/RevenueTrader/RevenueTrader";
 
+import { Facade } from "../../generated/templates/RToken/Facade";
 import { removeFromArrayAtIndex } from "../common/utils/arrays";
 import {
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
   ContractName,
-  EntryType,
+  FACADE_ADDRESS,
   FURNACE_ADDRESS,
   RSR_ADDRESS,
   Roles,
@@ -65,55 +60,83 @@ export function handleBasketSet(event: PrimeBasketSet): void {
   let rTokenContract = RTokenContract.load(event.address.toHexString())!;
   let rToken = RToken.load(rTokenContract.rToken)!;
 
-  rToken.collaterals = event.params.erc20s.map<string>(
-    (value) => getOrCreateCollateral(value).id
+  let facadeContract = Facade.bind(Address.fromString(FACADE_ADDRESS));
+  let basketBreakdown = facadeContract.try_basketBreakdown(
+    Address.fromString(rTokenContract.rToken)
   );
+
+  let shares = basketBreakdown.value.getUoaShares();
+  let erc20s = basketBreakdown.value.getErc20s();
+  let targetBytes = basketBreakdown.value.getTargets();
+
+  let collaterals: string[] = [];
+  let distribution: string[] = [];
+  let targets: string[] = [];
+
+  for (let i = 0; i < erc20s.length; i++) {
+    let targetName = targetBytes[i].toString();
+
+    if (targets.indexOf(targetName) == -1) {
+      targets.push(targetName);
+    }
+
+    collaterals.push(getOrCreateCollateral(erc20s[i]).id);
+    distribution.push(
+      `"${erc20s[i].toHexString()}":{"dist":"${bigIntToBigDecimal(
+        shares[i]
+      ).toString()}","target":"${targetName}"}`
+    );
+  }
+
+  rToken.collaterals = collaterals;
+  rToken.collateralDistribution = `{${distribution.join(",")}}`;
+  rToken.targetUnits = targets.join(",");
   rToken.save();
 }
 
 // * rToken Events
-export function handleIssuance(event: Issuance): void {
-  let account = getTokenAccount(event.params.issuer, event.address);
-  let token = getOrCreateToken(event.address);
+// export function handleIssuance(event: Issuance): void {
+//   let account = getTokenAccount(event.params.issuer, event.address);
+//   let token = getOrCreateToken(event.address);
 
-  let entry = getOrCreateEntry(
-    event,
-    event.address.toHexString(),
-    account.id,
-    event.params.amount,
-    EntryType.ISSUE
-  );
-  entry.rToken = event.address.toHexString();
-  entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
-    token.lastPriceUSD
-  );
-  entry.save();
+//   let entry = getOrCreateEntry(
+//     event,
+//     event.address.toHexString(),
+//     account.id,
+//     event.params.amount,
+//     EntryType.ISSUE
+//   );
+//   entry.rToken = event.address.toHexString();
+//   entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
+//     token.lastPriceUSD
+//   );
+//   entry.save();
 
-  updateRTokenMetrics(
-    event,
-    event.address,
-    event.params.amount,
-    EntryType.ISSUE
-  );
-}
+// updateRTokenMetrics(
+//   event,
+//   event.address,
+//   event.params.amount,
+//   EntryType.ISSUE
+// );
+// }
 
-export function handleRedemption(event: Redemption): void {
-  let account = getTokenAccount(event.params.redeemer, event.address);
-  let token = getOrCreateToken(event.address);
+// export function handleRedemption(event: Redemption): void {
+//   let account = getTokenAccount(event.params.redeemer, event.address);
+//   let token = getOrCreateToken(event.address);
 
-  let entry = getOrCreateEntry(
-    event,
-    event.address.toHexString(),
-    account.id,
-    event.params.amount,
-    EntryType.REDEEM
-  );
-  entry.rToken = event.address.toHexString();
-  entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
-  entry.save();
+//   let entry = getOrCreateEntry(
+//     event,
+//     event.address.toHexString(),
+//     account.id,
+//     event.params.amount,
+//     EntryType.REDEEM
+//   );
+//   entry.rToken = event.address.toHexString();
+//   entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
+//   entry.save();
 
-  updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.REDEEM);
-}
+// updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.REDEEM);
+// }
 
 // * Rewards
 export function handleRTokenBaskets(event: BasketsNeededChanged): void {
@@ -121,6 +144,14 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let token = Token.load(rToken.token)!;
   let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
   let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
+
+  let contract = Facade.bind(Address.fromString(FACADE_ADDRESS));
+  let backing = contract.try_backingOverview(event.address);
+
+  if (!backing.reverted) {
+    rToken.backing = backing.value.getBacking();
+    rToken.backingRSR = backing.value.getOverCollateralization();
+  }
 
   if (event.params.newBasketsNeeded.equals(BIGINT_ZERO)) {
     rToken.basketRate = BIGDECIMAL_ZERO;
