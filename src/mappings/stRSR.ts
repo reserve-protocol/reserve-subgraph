@@ -308,18 +308,18 @@ export function handleDelegateVotesChanged(event: DelegateVotesChanged): void {
 
 // // Transfer(indexed address,indexed address,uint256)
 export function handleTransfer(event: Transfer): void {
+  _handleTransfer(
+    event.params.from.toHexString(),
+    event.params.to.toHexString(),
+    event.params.value,
+    event
+  );
+
   // Only track user transfers
   if (
     event.params.from.toHexString() != ZERO_ADDRESS &&
     event.params.to.toHexString() != ZERO_ADDRESS
   ) {
-    _handleTransfer(
-      event.params.from.toHexString(),
-      event.params.to.toHexString(),
-      event.params.value,
-      event
-    );
-
     let rTokenId = getRTokenId(event.address);
 
     if (rTokenId) {
