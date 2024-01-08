@@ -149,6 +149,7 @@ export function getTokenPrice(address: Address): BigDecimal {
   return tokenPrice;
 }
 
+// TODO: Use stored token record as fallback price?
 export function getRSRPrice(): BigDecimal {
   return getTokenPrice(RSR_ADDRESS);
 }

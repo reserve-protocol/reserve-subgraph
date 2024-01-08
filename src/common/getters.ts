@@ -240,7 +240,6 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics.cumulativeUniqueUsers = INT_ZERO;
     rTokenMetrics.rsrStaked = BIGINT_ZERO;
     rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
-    rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.dailyRSRStaked = BIGINT_ZERO;
     rTokenMetrics.dailyActiveUsers = INT_ZERO;
     rTokenMetrics.cumulativeRSRStaked = BIGINT_ZERO;
@@ -282,7 +281,6 @@ export function getOrCreateRTokenHourlySnapshot(
     rTokenMetrics.cumulativeUniqueUsers = INT_ZERO;
     rTokenMetrics.rsrStaked = BIGINT_ZERO;
     rTokenMetrics.rewardTokenSupply = BIGINT_ZERO;
-    rTokenMetrics.rsrPriceUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.hourlyRSRStaked = BIGINT_ZERO;
     rTokenMetrics.hourlyActiveUsers = INT_ZERO;
     rTokenMetrics.cumulativeRSRStaked = BIGINT_ZERO;

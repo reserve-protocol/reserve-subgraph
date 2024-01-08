@@ -16,7 +16,6 @@ import {
   getOrCreateRewardToken,
   getOrCreateToken,
 } from "../common/getters";
-import { getRSRPrice } from "../common/tokens";
 import { bigIntToBigDecimal } from "../common/utils/numbers";
 import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import { Facade } from "./../../generated/Deployer/Facade";
@@ -87,8 +86,6 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.longFreezers = [];
   rToken.cumulativeUniqueUsers = INT_ONE;
   rToken.rewardTokenSupply = BIGINT_ZERO;
-  rToken.rsrPriceUSD = getRSRPrice();
-  rToken.rsrPriceLastBlock = event.block.number;
   rToken.rsrExchangeRate = BIGDECIMAL_ONE;
   rToken.rsrStaked = BIGINT_ZERO;
   rToken.totalRsrStaked = BIGINT_ZERO;

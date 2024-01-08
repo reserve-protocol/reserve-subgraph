@@ -351,12 +351,6 @@ type RToken @entity {
   " Total supply of rewardToken (stRSR) "
   rewardTokenSupply: BigInt!
 
-  " RSR token price "
-  rsrPriceUSD: BigDecimal!
-
-  " RSR Price last updated block to avoid re-fetching"
-  rsrPriceLastBlock: BigInt!
-
   " Reward token exchange rate "
   rsrExchangeRate: BigDecimal!
 
@@ -450,9 +444,6 @@ type RTokenDailySnapshot @entity {
   " Total supply of rewardToken "
   rewardTokenSupply: BigInt!
 
-  " Reward token price "
-  rsrPriceUSD: BigDecimal!
-
   " Total RSR staked "
   dailyRSRStaked: BigInt!
 
@@ -510,9 +501,6 @@ type RTokenHourlySnapshot @entity {
 
   " Total supply of rewardToken "
   rewardTokenSupply: BigInt
-
-  " Reward token price "
-  rsrPriceUSD: BigDecimal
 
   " How much RSR is currently locked "
   rsrStaked: BigInt!
@@ -982,9 +970,6 @@ type AccountStakeRecord @entity {
 
   " readable exchange rate "
   exchangeRate: BigDecimal!
-
-  " rsrPrice "
-  rsrPriceUSD: BigDecimal!
 
   " isStake "
   isStake: Boolean!

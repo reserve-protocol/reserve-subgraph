@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { RToken } from "../../generated/schema";
 import {
   ExchangeRateSet,
@@ -16,6 +16,7 @@ import {
   getOrCreateStakeRecord,
 } from "../common/getters";
 import {
+  getTokenWithRefreshedPrice,
   updateRTokenAccountBalance,
   updateRTokenMetrics,
 } from "../common/metrics";
@@ -35,8 +36,10 @@ import {
   BIGINT_TEN_TO_EIGHTEENTH,
   BIGINT_ZERO,
   EntryType,
+  RSR_ADDRESS,
   ZERO_ADDRESS,
 } from "./../common/constants";
+import { getRSRPrice } from "../common/tokens";
 
 function _handleStake(
   accountAddress: Address,
@@ -55,6 +58,7 @@ function _handleStake(
   );
 
   let rToken = RToken.load(rTokenAddress.toHexString())!; // Load rToken to get RSR price
+  let rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.number);
 
   if (createEntry) {
     let entry = getOrCreateEntry(
@@ -65,7 +69,7 @@ function _handleStake(
       EntryType.STAKE
     );
 
-    entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rToken.rsrPriceUSD);
+    entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rsr.lastPriceUSD);
     entry.rToken = rTokenAddress.toHexString();
     entry.stAmount = amount;
     entry.save();
@@ -77,7 +81,7 @@ function _handleStake(
     amount,
     rsrAmount,
     rToken.rawRsrExchangeRate,
-    rToken.rsrPriceUSD,
+    rsr.lastPriceUSD,
     true,
     event
   );
@@ -101,6 +105,7 @@ function _handleUnstake(
 
   // Load rToken to get RSR price
   let rToken = RToken.load(rTokenAddress.toHexString())!;
+  let rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.number);
 
   if (createEntry) {
     let entry = getOrCreateEntry(
@@ -110,7 +115,7 @@ function _handleUnstake(
       rsrAmount,
       EntryType.WITHDRAW
     );
-    entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rToken.rsrPriceUSD);
+    entry.amountUSD = bigIntToBigDecimal(rsrAmount).times(rsr.lastPriceUSD);
     entry.rToken = rTokenAddress.toHexString();
     entry.save();
   }
@@ -121,7 +126,7 @@ function _handleUnstake(
     amount,
     rsrAmount,
     rToken.rawRsrExchangeRate,
-    rToken.rsrPriceUSD,
+    rsr.lastPriceUSD,
     false,
     event
   );
@@ -189,6 +194,8 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
 
   // Avoid error, but is this needed? it should always exist
   if (rTokenId) {
+    let rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.number);
+
     let accountBalance = getOrCreateRTokenAccount(
       event.params.staker,
       Address.fromString(rTokenId)
@@ -219,7 +226,7 @@ export function handleUnstakeStarted(event: UnstakingStarted): void {
     entry.rToken = rTokenId;
     entry.stAmount = event.params.stRSRAmount;
     entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
+      rsr.lastPriceUSD
     );
     entry.save();
   }
@@ -231,6 +238,7 @@ export function handleUnstakeCancel(event: UnstakingCancelled): void {
   if (rTokenId) {
     // Load rToken to get RSR price
     let rToken = RToken.load(rTokenId)!;
+    let rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.number);
 
     let entry = getOrCreateEntry(
       event,
@@ -243,7 +251,7 @@ export function handleUnstakeCancel(event: UnstakingCancelled): void {
     entry.rToken = rTokenId;
     entry.amount = event.params.rsrAmount;
     entry.amountUSD = bigIntToBigDecimal(event.params.rsrAmount).times(
-      rToken.rsrPriceUSD
+      rsr.lastPriceUSD
     );
     entry.save();
 
