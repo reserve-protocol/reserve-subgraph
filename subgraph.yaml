@@ -286,6 +286,8 @@ templates:
           handler: handleTimelockRoleGranted
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleTimelockRoleRevoked
+        - event: Cancelled(indexed bytes32)
+          handler: handleTimelockProposalCanceled
       file: ./src/mappings/governance.ts
   - name: Distributor
     kind: ethereum/contract
