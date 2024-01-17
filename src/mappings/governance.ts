@@ -1,4 +1,4 @@
-import { Address, BigInt, crypto, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, crypto, ethereum, log } from "@graphprotocol/graph-ts";
 import {
   GovernanceFramework,
   Proposal,
@@ -37,10 +37,29 @@ import {
   VotingDelaySet,
   VotingPeriodSet,
 } from "./../../generated/templates/Governance/Governor";
+import { encodeAndHash } from "../common/utils/encoding";
 
 // ProposalCanceled(proposalId)
 export function handleProposalCanceled(event: ProposalCanceled): void {
   _handleProposalCanceled(event.params.proposalId.toString(), event);
+}
+
+export function _createTimelockProposal(event: ProposalCreated): string {
+  const params = [
+    ethereum.Value.fromAddressArray(event.params.targets),
+    ethereum.Value.fromUnsignedBigIntArray([BigInt.fromU64(0)]),
+    ethereum.Value.fromBytesArray(event.params.calldatas),
+    ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(0)),
+    ethereum.Value.fromFixedBytes(Bytes.fromByteArray(crypto.keccak256(Bytes.fromUTF8(event.params.description))))
+  ]
+
+  let timelockId = encodeAndHash(params).toHexString();
+
+  let timelockProposal = new TimelockProposal(timelockId);
+  timelockProposal.proposalId = event.params.proposalId.toString();
+  timelockProposal.save();
+
+  return timelockId;
 }
 
 // ProposalCreated(proposalId, proposer, targets, values, signatures, calldatas, startBlock, endBlock, description)
@@ -50,21 +69,7 @@ export function handleProposalCreated(event: ProposalCreated): void {
     event.block.number.minus(BIGINT_ONE)
   );
 
-  // let tupleArray: Array<ethereum.Value> = [
-  //   ethereum.Value.fromAddressArray(event.params.targets),
-  //   ethereum.Value.fromUnsignedBigIntArray(event.params.values),
-  //   ethereum.Value.fromBytesArray(event.params.calldatas),
-  //   ethereum.Value.fromI32(0),
-  //   ethereum.Value.fromString(event.params.description),
-  // ];
-
-  // let encoded = crypto.keccak256(
-  //   ethereum.encode(ethereum.Value.fromArray(tupleArray))!
-  // );
-
-  // let timelockProposal = new TimelockProposal(encoded.toHexString());
-  // timelockProposal.proposalId = event.params.proposalId.toString();
-  // timelockProposal.save();
+  _createTimelockProposal(event);
 
   // FIXME: Prefer to use a single object arg for params
   // e.g.  { proposalId: event.params.proposalId, proposer: event.params.proposer, ...}
@@ -233,8 +238,18 @@ export function handleTimelockRoleRevoked(event: RoleRevoked): void {
 }
 
 export function handleTimelockProposalCanceled(event: Cancelled): void {
+  const timelockId = event.params.id.toHexString();
+  const timelockProposal = TimelockProposal.load(timelockId);
+
+  if (!timelockProposal) {
+    log.error("Timelock id {} not found", [timelockId]);
+    return;
+  }
+
+  const proposalId = timelockProposal.proposalId;
+
   _handleProposalCanceled(
-    BigInt.fromByteArray(crypto.keccak256(event.params.id)).toString(),
+    proposalId,
     event
   );
 }
