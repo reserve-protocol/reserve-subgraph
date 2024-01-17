@@ -3,3 +3,6 @@
 /generated
 
 .DS_Store
+
+/tests/.bin
+/tests/.latest.json
