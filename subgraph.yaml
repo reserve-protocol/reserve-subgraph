@@ -2,8 +2,8 @@ specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum/contract
-    name: DeployerRegistry
+  - name: DeployerRegistry
+    kind: ethereum/contract
     network: mainnet
     source:
       abi: DeployerRegistry
@@ -54,8 +54,8 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
       file: ./src/mappings/common.ts
-  - kind: ethereum/contract
-    name: Deployer
+  - name: Deployer
+    kind: ethereum/contract
     network: mainnet
     source:
       abi: Deployer
@@ -94,8 +94,8 @@ dataSources:
           handler: handleCreateToken
       file: ./src/mappings/deployer.ts
 templates:
-  - kind: ethereum/contract
-    name: Deployer
+  - name: Deployer
+    kind: ethereum/contract
     network: mainnet
     source:
       abi: Deployer

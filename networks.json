@@ -15,8 +15,8 @@
   },
   "base": {
     "Deployer": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 9450019
+      "address": "0x9C75314AFD011F22648ca9C655b61674e27bA4AC",
+      "startBlock": 5168546
     },
     "DeployerRegistry": {
       "address": "0x1265Ec05FD621d82F224814902c925a600307fb3",
