@@ -965,6 +965,9 @@ type AccountStakeRecord @entity {
   " Readable RSR amount "
   rsrAmount: BigDecimal!
 
+  " RSR price "
+  rsrPriceUSD: BigDecimal!
+
   " Exchange rate "
   exchangeRateRaw: BigInt!
 
