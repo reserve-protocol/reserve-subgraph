@@ -366,8 +366,8 @@ type RToken @entity {
   " Total RSR unStaked (cumulative) "
   totalRsrUnstaked: BigInt!
 
-  " Exchange rate between basket units to totalSupply of rToken "
-  basketRate: BigDecimal!
+  "Basket units of the rToken"
+  basketsNeeded: BigInt!
 
   " holders rewards distribution share "
   holdersRewardShare: BigDecimal!
@@ -459,9 +459,6 @@ type RTokenDailySnapshot @entity {
   " Reward token exchange rate "
   rsrExchangeRate: BigDecimal!
 
-  " Exchange rate between basket units to totalSupply of rToken "
-  basketRate: BigDecimal!
-
   " Daily revenue given to RToken holders "
   dailyRTokenRevenueUSD: BigDecimal!
 
@@ -519,9 +516,6 @@ type RTokenHourlySnapshot @entity {
 
   " Reward token exchange rate "
   rsrExchangeRate: BigDecimal!
-
-  " Exchange rate between basket units to totalSupply of rToken "
-  basketRate: BigDecimal!
 
   " Daily revenue given to RToken holders "
   hourlyRTokenRevenueUSD: BigDecimal!
@@ -653,6 +647,9 @@ type Token @entity {
   " USD Price "
   lastPriceUSD: BigDecimal!
 
+  " Exchange rate between basket units to totalSupply of rToken "
+  basketRate: BigDecimal!
+
   " Optional field to track the block number of the last token price "
   lastPriceBlockNumber: BigInt!
 
@@ -746,6 +743,9 @@ type TokenDailySnapshot @entity {
   " USD Price "
   priceUSD: BigDecimal!
 
+  " Exchange rate between basket units to totalSupply of rToken "
+  basketRate: BigDecimal!
+
   " Block number of this snapshot "
   blockNumber: BigInt!
 
@@ -792,6 +792,9 @@ type TokenHourlySnapshot @entity {
 
   " USD Price "
   priceUSD: BigDecimal!
+
+  " Exchange rate between basket units to totalSupply of rToken "
+  basketRate: BigDecimal!
 
   " Block number of this snapshot "
   blockNumber: BigInt!

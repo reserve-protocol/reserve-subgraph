@@ -246,7 +246,6 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics.dailyRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.rsrExchangeRate = BIGDECIMAL_ZERO;
-    rTokenMetrics.basketRate = BIGDECIMAL_ZERO;
     rTokenMetrics.dailyRTokenRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.dailyRSRRevenueUSD = BIGDECIMAL_ZERO;
@@ -287,7 +286,6 @@ export function getOrCreateRTokenHourlySnapshot(
     rTokenMetrics.hourlyRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.cumulativeRSRUnstaked = BIGINT_ZERO;
     rTokenMetrics.rsrExchangeRate = BIGDECIMAL_ZERO;
-    rTokenMetrics.basketRate = BIGDECIMAL_ZERO;
     rTokenMetrics.hourlyRTokenRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.hourlyRSRRevenueUSD = BIGDECIMAL_ZERO;
@@ -318,6 +316,7 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.cumulativeVolume = BIGINT_ZERO;
     token.lastPriceBlockNumber = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
+    token.basketRate = BIGDECIMAL_ZERO;
 
     // Inherit RSVmetrics
     if (tokenAddress.equals(RSV_ADDRESS)) {
@@ -383,6 +382,7 @@ export function getOrCreateTokenDailySnapshot(
     tokenMetrics.dailyBurnAmount = BIGINT_ZERO;
     tokenMetrics.dailyVolume = BIGINT_ZERO;
     tokenMetrics.priceUSD = BIGDECIMAL_ZERO;
+    tokenMetrics.basketRate = BIGDECIMAL_ZERO;
     tokenMetrics.blockNumber = event.block.number;
     tokenMetrics.timestamp = event.block.timestamp;
 
@@ -417,6 +417,7 @@ export function getOrCreateTokenHourlySnapshot(
     tokenMetrics.hourlyBurnCount = INT_ZERO;
     tokenMetrics.hourlyBurnAmount = BIGINT_ZERO;
     tokenMetrics.priceUSD = BIGDECIMAL_ZERO;
+    tokenMetrics.basketRate = BIGDECIMAL_ZERO;
     tokenMetrics.hourlyVolume = BIGINT_ZERO;
     tokenMetrics.blockNumber = event.block.number;
     tokenMetrics.timestamp = event.block.timestamp;

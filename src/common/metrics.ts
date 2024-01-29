@@ -304,29 +304,46 @@ export function updateTokenMetrics(
     tokenHourly.hourlyActiveUsers += INT_ONE;
   }
 
+  let newSupply = token.totalSupply;
+
   // Update token supply and counts
   if (entryType === EntryType.MINT) {
     token.mintCount = token.mintCount.plus(BIGINT_ONE);
     token.totalMinted = token.totalMinted.plus(amount);
-    token.totalSupply = token.totalSupply.plus(amount);
+    newSupply = newSupply.plus(amount);
+    if (newSupply.equals(BIGINT_ZERO)) {
+      token.basketRate = BIGDECIMAL_ZERO;
+    } else {
+      token.basketRate = token.basketRate.times(token.totalSupply.toBigDecimal()).div(newSupply.toBigDecimal());
+    }
     // Daily
     tokenDaily.dailyMintCount += INT_ONE;
     tokenDaily.dailyMintAmount = tokenDaily.dailyMintAmount.plus(amount);
+    tokenDaily.basketRate = token.basketRate;
     // Hourly
     tokenHourly.hourlyMintCount += INT_ONE;
     tokenHourly.hourlyMintAmount = tokenHourly.hourlyMintAmount.plus(amount);
+    tokenHourly.basketRate = token.basketRate;
   } else if (entryType === EntryType.BURN) {
     token.burnCount = token.burnCount.plus(BIGINT_ONE);
     token.totalBurned = token.totalBurned.plus(amount);
-    token.totalSupply = token.totalSupply.minus(amount);
+    newSupply = newSupply.minus(amount);
+    if (newSupply.equals(BIGINT_ZERO)) {
+      token.basketRate = BIGDECIMAL_ZERO;
+    } else {
+      token.basketRate = token.basketRate.times(token.totalSupply.toBigDecimal()).div(newSupply.toBigDecimal());
+    }
     // Daily
     tokenDaily.dailyBurnCount += INT_ONE;
     tokenDaily.dailyBurnAmount = tokenDaily.dailyBurnAmount.plus(amount);
+    tokenDaily.basketRate = token.basketRate;
     // Hourly
     tokenHourly.hourlyBurnCount += INT_ONE;
     tokenHourly.hourlyBurnAmount = tokenHourly.hourlyBurnAmount.plus(amount);
+    tokenHourly.basketRate = token.basketRate;
   }
-
+  
+  token.totalSupply = newSupply;
   token.cumulativeVolume = token.cumulativeVolume.plus(amount);
   token.transferCount = token.transferCount.plus(BIGINT_ONE);
   token.save();
@@ -336,6 +353,7 @@ export function updateTokenMetrics(
   tokenHourly.cumulativeUniqueUsers = token.userCount;
   tokenHourly.hourlyEventCount += INT_ONE;
   tokenHourly.priceUSD = token.lastPriceUSD;
+  tokenHourly.basketRate = token.basketRate;
   tokenHourly.blockNumber = event.block.number;
   tokenHourly.timestamp = event.block.timestamp;
   tokenHourly.save();
@@ -345,6 +363,7 @@ export function updateTokenMetrics(
   tokenDaily.cumulativeUniqueUsers = token.userCount;
   tokenDaily.dailyEventCount += INT_ONE;
   tokenDaily.priceUSD = token.lastPriceUSD;
+  tokenDaily.basketRate = token.basketRate;
   tokenDaily.blockNumber = event.block.number;
   tokenDaily.timestamp = event.block.timestamp;
   tokenDaily.save();
@@ -551,7 +570,6 @@ export function updateUsageAndFinancialMetrics(
 
   // rToken daily cumulative data
   rTokenDaily.rsrExchangeRate = rToken.rsrExchangeRate;
-  rTokenDaily.basketRate = rToken.basketRate;
   rTokenDaily.rsrStaked = rToken.rsrStaked;
   rTokenDaily.cumulativeRSRStaked = rToken.totalRsrStaked;
   rTokenDaily.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
@@ -561,7 +579,6 @@ export function updateUsageAndFinancialMetrics(
 
   // rToken hourly cumulative data
   rTokenHourly.rsrExchangeRate = rToken.rsrExchangeRate;
-  rTokenHourly.basketRate = rToken.basketRate;
   rTokenHourly.rsrStaked = rToken.rsrStaked;
   rTokenHourly.cumulativeRSRStaked = rToken.totalRsrStaked;
   rTokenHourly.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
