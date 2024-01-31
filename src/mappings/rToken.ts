@@ -1,4 +1,4 @@
-import { Address, BigDecimal, Value } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, Value } from "@graphprotocol/graph-ts";
 import {
   RToken,
   RTokenContract,
@@ -13,8 +13,8 @@ import {
 } from "../../generated/templates/RToken/RToken";
 import {
   getOrCreateCollateral,
-  getOrCreateRTokenDailySnapshot,
-  getOrCreateRTokenHourlySnapshot,
+  getOrCreateTokenDailySnapshot,
+  getOrCreateTokenHourlySnapshot,
   getOrCreateTrade,
 } from "../common/getters";
 import {
@@ -142,8 +142,8 @@ export function handleBasketSet(event: PrimeBasketSet): void {
 export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let rToken = RToken.load(event.address.toHexString())!;
   let token = Token.load(rToken.token)!;
-  let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
-  let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
+  let daily = getOrCreateTokenDailySnapshot(rToken.id, event);
+  let hourly = getOrCreateTokenHourlySnapshot(rToken.id, event);
 
   let contract = Facade.bind(Address.fromString(FACADE_ADDRESS));
   let backing = contract.try_backingOverview(event.address);
@@ -153,18 +153,19 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
     rToken.backingRSR = backing.value.getOverCollateralization();
   }
 
-  if (event.params.newBasketsNeeded.equals(BIGINT_ZERO)) {
-    rToken.basketRate = BIGDECIMAL_ZERO;
+  if (token.totalSupply.equals(BIGINT_ZERO)) {
+    token.basketRate = BIGDECIMAL_ZERO;
   } else {
-    rToken.basketRate = token.totalSupply
-      .div(event.params.newBasketsNeeded)
-      .toBigDecimal();
+    token.basketRate = event.params.newBasketsNeeded
+      .divDecimal(token.totalSupply.toBigDecimal())
   }
 
+  rToken.basketsNeeded = event.params.newBasketsNeeded;
   rToken.save();
+  token.save();
 
-  daily.basketRate = rToken.basketRate;
-  hourly.basketRate = rToken.basketRate;
+  daily.basketRate = token.basketRate;
+  hourly.basketRate = token.basketRate;
 
   daily.save();
   hourly.save();
