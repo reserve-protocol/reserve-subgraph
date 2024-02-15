@@ -357,7 +357,10 @@ type RToken @entity {
   " Exchange rate on big int for internal calculations "
   rawRsrExchangeRate: BigInt!
 
-  " How much RSR is currently locked in this RToken "
+  " How much RSR is currently locked in this RToken (earning rewards) "
+  rsrLocked: BigInt!
+
+  " How much RSR is currently pooled in this RToken (overcollateralization) "
   rsrStaked: BigInt!
 
   " Total RSR staked (cumulative) "
