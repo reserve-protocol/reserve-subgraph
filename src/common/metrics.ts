@@ -209,6 +209,7 @@ export function updateRTokenMetrics(
 
     // rToken
     rToken.rsrStaked = rToken.rsrStaked.plus(amount);
+    rToken.rsrLocked = rToken.rsrLocked.plus(amount);
     rToken.totalRsrStaked = rToken.totalRsrStaked.plus(amount);
   } else if (entryType === EntryType.UNSTAKE) {
     protocol.totalRsrUnstaked = protocol.totalRsrUnstaked.plus(amount);
@@ -218,6 +219,7 @@ export function updateRTokenMetrics(
     );
 
     // rToken
+    rToken.rsrLocked = rToken.rsrLocked.minus(amount);
     rToken.totalRsrUnstaked = rToken.totalRsrUnstaked.plus(amount);
   } else if (
     entryType === EntryType.WITHDRAW ||
@@ -314,7 +316,9 @@ export function updateTokenMetrics(
     if (newSupply.equals(BIGINT_ZERO)) {
       token.basketRate = BIGDECIMAL_ZERO;
     } else {
-      token.basketRate = token.basketRate.times(token.totalSupply.toBigDecimal()).div(newSupply.toBigDecimal());
+      token.basketRate = token.basketRate
+        .times(token.totalSupply.toBigDecimal())
+        .div(newSupply.toBigDecimal());
     }
     // Daily
     tokenDaily.dailyMintCount += INT_ONE;
@@ -331,7 +335,9 @@ export function updateTokenMetrics(
     if (newSupply.equals(BIGINT_ZERO)) {
       token.basketRate = BIGDECIMAL_ZERO;
     } else {
-      token.basketRate = token.basketRate.times(token.totalSupply.toBigDecimal()).div(newSupply.toBigDecimal());
+      token.basketRate = token.basketRate
+        .times(token.totalSupply.toBigDecimal())
+        .div(newSupply.toBigDecimal());
     }
     // Daily
     tokenDaily.dailyBurnCount += INT_ONE;
@@ -342,7 +348,7 @@ export function updateTokenMetrics(
     tokenHourly.hourlyBurnAmount = tokenHourly.hourlyBurnAmount.plus(amount);
     tokenHourly.basketRate = token.basketRate;
   }
-  
+
   token.totalSupply = newSupply;
   token.cumulativeVolume = token.cumulativeVolume.plus(amount);
   token.transferCount = token.transferCount.plus(BIGINT_ONE);
