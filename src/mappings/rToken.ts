@@ -16,6 +16,7 @@ import {
   getOrCreateTokenDailySnapshot,
   getOrCreateTokenHourlySnapshot,
   getOrCreateTrade,
+  updateRTokenHistoricalBaskets,
 } from "../common/getters";
 import {
   updateRSRRevenueDistributed,
@@ -92,6 +93,7 @@ export function handleBasketSet(event: PrimeBasketSet): void {
   rToken.collateralDistribution = `{${distribution.join(",")}}`;
   rToken.targetUnits = targets.join(",");
   rToken.save();
+  updateRTokenHistoricalBaskets(event, rToken);
 }
 
 // * rToken Events
@@ -274,6 +276,8 @@ export function handleDistribution(event: DistributionSet): void {
 
     rToken.save();
   }
+
+  updateRTokenHistoricalBaskets(event, rToken);
 }
 
 export function handleRevenueDistributed(event: RevenueDistributed): void {

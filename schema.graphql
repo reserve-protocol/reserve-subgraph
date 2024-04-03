@@ -415,6 +415,9 @@ type RToken @entity {
 
   " RToken hourly snapshots "
   hourlySnapshots: [RTokenHourlySnapshot!]! @derivedFrom(field: "rToken")
+
+  " RToken historical baskets "
+  historicalBaskets: [RTokenHistoricalBaskets!]! @derivedFrom(field: "rToken")
 }
 
 type RTokenDailySnapshot @entity {
@@ -1432,4 +1435,30 @@ type VoteDailySnapshot @entity {
   blockNumber: BigInt!
   "Timestamp of snapshot"
   timestamp: BigInt!
+}
+
+type RTokenHistoricalBaskets @entity {
+  " RToken address "
+  id: ID!
+
+  " The rToken this entity belongs to "
+  rToken: RToken!
+
+  " Block number of this snapshot "
+  blockNumber: BigInt!
+
+  " Timestamp of this snapshot "
+  timestamp: BigInt!
+
+  " Targets units for the primary basket"
+  targetUnits: String!
+
+  " Collaterals "
+  collaterals: [Collateral!]!
+
+  " Collateral distribution "
+  collateralDistribution: String!
+
+  " Number of shares in RToken "
+  rTokenDist: Int!
 }
