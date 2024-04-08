@@ -476,6 +476,9 @@ type RTokenDailySnapshot @entity {
 
   " Revenue given to RSR Stakers "
   cumulativeRSRRevenueUSD: BigDecimal!
+
+  " RSR price "
+  rsrPrice: BigDecimal!
 }
 
 type RTokenHourlySnapshot @entity {

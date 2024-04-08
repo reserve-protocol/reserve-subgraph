@@ -252,6 +252,7 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.dailyRSRRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.cumulativeRSRRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.rsrPrice = BIGDECIMAL_ZERO;
 
     rTokenMetrics.save();
   }

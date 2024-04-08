@@ -581,6 +581,7 @@ export function updateUsageAndFinancialMetrics(
   rTokenDaily.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
   rTokenDaily.blockNumber = event.block.number;
   rTokenDaily.timestamp = event.block.timestamp;
+  rTokenDaily.rsrPrice = getRSRPrice();
   rTokenDaily.save();
 
   // rToken hourly cumulative data
