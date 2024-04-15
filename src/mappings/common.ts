@@ -1,4 +1,4 @@
-import { Account } from "../../generated/schema";
+import { Account, RTokenContract } from "../../generated/schema";
 import { Transfer as TransferEvent } from "../../generated/templates/RToken/RToken";
 import {
   getOrCreateEntry,
@@ -26,8 +26,12 @@ export function handleTransfer(event: TransferEvent): void {
     fromAccount.save();
   }
 
-  if (ZERO_ADDRESS == event.params.to.toHexString()) {
+  let isMelting = RTokenContract.load(event.params.to.toHexString());
+
+  if (isMelting) {
     entryType = EntryType.BURN;
+  } else if (ZERO_ADDRESS == event.params.to.toHexString()) {
+    entryType = EntryType.REDEEM;
   } else if (ZERO_ADDRESS == event.params.from.toHexString()) {
     entryType = EntryType.MINT;
   }
@@ -42,7 +46,7 @@ export function handleTransfer(event: TransferEvent): void {
     );
   }
 
-  if (entryType != EntryType.BURN) {
+  if (entryType != EntryType.BURN && entryType != EntryType.REDEEM) {
     updateAccountBalance(
       event.params.to,
       event.address,
