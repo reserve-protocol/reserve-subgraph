@@ -162,6 +162,13 @@ export function handleCreateToken(event: RTokenCreated): void {
   distributor.name = ContractName.DISTRIBUTOR;
   distributor.save();
 
+  let furnaceAddress = mainContract.furnace();
+
+  let furnace = new RTokenContract(furnaceAddress.toHexString());
+  furnace.rToken = rToken.id;
+  furnace.name = ContractName.FURNACE;
+  furnace.save();
+
   // Initialize dynamic mappings for the new RToken system
   RTokenTemplate.create(event.params.rToken);
   stRSRTemplate.create(event.params.stRSR);

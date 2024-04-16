@@ -328,7 +328,7 @@ export function updateTokenMetrics(
     tokenHourly.hourlyMintCount += INT_ONE;
     tokenHourly.hourlyMintAmount = tokenHourly.hourlyMintAmount.plus(amount);
     tokenHourly.basketRate = token.basketRate;
-  } else if (entryType === EntryType.BURN) {
+  } else if (entryType === EntryType.BURN || entryType === EntryType.REDEEM) {
     token.burnCount = token.burnCount.plus(BIGINT_ONE);
     token.totalBurned = token.totalBurned.plus(amount);
     newSupply = newSupply.minus(amount);
@@ -581,6 +581,7 @@ export function updateUsageAndFinancialMetrics(
   rTokenDaily.cumulativeRSRUnstaked = rToken.totalRsrUnstaked;
   rTokenDaily.blockNumber = event.block.number;
   rTokenDaily.timestamp = event.block.timestamp;
+  rTokenDaily.rsrPrice = getRSRPrice();
   rTokenDaily.save();
 
   // rToken hourly cumulative data

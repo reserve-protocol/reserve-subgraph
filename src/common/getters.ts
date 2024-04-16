@@ -1,4 +1,3 @@
-import { DutchTrade } from "./../../generated/templates/BackingManager/DutchTrade";
 import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   Account,
@@ -9,10 +8,13 @@ import {
   Deployer,
   FinancialsDailySnapshot,
   Protocol,
-  RewardToken,
+  RToken,
   RTokenContract,
   RTokenDailySnapshot,
+  RTokenHistoricalBaskets,
   RTokenHourlySnapshot,
+  RevenueDistribution,
+  RewardToken,
   Token,
   TokenDailySnapshot,
   TokenHourlySnapshot,
@@ -20,6 +22,10 @@ import {
   UsageMetricsDailySnapshot,
   UsageMetricsHourlySnapshot,
 } from "../../generated/schema";
+import { GnosisTrade } from "../../generated/templates/BackingManager/GnosisTrade";
+import {
+  TradeStarted
+} from "../../generated/templates/RevenueTrader/RevenueTrader";
 import {
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
@@ -31,8 +37,8 @@ import {
   PROTOCOL_SCHEMA_VERSION,
   PROTOCOL_SLUG,
   PROTOCOL_SUBGRAPH_VERSION,
-  RewardTokenType,
   RSV_ADDRESS,
+  RewardTokenType,
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
   TradeKind,
@@ -42,13 +48,9 @@ import {
   AccountBalanceDailySnapshot,
   Entry,
 } from "./../../generated/schema";
+import { DutchTrade } from "./../../generated/templates/BackingManager/DutchTrade";
 import { updateRTokenUniqueUsers } from "./metrics";
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol } from "./tokens";
-import { GnosisTrade } from "../../generated/templates/BackingManager/GnosisTrade";
-import {
-  TradeSettled,
-  TradeStarted,
-} from "../../generated/templates/RevenueTrader/RevenueTrader";
 import { bigIntToBigDecimal } from "./utils/numbers";
 
 export function getOrCreateCollateral(address: Address): Collateral {
@@ -250,6 +252,7 @@ export function getOrCreateRTokenDailySnapshot(
     rTokenMetrics.cumulativeRTokenRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.dailyRSRRevenueUSD = BIGDECIMAL_ZERO;
     rTokenMetrics.cumulativeRSRRevenueUSD = BIGDECIMAL_ZERO;
+    rTokenMetrics.rsrPrice = BIGDECIMAL_ZERO;
 
     rTokenMetrics.save();
   }
@@ -726,6 +729,43 @@ export function getOrCreateTrade(event: TradeStarted): Trade {
   }
 
   return trade;
+}
+
+export function updateRTokenHistoricalBaskets(
+  event: ethereum.Event,
+  rToken: RToken
+): RTokenHistoricalBaskets {
+  let rTokenHistoricalBaskets = RTokenHistoricalBaskets.load(
+    rToken.id + "-" + event.block.number.toString()
+  );
+
+  if (!rTokenHistoricalBaskets) {
+    rTokenHistoricalBaskets = new RTokenHistoricalBaskets(
+      rToken.id + "-" + event.block.number.toString()
+    );
+  }
+
+  rTokenHistoricalBaskets.rToken = rToken.id;
+  rTokenHistoricalBaskets.blockNumber = event.block.number;
+  rTokenHistoricalBaskets.timestamp = event.block.timestamp;
+  rTokenHistoricalBaskets.targetUnits = rToken.targetUnits;
+  rTokenHistoricalBaskets.collaterals = rToken.collaterals;
+  rTokenHistoricalBaskets.collateralDistribution = rToken.collateralDistribution;
+
+  let distributionId = "0x0000000000000000000000000000000000000001"
+    .concat("-")
+    .concat(rToken.id);
+
+  const revenueDistribution = RevenueDistribution.load(distributionId);
+
+  if (revenueDistribution) {
+    rTokenHistoricalBaskets.rTokenDist = revenueDistribution.rTokenDist;
+  } else {
+    rTokenHistoricalBaskets.rTokenDist = INT_ZERO;
+  }
+
+  rTokenHistoricalBaskets.save();
+  return rTokenHistoricalBaskets;
 }
 
 export function getDaysSinceEpoch(secondsSinceEpoch: number): string {
