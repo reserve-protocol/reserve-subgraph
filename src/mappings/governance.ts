@@ -1,4 +1,11 @@
-import { Address, BigInt, Bytes, crypto, ethereum, log } from "@graphprotocol/graph-ts";
+import {
+  Address,
+  BigInt,
+  Bytes,
+  crypto,
+  ethereum,
+  log,
+} from "@graphprotocol/graph-ts";
 import {
   GovernanceFramework,
   Proposal,
@@ -50,8 +57,12 @@ export function _createTimelockProposal(event: ProposalCreated): string {
     ethereum.Value.fromUnsignedBigIntArray([BigInt.fromU64(0)]),
     ethereum.Value.fromBytesArray(event.params.calldatas),
     ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(0)),
-    ethereum.Value.fromFixedBytes(Bytes.fromByteArray(crypto.keccak256(Bytes.fromUTF8(event.params.description))))
-  ]
+    ethereum.Value.fromFixedBytes(
+      Bytes.fromByteArray(
+        crypto.keccak256(Bytes.fromUTF8(event.params.description))
+      )
+    ),
+  ];
 
   let timelockId = encodeAndHash(params).toHexString();
 
@@ -248,10 +259,7 @@ export function handleTimelockProposalCanceled(event: Cancelled): void {
 
   const proposalId = timelockProposal.proposalId;
 
-  _handleProposalCanceled(
-    proposalId,
-    event
-  );
+  _handleProposalCanceled(proposalId, event);
 }
 
 // Helper function that imports and binds the contract

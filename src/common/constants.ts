@@ -191,3 +191,17 @@ RSR_ADDRESS_MAP.set(
 export const RSR_ADDRESS = Address.fromString(
   RSR_ADDRESS_MAP.get(dataSource.network()) as string
 );
+
+export const RSR_CHAINLINK_CONTRACT_ADDRESS = new Map<string, Address>();
+RSR_CHAINLINK_CONTRACT_ADDRESS.set(
+  Network.MAINNET,
+  Address.fromString("0x759bbc1be8f90ee6457c44abc7d443842a976d02")
+);
+RSR_CHAINLINK_CONTRACT_ADDRESS.set(
+  Network.BASE,
+  Address.fromString("0xAa98aE504658766Dfe11F31c5D95a0bdcABDe0b1")
+);
+RSR_CHAINLINK_CONTRACT_ADDRESS.set(
+  Network.ARBITRUM,
+  Address.fromString("0xcfF9349ec6d027f20fC9360117fef4a1Ad38B488")
+);

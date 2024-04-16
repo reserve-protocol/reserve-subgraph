@@ -1,6 +1,7 @@
 import { Address, BigDecimal } from "@graphprotocol/graph-ts";
 import { ERC20 } from "../../generated/Deployer/ERC20";
 import { Facade } from "../../generated/templates/RToken/Facade";
+import { getUsdPricePerToken } from "../prices";
 import {
   BIGDECIMAL_ZERO,
   BIGINT_ONE,
@@ -8,7 +9,6 @@ import {
   RSR_ADDRESS,
 } from "./constants";
 import { bigIntToBigDecimal } from "./utils/numbers";
-import { getUsdPricePerToken } from "../prices";
 
 export const INVALID_TOKEN_DECIMALS = 18;
 export const UNKNOWN_TOKEN_VALUE = "unknown";
