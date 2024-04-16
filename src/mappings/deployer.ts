@@ -42,7 +42,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   let rewardToken = getOrCreateRewardToken(event.params.stRSR);
   let stToken = Token.load(event.params.stRSR.toHexString())!;
 
-  let facadeContract = Facade.bind(Address.fromString(FACADE_ADDRESS));
+  let facadeContract = Facade.bind(FACADE_ADDRESS);
   let basketBreakdown = facadeContract.try_basketBreakdown(event.params.rToken);
 
   // Error on collateral, don't map token

@@ -1,48 +1,8 @@
-# Subgraph Schema: Generic
-# Version: 1.3.0
-# See https://github.com/messari/subgraphs/blob/master/docs/Schema.md for details
-
-enum Network {
-  ARBITRUM_ONE
-  ARWEAVE_MAINNET
-  AURORA
-  AVALANCHE
-  BOBA
-  BSC # aka BNB Chain
-  CELO
-  COSMOS
-  CRONOS
-  MAINNET # Ethereum Mainnet
-  FANTOM
-  FUSE
-  HARMONY
-  JUNO
-  MOONBEAM
-  MOONRIVER
-  NEAR_MAINNET
-  OPTIMISM
-  OSMOSIS
-  MATIC # aka Polygon
-  XDAI # aka Gnosis Chain
-}
-
-enum ProtocolType {
-  GENERIC
-}
-
 enum RewardTokenType {
   " For reward tokens awarded to LPs/lenders "
   DEPOSIT
   " For reward tokens awarded to borrowers "
   BORROW
-}
-
-enum GovernanceFrameworkType {
-  GovernorAlpha
-  GovernorBravo
-  OZGovernor
-  AaveGovernanceV2
-  Alexios
 }
 
 ###########################
@@ -82,9 +42,6 @@ type Protocol @entity {
 
   " Version of the methodology used to compute metrics, loosely based on SemVer format (e.g. 1.0.0) "
   methodologyVersion: String!
-
-  " The blockchain network this subgraph is indexing on "
-  network: Network!
 
   ##### Quantitative Data #####
 
@@ -895,7 +852,7 @@ type Account @entity {
   " Address of the account "
   id: ID!
 
-  " rToken/RSV related transactions from this account "
+  " rToken related transactions from this account "
   records: [Entry!]! @derivedFrom(field: "from")
 
   " rTokens related to this account "

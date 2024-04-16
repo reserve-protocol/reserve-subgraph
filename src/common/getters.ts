@@ -23,21 +23,17 @@ import {
   UsageMetricsHourlySnapshot,
 } from "../../generated/schema";
 import { GnosisTrade } from "../../generated/templates/BackingManager/GnosisTrade";
-import {
-  TradeStarted
-} from "../../generated/templates/RevenueTrader/RevenueTrader";
+import { TradeStarted } from "../../generated/templates/RevenueTrader/RevenueTrader";
 import {
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
   INT_ONE,
   INT_ZERO,
-  Network,
   PROTOCOL_METHODOLOGY_VERSION,
   PROTOCOL_NAME,
   PROTOCOL_SCHEMA_VERSION,
   PROTOCOL_SLUG,
   PROTOCOL_SUBGRAPH_VERSION,
-  RSV_ADDRESS,
   RewardTokenType,
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
@@ -88,7 +84,6 @@ export function getOrCreateProtocol(): Protocol {
     protocol.transactionCount = BIGINT_ZERO;
     protocol.cumulativeTotalRevenueUSD = BIGDECIMAL_ZERO;
     protocol.cumulativeUniqueUsers = INT_ZERO;
-    protocol.network = Network.MAINNET;
 
     protocol.rsrStaked = BIGINT_ZERO;
     protocol.rsrStakedUSD = BIGDECIMAL_ZERO;
@@ -320,22 +315,6 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.lastPriceBlockNumber = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
     token.basketRate = BIGDECIMAL_ZERO;
-
-    // Inherit RSVmetrics
-    if (tokenAddress.equals(RSV_ADDRESS)) {
-      token.transferCount = BigInt.fromString("5961");
-      token.holderCount = BigInt.fromString("324");
-      token.totalSupply = BigInt.fromString("6535046536411291513413162");
-
-      token.userCount = 1260;
-      token.mintCount = BigInt.fromString("131");
-      token.burnCount = BigInt.fromString("82");
-      token.totalBurned = BigInt.fromString("55838473117476189600000000");
-      token.totalMinted = BigInt.fromString("62059326860904893261971700");
-      token.lastPriceUSD = BigDecimal.fromString("1.085697");
-      token.lastPriceBlockNumber = BigInt.fromString("16815303");
-    }
-
     token.save();
   }
   return token;
@@ -750,7 +729,8 @@ export function updateRTokenHistoricalBaskets(
   rTokenHistoricalBaskets.timestamp = event.block.timestamp;
   rTokenHistoricalBaskets.targetUnits = rToken.targetUnits;
   rTokenHistoricalBaskets.collaterals = rToken.collaterals;
-  rTokenHistoricalBaskets.collateralDistribution = rToken.collateralDistribution;
+  rTokenHistoricalBaskets.collateralDistribution =
+    rToken.collateralDistribution;
 
   let distributionId = "0x0000000000000000000000000000000000000001"
     .concat("-")

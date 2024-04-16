@@ -7,7 +7,6 @@ import {
   EntryType,
   INT_ONE,
   RSR_ADDRESS,
-  RSV_ADDRESS,
   SECONDS_PER_DAY,
   SECONDS_PER_HOUR,
 } from "./constants";
@@ -263,6 +262,10 @@ export function updateTokenMetrics(
   entryType: string
 ): void {
   let token = getOrCreateToken(tokenAddress);
+  // Update token price
+  token.lastPriceUSD = getRTokenPrice(tokenAddress);
+  token.lastPriceBlockNumber = event.block.number;
+
   const marketCapUsdSnapshot = getUsdValue(
     token.totalSupply,
     token.lastPriceUSD
@@ -270,15 +273,6 @@ export function updateTokenMetrics(
   // Token snapshots
   let tokenDaily = getOrCreateTokenDailySnapshot(token.id, event);
   let tokenHourly = getOrCreateTokenHourlySnapshot(token.id, event);
-
-  // Update token price
-  if (
-    (tokenAddress.equals(RSV_ADDRESS) || token.rToken) &&
-    token.lastPriceBlockNumber.lt(event.block.number)
-  ) {
-    token.lastPriceUSD = getRTokenPrice(tokenAddress);
-    token.lastPriceBlockNumber = event.block.number;
-  }
 
   // User data
   // Combine the id and the user address to generate a unique user id for the day
@@ -375,8 +369,6 @@ export function updateTokenMetrics(
   tokenDaily.save();
 
   let rTokenId = token.rToken;
-
-  // For tokens that are not RSV
   if (rTokenId) {
     // create AccountRToken relationship
     getOrCreateRTokenAccount(fromAddress, tokenAddress);

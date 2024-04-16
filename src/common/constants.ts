@@ -1,8 +1,8 @@
 import {
   Address,
   BigDecimal,
-  dataSource,
   BigInt,
+  dataSource,
 } from "@graphprotocol/graph-ts";
 
 ////////////////////
@@ -20,31 +20,10 @@ export const PROTOCOL_METHODOLOGY_VERSION = "1.0.0";
 ////////////////////////
 
 // The network names corresponding to the Network enum in the schema.
-// They also correspond to the ones in `dataSource.network()` after converting to lower case.
-// See below for a complete list:
-// https://thegraph.com/docs/en/hosted-service/what-is-hosted-service/#supported-networks-on-the-hosted-service
 export namespace Network {
-  export const ARBITRUM_ONE = "ARBITRUM_ONE";
-  export const ARWEAVE_MAINNET = "ARWEAVE_MAINNET";
-  export const AURORA = "AURORA";
-  export const AVALANCHE = "AVALANCHE";
-  export const BOBA = "BOBA";
-  export const BSC = "BSC"; // aka BNB Chain
-  export const CELO = "CELO";
-  export const COSMOS = "COSMOS";
-  export const CRONOS = "CRONOS";
-  export const MAINNET = "MAINNET"; // Ethereum mainnet
-  export const FANTOM = "FANTOM";
-  export const FUSE = "FUSE";
-  export const HARMONY = "HARMONY";
-  export const JUNO = "JUNO";
-  export const MOONBEAM = "MOONBEAM";
-  export const MOONRIVER = "MOONRIVER";
-  export const NEAR_MAINNET = "NEAR_MAINNET";
-  export const OPTIMISM = "OPTIMISM";
-  export const OSMOSIS = "OSMOSIS";
-  export const MATIC = "MATIC"; // aka Polygon
-  export const XDAI = "XDAI"; // aka Gnosis Chain
+  export const ARBITRUM = "arbitrum-one";
+  export const BASE = "base";
+  export const MAINNET = "mainnet"; // Ethereum mainnet
 }
 
 export namespace ProtocolType {
@@ -118,6 +97,11 @@ export namespace VoteChoice {
   export const ABSTAIN = "ABSTAIN";
 }
 
+export enum TradeKind {
+  DUTCH_AUCTION,
+  BATCH_AUCTION,
+}
+
 //////////////////////////////
 ///// Ethereum Addresses /////
 //////////////////////////////
@@ -175,22 +159,35 @@ export const MS_PER_YEAR = DAYS_PER_YEAR.times(
 export const FURNACE_ADDRESS = "0x0000000000000000000000000000000000000001";
 export const ST_RSR_ADDRESS = "0x0000000000000000000000000000000000000002";
 
-export const FACADE_ADDRESS =
-  dataSource.network() == "mainnet"
-    ? "0x80b24e984e4fc92a4846b044286DcCcd66564DB9"
-    : "0xe1aa15DA8b993c6312BAeD91E0b470AE405F91BF";
+export const FACADE_ADDRESS_MAP = new Map<string, string>();
+FACADE_ADDRESS_MAP.set(
+  Network.MAINNET,
+  "0x80b24e984e4fc92a4846b044286DcCcd66564DB9"
+);
+FACADE_ADDRESS_MAP.set(
+  Network.BASE,
+  "0xe1aa15DA8b993c6312BAeD91E0b470AE405F91BF"
+);
+FACADE_ADDRESS_MAP.set(
+  Network.ARBITRUM,
+  "0xEb2071e9B542555E90E6e4E1F83fa17423583991"
+);
 
-// Tokens
+export const FACADE_ADDRESS = Address.fromString(
+  FACADE_ADDRESS_MAP.get(dataSource.network()) as string
+);
+
+export const RSR_ADDRESS_MAP = new Map<string, string>();
+RSR_ADDRESS_MAP.set(
+  Network.MAINNET,
+  "0x320623b8e4ff03373931769a31fc52a4e78b5d70"
+);
+RSR_ADDRESS_MAP.set(Network.BASE, "0xaB36452DbAC151bE02b16Ca17d8919826072f64a");
+RSR_ADDRESS_MAP.set(
+  Network.ARBITRUM,
+  "0xCa5Ca9083702c56b481D1eec86F1776FDbd2e594"
+);
+
 export const RSR_ADDRESS = Address.fromString(
-  dataSource.network() == "mainnet"
-    ? "0x320623b8e4ff03373931769a31fc52a4e78b5d70"
-    : "0xaB36452DbAC151bE02b16Ca17d8919826072f64a"
+  RSR_ADDRESS_MAP.get(dataSource.network()) as string
 );
-export const RSV_ADDRESS = Address.fromString(
-  "0x196f4727526eA7FB1e17b2071B3d8eAA38486988"
-);
-
-export enum TradeKind {
-  DUTCH_AUCTION,
-  BATCH_AUCTION,
-}

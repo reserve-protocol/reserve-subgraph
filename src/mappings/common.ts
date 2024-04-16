@@ -12,7 +12,7 @@ import { BIGINT_ZERO, EntryType, ZERO_ADDRESS } from "./../common/constants";
 /**
  * Tracks ERC20 token transfer
  *
- * RSV and RToken output ERC20
+ * RToken output ERC20
  */
 export function handleTransfer(event: TransferEvent): void {
   let token = getOrCreateToken(event.address);

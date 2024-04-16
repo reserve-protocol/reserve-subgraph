@@ -61,7 +61,7 @@ export function handleBasketSet(event: PrimeBasketSet): void {
   let rTokenContract = RTokenContract.load(event.address.toHexString())!;
   let rToken = RToken.load(rTokenContract.rToken)!;
 
-  let facadeContract = Facade.bind(Address.fromString(FACADE_ADDRESS));
+  let facadeContract = Facade.bind(FACADE_ADDRESS);
   let basketBreakdown = facadeContract.try_basketBreakdown(
     Address.fromString(rTokenContract.rToken)
   );
@@ -147,7 +147,7 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   let daily = getOrCreateTokenDailySnapshot(rToken.id, event);
   let hourly = getOrCreateTokenHourlySnapshot(rToken.id, event);
 
-  let contract = Facade.bind(Address.fromString(FACADE_ADDRESS));
+  let contract = Facade.bind(FACADE_ADDRESS);
   let backing = contract.try_backingOverview(event.address);
 
   if (!backing.reverted) {
@@ -158,8 +158,9 @@ export function handleRTokenBaskets(event: BasketsNeededChanged): void {
   if (token.totalSupply.equals(BIGINT_ZERO)) {
     token.basketRate = BIGDECIMAL_ZERO;
   } else {
-    token.basketRate = event.params.newBasketsNeeded
-      .divDecimal(token.totalSupply.toBigDecimal())
+    token.basketRate = event.params.newBasketsNeeded.divDecimal(
+      token.totalSupply.toBigDecimal()
+    );
   }
 
   rToken.basketsNeeded = event.params.newBasketsNeeded;
