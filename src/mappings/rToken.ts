@@ -1,4 +1,4 @@
-import { Address, BigDecimal, BigInt, Value } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, Value } from "@graphprotocol/graph-ts";
 import {
   RToken,
   RTokenContract,
@@ -95,50 +95,6 @@ export function handleBasketSet(event: PrimeBasketSet): void {
   rToken.save();
   updateRTokenHistoricalBaskets(event, rToken);
 }
-
-// * rToken Events
-// export function handleIssuance(event: Issuance): void {
-//   let account = getTokenAccount(event.params.issuer, event.address);
-//   let token = getOrCreateToken(event.address);
-
-//   let entry = getOrCreateEntry(
-//     event,
-//     event.address.toHexString(),
-//     account.id,
-//     event.params.amount,
-//     EntryType.ISSUE
-//   );
-//   entry.rToken = event.address.toHexString();
-//   entry.amountUSD = bigIntToBigDecimal(event.params.amount).times(
-//     token.lastPriceUSD
-//   );
-//   entry.save();
-
-// updateRTokenMetrics(
-//   event,
-//   event.address,
-//   event.params.amount,
-//   EntryType.ISSUE
-// );
-// }
-
-// export function handleRedemption(event: Redemption): void {
-//   let account = getTokenAccount(event.params.redeemer, event.address);
-//   let token = getOrCreateToken(event.address);
-
-//   let entry = getOrCreateEntry(
-//     event,
-//     event.address.toHexString(),
-//     account.id,
-//     event.params.amount,
-//     EntryType.REDEEM
-//   );
-//   entry.rToken = event.address.toHexString();
-//   entry.amountUSD = bigIntToBigDecimal(BIGINT_ZERO).times(token.lastPriceUSD);
-//   entry.save();
-
-// updateRTokenMetrics(event, event.address, BIGINT_ZERO, EntryType.REDEEM);
-// }
 
 // * Rewards
 export function handleRTokenBaskets(event: BasketsNeededChanged): void {

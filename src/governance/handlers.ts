@@ -347,7 +347,8 @@ export function _handleProposalQueued(
 ): void {
   let GovernanceFramework = getGovernanceFramework(
     event.address.toHexString(),
-    event.block.number
+    event.block.number,
+    event.block.timestamp
   );
   let timelockContract = Timelock.bind(
     Address.fromString(GovernanceFramework.timelockAddress)
