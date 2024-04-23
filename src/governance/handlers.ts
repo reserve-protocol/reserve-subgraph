@@ -11,8 +11,8 @@ import {
   DelegateChange,
   DelegateVotingPowerChange,
   Governance,
+  GovernanceFramework,
   Proposal,
-  RToken,
   RTokenContract,
   stTokenDailySnapshot,
   TokenHolder,
@@ -29,6 +29,7 @@ import {
   ZERO_ADDRESS,
 } from "../common/constants";
 import { getGovernanceFramework } from "../mappings/governance";
+import { isTimepointGovernance } from "./utils";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 
@@ -138,6 +139,7 @@ export function getProposal(id: string, contractAddress: string): Proposal {
     proposal = new Proposal(id);
     let rTokenContract = RTokenContract.load(contractAddress)!;
     proposal.governance = rTokenContract.rToken;
+    proposal.governanceFramework = contractAddress;
     proposal.tokenHoldersAtStart = BIGINT_ZERO;
     proposal.delegatesAtStart = BIGINT_ZERO;
   }
@@ -247,6 +249,9 @@ export function _handleProposalCreated(
 ): void {
   const proposal = getProposal(proposalId, event.address.toHexString());
   let proposer = getOrCreateDelegate(proposerAddr, proposal.governance);
+  let governanceFramework = GovernanceFramework.load(
+    proposal.governanceFramework
+  )!;
 
   // Checking if the proposer was a delegate already accounted for, if not we should log an error
   // since it shouldn't be possible for a delegate to propose anything without first being "created"
@@ -256,6 +261,8 @@ export function _handleProposalCreated(
       [proposerAddr, event.transaction.hash.toHexString()]
     );
   }
+
+  let isTimepoint = isTimepointGovernance(governanceFramework.version);
 
   // Creating it anyway since we will want to account for this event data, even though it should've never happened
   proposer = getOrCreateDelegate(proposerAddr, proposal.governance);
@@ -280,7 +287,8 @@ export function _handleProposalCreated(
   proposal.endBlock = endBlock;
   proposal.description = description;
   proposal.state =
-    event.block.number >= proposal.startBlock
+    (isTimepoint && event.block.timestamp >= proposal.startBlock) ||
+    (!isTimepoint && event.block.number >= proposal.startBlock)
       ? ProposalState.ACTIVE
       : ProposalState.PENDING;
   proposal.governanceFramework = event.address.toHexString();

@@ -673,8 +673,6 @@ export function getOrCreateTrade(event: TradeStarted): Trade {
       let dutchTrade = DutchTrade.bind(event.params.trade);
       trade.worstCasePrice = bigIntToBigDecimal(dutchTrade.worstPrice());
       trade.endAt = dutchTrade.endTime();
-      trade.endBlock = dutchTrade.endBlock();
-      trade.startBlock = dutchTrade.startBlock();
       trade.kind = TradeKind.DUTCH_AUCTION;
     } else {
       trade.worstCasePrice = bigIntToBigDecimal(tradeContract.worstCasePrice());
@@ -698,7 +696,9 @@ export function getOrCreateTrade(event: TradeStarted): Trade {
 
     trade.isSettled = false;
     trade.sellingTokenSymbol = fetchTokenSymbol(event.params.sell);
+    trade.sellingTokenDecimals = sellTokenDecimals;
     trade.buyingTokenSymbol = fetchTokenSymbol(event.params.buy);
+    trade.buyingTokenDecimals = buyTokenDecimals;
     trade.selling = event.params.sell.toHexString();
     trade.buying = event.params.buy.toHexString();
     trade.startedAt = event.block.timestamp;

@@ -78,7 +78,7 @@ export function handleProposalCreated(event: ProposalCreated): void {
   const quorumVotes = getQuorumFromContract(
     event.address,
     event.block.number.minus(BIGINT_ONE),
-    event.block.timestamp // TODO: not sure if I should sub from the timestamp
+    event.block.timestamp.minus(BIGINT_ONE)
   );
 
   _createTimelockProposal(event);

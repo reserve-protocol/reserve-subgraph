@@ -524,17 +524,17 @@ type Trade @entity {
   " Sell tokens symbol "
   sellingTokenSymbol: String!
 
+  "Sell token decimals"
+  sellingTokenDecimals: Int!
+
   " Buy token symbol "
   buyingTokenSymbol: String!
 
+  " Buying token decimals "
+  buyingTokenDecimals: Int!
+
   " started At timestamp "
   startedAt: BigInt!
-
-  " Started block (dutch) "
-  startBlock: BigInt
-
-  " End Block "
-  endBlock: BigInt
 
   " End time timestamp "
   endAt: BigInt!
