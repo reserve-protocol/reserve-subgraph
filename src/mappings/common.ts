@@ -26,12 +26,10 @@ export function handleTransfer(event: TransferEvent): void {
     fromAccount.save();
   }
 
-  let isMelting = RTokenContract.load(event.params.to.toHexString());
+  let isMelting = RTokenContract.load(event.params.from.toHexString());
 
-  if (isMelting) {
-    entryType = EntryType.BURN;
-  } else if (ZERO_ADDRESS == event.params.to.toHexString()) {
-    entryType = EntryType.REDEEM;
+  if (ZERO_ADDRESS == event.params.to.toHexString()) {
+    entryType = isMelting ? EntryType.BURN : EntryType.REDEEM;
   } else if (ZERO_ADDRESS == event.params.from.toHexString()) {
     entryType = EntryType.MINT;
   }
