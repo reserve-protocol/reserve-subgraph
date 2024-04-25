@@ -1149,8 +1149,6 @@ type GovernanceFramework @entity {
   id: ID!
   "Name of the governance framework"
   name: String!
-  "Governance version"
-  version: String!
   "Governance framework contract address"
   contractAddress: String!
   "The contract address associated with the contract that manages the delay of administrative actions for the governance framework"

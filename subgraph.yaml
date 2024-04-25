@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: DeployerRegistry
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: DeployerRegistry
-      address: "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe"
-      startBlock: 16680990
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 2000063551
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -24,11 +24,11 @@ dataSources:
       file: ./src/mappings/deployerRegistry.ts
   - name: Deployer
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: Deployer
-      address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
-      startBlock: 16680990
+      address: "0xfd7eb6B208E1fa7B14E26A1fb10fFC17Cf695d68"
+      startBlock: 204407710
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -64,7 +64,7 @@ dataSources:
 templates:
   - name: Deployer
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: Deployer
     mapping:
@@ -101,7 +101,7 @@ templates:
       file: ./src/mappings/deployer.ts
   - name: RToken
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: RToken
     mapping:
@@ -136,7 +136,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: stRSR
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: stRSR
     mapping:
@@ -186,7 +186,7 @@ templates:
       file: ./src/mappings/stRSR.ts
   - name: BasketHandler
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: BasketHandler
     mapping:
@@ -209,7 +209,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Main
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: Main
     mapping:
@@ -232,7 +232,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Timelock
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: Timelock
     mapping:
@@ -257,7 +257,7 @@ templates:
       file: ./src/mappings/governance.ts
   - name: Distributor
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: Distributor
     mapping:
@@ -290,7 +290,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: RevenueTrader
     mapping:
@@ -319,7 +319,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: BackingManager
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: BackingManager
     mapping:
@@ -348,7 +348,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Governance
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: Governor
     mapping:
@@ -393,7 +393,7 @@ templates:
       file: ./src/mappings/governance.ts
   - name: stRSRVotes
     kind: ethereum/contract
-    network: mainnet
+    network: arbitrum-one
     source:
       abi: stRSRVotes
     mapping:

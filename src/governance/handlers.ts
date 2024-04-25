@@ -262,7 +262,7 @@ export function _handleProposalCreated(
     );
   }
 
-  let isTimepoint = isTimepointGovernance(governanceFramework.version);
+  let isTimepoint = isTimepointGovernance(governanceFramework.name);
 
   // Creating it anyway since we will want to account for this event data, even though it should've never happened
   proposer = getOrCreateDelegate(proposerAddr, proposal.governance);

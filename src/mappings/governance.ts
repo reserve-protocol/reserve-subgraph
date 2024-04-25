@@ -45,6 +45,7 @@ import {
   VotingPeriodSet,
 } from "./../../generated/templates/Governance/Governor";
 import { encodeAndHash } from "../common/utils/encoding";
+import { isTimepointGovernance } from "../governance/utils";
 
 // ProposalCanceled(proposalId)
 export function handleProposalCanceled(event: ProposalCanceled): void {
@@ -285,7 +286,6 @@ export function getGovernanceFramework(
     const timelockContract = Timelock.bind(timelockAddress);
 
     governanceFramework.name = contract.name();
-    governanceFramework.version = contract.version();
 
     governanceFramework.contractAddress = contractAddress;
     governanceFramework.timelockAddress = timelockAddress.toHexString();
@@ -295,7 +295,7 @@ export function getGovernanceFramework(
     governanceFramework.votingPeriod = contract.votingPeriod();
     governanceFramework.proposalThreshold = contract.proposalThreshold();
     governanceFramework.quorumNumerator = contract.quorumNumerator(
-      isTimepointGovernance(governanceFramework.version)
+      isTimepointGovernance(governanceFramework.name)
         ? blockTimestamp
         : blockNumber
     );
@@ -320,7 +320,7 @@ function getQuorumFromContract(
 
   const contract = Governor.bind(contractAddress);
   const quorumVotes = contract.quorum(
-    isTimepointGovernance(governanceFramework.version)
+    isTimepointGovernance(governanceFramework.name)
       ? blockTimestamp
       : blockNumber
   );
@@ -329,10 +329,4 @@ function getQuorumFromContract(
   governanceFramework.save();
 
   return quorumVotes;
-}
-
-export function isTimepointGovernance(version: string): boolean {
-  // return parseFloat(version) > 1;
-  // TODO: Update on new arbitrum version
-  return true;
 }

@@ -21,8 +21,8 @@
   },
   "arbitrum-one": {
     "Deployer": {
-      "address": "0xFD18bA9B2f9241Ce40CDE14079c1cDA1502A8D0A",
-      "startBlock": 200063540
+      "address": "0xfd7eb6B208E1fa7B14E26A1fb10fFC17Cf695d68",
+      "startBlock": 204407710
     },
     "DeployerRegistry": {
       "address": "0x0000000000000000000000000000000000000000",
