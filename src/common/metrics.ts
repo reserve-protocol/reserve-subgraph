@@ -127,11 +127,13 @@ export function updateRTokenAccountBalance(
 // Get Token entity and refresh USD price
 export function getTokenWithRefreshedPrice(
   address: Address,
-  currentBlock: BigInt
+  currentTimestamp: BigInt
 ): Token {
   let token = getOrCreateToken(address);
 
-  if (token.lastPriceBlockNumber.lt(currentBlock)) {
+  if (
+    token.lastPriceTimestamp.plus(BigInt.fromI32(3600)).lt(currentTimestamp)
+  ) {
     let priceQuote = BIGDECIMAL_ZERO;
 
     if (address.equals(RSR_ADDRESS)) {
@@ -142,7 +144,7 @@ export function getTokenWithRefreshedPrice(
 
     if (!priceQuote.equals(BIGDECIMAL_ZERO)) {
       token.lastPriceUSD = priceQuote;
-      token.lastPriceBlockNumber = currentBlock;
+      token.lastPriceTimestamp = currentTimestamp;
     }
   }
 
@@ -193,7 +195,7 @@ export function updateRTokenMetrics(
 ): void {
   let protocol = getOrCreateProtocol();
   let rToken = RToken.load(rTokenAddress.toHexString())!;
-  let rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.number);
+  let rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.timestamp);
   let amountUSD = getUsdValue(amount, rsr.lastPriceUSD);
 
   if (entryType === EntryType.STAKE) {
@@ -261,10 +263,7 @@ export function updateTokenMetrics(
   amount: BigInt,
   entryType: string
 ): void {
-  let token = getOrCreateToken(tokenAddress);
-  // Update token price
-  token.lastPriceUSD = getRTokenPrice(tokenAddress);
-  token.lastPriceBlockNumber = event.block.number;
+  let token = getTokenWithRefreshedPrice(tokenAddress, event.block.timestamp);
 
   const marketCapUsdSnapshot = getUsdValue(
     token.totalSupply,
@@ -392,7 +391,7 @@ export function updateRTokenRevenueDistributed(
   let protocol = getOrCreateProtocol();
   let token = getTokenWithRefreshedPrice(
     Address.fromString(rToken.id),
-    event.block.number
+    event.block.timestamp
   );
 
   rToken.cumulativeRTokenRevenue = rToken.cumulativeRTokenRevenue.plus(

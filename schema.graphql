@@ -617,7 +617,7 @@ type Token @entity {
   basketRate: BigDecimal!
 
   " Optional field to track the block number of the last token price "
-  lastPriceBlockNumber: BigInt!
+  lastPriceTimestamp: BigInt!
 
   " RToken relation "
   rToken: RToken
