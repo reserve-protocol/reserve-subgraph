@@ -1,4 +1,3 @@
-import { Address } from "@graphprotocol/graph-ts";
 import { RToken, RTokenContract, Token } from "../../generated/schema";
 import {
   BackingManager,
@@ -21,6 +20,7 @@ import { RTokenCreated } from "./../../generated/Deployer/Deployer";
 import { Facade } from "./../../generated/Deployer/Facade";
 import { Main } from "./../../generated/Deployer/Main";
 
+import { hexToNumberString } from "../common/utils/strings";
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
@@ -31,7 +31,6 @@ import {
   FACADE_ADDRESS,
   INT_ONE,
 } from "./../common/constants";
-import { hexToNumberString } from "../common/utils/strings";
 
 // * Deployer events
 export function handleCreateToken(event: RTokenCreated): void {
@@ -42,7 +41,7 @@ export function handleCreateToken(event: RTokenCreated): void {
   let rewardToken = getOrCreateRewardToken(event.params.stRSR);
   let stToken = Token.load(event.params.stRSR.toHexString())!;
 
-  let facadeContract = Facade.bind(Address.fromString(FACADE_ADDRESS));
+  let facadeContract = Facade.bind(FACADE_ADDRESS);
   let basketBreakdown = facadeContract.try_basketBreakdown(event.params.rToken);
 
   // Error on collateral, don't map token
@@ -156,14 +155,12 @@ export function handleCreateToken(event: RTokenCreated): void {
   rsrTrader.save();
 
   let distributorAddress = mainContract.distributor();
-
   let distributor = new RTokenContract(distributorAddress.toHexString());
   distributor.rToken = rToken.id;
   distributor.name = ContractName.DISTRIBUTOR;
   distributor.save();
 
   let furnaceAddress = mainContract.furnace();
-
   let furnace = new RTokenContract(furnaceAddress.toHexString());
   furnace.rToken = rToken.id;
   furnace.name = ContractName.FURNACE;

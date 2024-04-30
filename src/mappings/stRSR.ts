@@ -39,7 +39,6 @@ import {
   RSR_ADDRESS,
   ZERO_ADDRESS,
 } from "./../common/constants";
-import { getRSRPrice } from "../common/tokens";
 
 function _handleStake(
   accountAddress: Address,

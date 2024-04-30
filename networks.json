@@ -7,24 +7,26 @@
     "DeployerRegistry": {
       "address": "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe",
       "startBlock": 16680990
-    },
-    "RSV": {
-      "address": "0x196f4727526eA7FB1e17b2071B3d8eAA38486988",
-      "startBlock": 16815302
     }
   },
   "base": {
     "Deployer": {
       "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 9450019
+      "startBlock": 2000063551
     },
     "DeployerRegistry": {
       "address": "0x1265Ec05FD621d82F224814902c925a600307fb3",
       "startBlock": 4521504
-    },
-    "RSV": {
+    }
+  },
+  "arbitrum-one": {
+    "Deployer": {
       "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 99815302
+      "startBlock": 2000063551
+    },
+    "DeployerRegistry": {
+      "address": "0x19927e8bF2dB907Bad30cc974dde2b13aC2FB65E",
+      "startBlock": 205179115
     }
   }
 }

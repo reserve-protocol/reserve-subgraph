@@ -1,4 +1,11 @@
-import { Address, BigInt, Bytes, crypto, ethereum, log } from "@graphprotocol/graph-ts";
+import {
+  Address,
+  BigInt,
+  Bytes,
+  crypto,
+  ethereum,
+  log,
+} from "@graphprotocol/graph-ts";
 import {
   GovernanceFramework,
   Proposal,
@@ -38,6 +45,7 @@ import {
   VotingPeriodSet,
 } from "./../../generated/templates/Governance/Governor";
 import { encodeAndHash } from "../common/utils/encoding";
+import { isTimepointGovernance } from "../governance/utils";
 
 // ProposalCanceled(proposalId)
 export function handleProposalCanceled(event: ProposalCanceled): void {
@@ -50,8 +58,12 @@ export function _createTimelockProposal(event: ProposalCreated): string {
     ethereum.Value.fromUnsignedBigIntArray([BigInt.fromU64(0)]),
     ethereum.Value.fromBytesArray(event.params.calldatas),
     ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(0)),
-    ethereum.Value.fromFixedBytes(Bytes.fromByteArray(crypto.keccak256(Bytes.fromUTF8(event.params.description))))
-  ]
+    ethereum.Value.fromFixedBytes(
+      Bytes.fromByteArray(
+        crypto.keccak256(Bytes.fromUTF8(event.params.description))
+      )
+    ),
+  ];
 
   let timelockId = encodeAndHash(params).toHexString();
 
@@ -66,7 +78,8 @@ export function _createTimelockProposal(event: ProposalCreated): string {
 export function handleProposalCreated(event: ProposalCreated): void {
   const quorumVotes = getQuorumFromContract(
     event.address,
-    event.block.number.minus(BIGINT_ONE)
+    event.block.number.minus(BIGINT_ONE),
+    event.block.timestamp.minus(BIGINT_ONE)
   );
 
   _createTimelockProposal(event);
@@ -102,7 +115,8 @@ export function handleProposalQueued(event: ProposalQueued): void {
 export function handleProposalThresholdSet(event: ProposalThresholdSet): void {
   const governanceFramework = getGovernanceFramework(
     event.address.toHexString(),
-    event.block.number
+    event.block.number,
+    event.block.timestamp
   );
   governanceFramework.proposalThreshold = event.params.newProposalThreshold;
   governanceFramework.save();
@@ -114,7 +128,8 @@ export function handleQuorumNumeratorUpdated(
 ): void {
   const governanceFramework = getGovernanceFramework(
     event.address.toHexString(),
-    event.block.number
+    event.block.number,
+    event.block.timestamp
   );
   governanceFramework.quorumNumerator = event.params.newQuorumNumerator;
   governanceFramework.save();
@@ -124,7 +139,8 @@ export function handleQuorumNumeratorUpdated(
 export function handleTimelockChange(event: TimelockChange): void {
   const governanceFramework = getGovernanceFramework(
     event.address.toHexString(),
-    event.block.number
+    event.block.number,
+    event.block.timestamp
   );
   governanceFramework.timelockAddress = event.params.newTimelock.toHexString();
   governanceFramework.save();
@@ -142,6 +158,7 @@ function getLatestProposalValues(
     proposal.state = ProposalState.ACTIVE;
     proposal.quorumVotes = getQuorumFromContract(
       contractAddress,
+      proposal.startBlock,
       proposal.startBlock
     );
 
@@ -174,7 +191,8 @@ export function handleVoteCast(event: VoteCast): void {
 export function handleVotingDelaySet(event: VotingDelaySet): void {
   const governanceFramework = getGovernanceFramework(
     event.address.toHexString(),
-    event.block.number
+    event.block.number,
+    event.block.timestamp
   );
   governanceFramework.votingDelay = event.params.newVotingDelay;
   governanceFramework.save();
@@ -183,7 +201,8 @@ export function handleVotingDelaySet(event: VotingDelaySet): void {
 export function handleVotingPeriodSet(event: VotingPeriodSet): void {
   const governanceFramework = getGovernanceFramework(
     event.address.toHexString(),
-    event.block.number
+    event.block.number,
+    event.block.timestamp
   );
   governanceFramework.votingPeriod = event.params.newVotingPeriod;
   governanceFramework.save();
@@ -248,16 +267,14 @@ export function handleTimelockProposalCanceled(event: Cancelled): void {
 
   const proposalId = timelockProposal.proposalId;
 
-  _handleProposalCanceled(
-    proposalId,
-    event
-  );
+  _handleProposalCanceled(proposalId, event);
 }
 
 // Helper function that imports and binds the contract
 export function getGovernanceFramework(
   contractAddress: string,
-  blockNumber: BigInt
+  blockNumber: BigInt,
+  blockTimestamp: BigInt
 ): GovernanceFramework {
   let governanceFramework = GovernanceFramework.load(contractAddress);
 
@@ -277,7 +294,11 @@ export function getGovernanceFramework(
     governanceFramework.votingDelay = contract.votingDelay();
     governanceFramework.votingPeriod = contract.votingPeriod();
     governanceFramework.proposalThreshold = contract.proposalThreshold();
-    governanceFramework.quorumNumerator = contract.quorumNumerator(blockNumber);
+    governanceFramework.quorumNumerator = contract.quorumNumerator(
+      isTimepointGovernance(governanceFramework.name)
+        ? blockTimestamp
+        : blockNumber
+    );
     governanceFramework.quorumDenominator = contract.quorumDenominator();
     governanceFramework.governance = rTokenContract.rToken;
     governanceFramework.save();
@@ -288,15 +309,22 @@ export function getGovernanceFramework(
 
 function getQuorumFromContract(
   contractAddress: Address,
-  blockNumber: BigInt
+  blockNumber: BigInt,
+  blockTimestamp: BigInt
 ): BigInt {
-  const contract = Governor.bind(contractAddress);
-  const quorumVotes = contract.quorum(blockNumber);
-
   const governanceFramework = getGovernanceFramework(
     contractAddress.toHexString(),
-    blockNumber
+    blockNumber,
+    blockTimestamp
   );
+
+  const contract = Governor.bind(contractAddress);
+  const quorumVotes = contract.quorum(
+    isTimepointGovernance(governanceFramework.name)
+      ? blockTimestamp
+      : blockNumber
+  );
+
   governanceFramework.quorumVotes = quorumVotes;
   governanceFramework.save();
 
