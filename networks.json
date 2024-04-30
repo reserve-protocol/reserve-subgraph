@@ -12,7 +12,7 @@
   "base": {
     "Deployer": {
       "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 9450019
+      "startBlock": 2000063551
     },
     "DeployerRegistry": {
       "address": "0x1265Ec05FD621d82F224814902c925a600307fb3",
@@ -21,12 +21,12 @@
   },
   "arbitrum-one": {
     "Deployer": {
-      "address": "0xfd7eb6B208E1fa7B14E26A1fb10fFC17Cf695d68",
-      "startBlock": 204407710
-    },
-    "DeployerRegistry": {
       "address": "0x0000000000000000000000000000000000000000",
       "startBlock": 2000063551
+    },
+    "DeployerRegistry": {
+      "address": "0x19927e8bF2dB907Bad30cc974dde2b13aC2FB65E",
+      "startBlock": 205179115
     }
   }
 }

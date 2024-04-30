@@ -312,7 +312,7 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.totalBurned = BIGINT_ZERO;
     token.totalMinted = BIGINT_ZERO;
     token.cumulativeVolume = BIGINT_ZERO;
-    token.lastPriceBlockNumber = BIGINT_ZERO;
+    token.lastPriceTimestamp = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
     token.basketRate = BIGDECIMAL_ZERO;
     token.save();
