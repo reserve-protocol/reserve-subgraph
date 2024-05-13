@@ -8,6 +8,7 @@ import {
   UnstakingStarted,
 } from "../../generated/templates/stRSR/stRSR";
 import {
+  getOrCreateAccount,
   getOrCreateEntry,
   getOrCreateRTokenAccount,
   getOrCreateRTokenDailySnapshot,
@@ -138,6 +139,16 @@ export function handleStake(event: Staked): void {
   if (rTokenId) {
     const rTokenAddress = Address.fromString(rTokenId);
 
+    // When UnstakingCancelled is emitted, Staked event is also emitted, so we need to ignore it if this is the case
+    let account = getOrCreateAccount(event.params.staker, rTokenAddress);
+    let entries = account.records.load();
+    for (let i = 0; i < entries.length; i++) {
+      let entry = entries[i];
+      if (entry.blockNumber == event.block.number && entry.type == EntryType.UNSTAKE_CANCELLED) {
+        return;
+      }
+    }
+  
     _handleStake(
       event.params.staker,
       rTokenAddress,
