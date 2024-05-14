@@ -145,6 +145,7 @@ export function getTokenWithRefreshedPrice(
     if (!priceQuote.equals(BIGDECIMAL_ZERO)) {
       token.lastPriceUSD = priceQuote;
       token.lastPriceTimestamp = currentTimestamp;
+      token.save();
     }
   }
 
@@ -265,10 +266,8 @@ export function updateTokenMetrics(
 ): void {
   let token = getTokenWithRefreshedPrice(tokenAddress, event.block.timestamp);
 
-  const marketCapUsdSnapshot = getUsdValue(
-    token.totalSupply,
-    token.lastPriceUSD
-  );
+  const marketCapUsdSnapshot = token.lastMarketCapUSD;
+
   // Token snapshots
   let tokenDaily = getOrCreateTokenDailySnapshot(token.id, event);
   let tokenHourly = getOrCreateTokenHourlySnapshot(token.id, event);
@@ -344,6 +343,7 @@ export function updateTokenMetrics(
 
   token.totalSupply = newSupply;
   token.cumulativeVolume = token.cumulativeVolume.plus(amount);
+  token.lastMarketCapUSD = getUsdValue(token.totalSupply, token.lastPriceUSD);
   token.transferCount = token.transferCount.plus(BIGINT_ONE);
   token.save();
 
@@ -377,7 +377,7 @@ export function updateTokenMetrics(
       amount,
       getUsdValue(amount, token.lastPriceUSD),
       marketCapUsdSnapshot,
-      getUsdValue(token.totalSupply, token.lastPriceUSD)
+      token.lastMarketCapUSD
     );
   }
 }

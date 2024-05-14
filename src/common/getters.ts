@@ -314,6 +314,7 @@ export function getOrCreateToken(tokenAddress: Address): Token {
     token.cumulativeVolume = BIGINT_ZERO;
     token.lastPriceTimestamp = BIGINT_ZERO;
     token.lastPriceUSD = BIGDECIMAL_ZERO;
+    token.lastMarketCapUSD = BIGDECIMAL_ZERO;
     token.basketRate = BIGDECIMAL_ZERO;
     token.save();
   }
