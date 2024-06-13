@@ -5,6 +5,7 @@ import {
   dataSource,
 } from "@graphprotocol/graph-ts";
 import {
+  Governance,
   RToken,
   RTokenContract,
   RevenueDistribution,
@@ -157,7 +158,12 @@ export function handleTradeSettle(event: TradeSettled): void {
 export function handleRoleGranted(event: RoleGranted): void {
   let rTokenContract = RTokenContract.load(event.address.toHexString())!;
   let rToken = RToken.load(rTokenContract.rToken)!;
-  let owners = rToken.owners;
+
+  let governance = Governance.load(rTokenContract.rToken);
+  let hasTimelock = false;
+  if (governance) {
+    hasTimelock = governance.governanceFrameworks.load().length > 0;
+  }
 
   let role = roleToProp(event.params.role.toString());
   let current = rToken.get(role)!.toStringArray();
@@ -183,7 +189,7 @@ export function handleRoleGranted(event: RoleGranted): void {
         TimelockTemplate.create(event.params.account);
 
         // The timelock has been changed. Happened first time on the 3.4.0 upgrade
-        if (owners.length != 0) {
+        if (hasTimelock) {
           let network = dataSource.network();
           let governanceAddress =
             SPELL_3_4_0_TIMELOCK_GOVERNANCE[network][timelockAddress];
