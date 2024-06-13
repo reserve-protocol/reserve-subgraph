@@ -159,12 +159,6 @@ export function handleRoleGranted(event: RoleGranted): void {
   let rTokenContract = RTokenContract.load(event.address.toHexString())!;
   let rToken = RToken.load(rTokenContract.rToken)!;
 
-  let governance = Governance.load(rTokenContract.rToken);
-  let hasTimelock = false;
-  if (governance) {
-    hasTimelock = governance.governanceFrameworks.load().length > 0;
-  }
-
   let role = roleToProp(event.params.role.toString());
   let current = rToken.get(role)!.toStringArray();
 
@@ -187,6 +181,12 @@ export function handleRoleGranted(event: RoleGranted): void {
         timelockContract.name = ContractName.TIMELOCK;
         timelockContract.save();
         TimelockTemplate.create(event.params.account);
+
+        let governance = Governance.load(rTokenContract.rToken);
+        let hasTimelock = false;
+        if (governance) {
+          hasTimelock = governance.governanceFrameworks.load().length > 0;
+        }
 
         // The timelock has been changed. Happened first time on the 3.4.0 upgrade
         if (hasTimelock) {
