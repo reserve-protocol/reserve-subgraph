@@ -1,4 +1,9 @@
-import { Address, BigDecimal, Value } from "@graphprotocol/graph-ts";
+import {
+  Address,
+  BigDecimal,
+  Value,
+  dataSource,
+} from "@graphprotocol/graph-ts";
 import {
   RToken,
   RTokenContract,
@@ -52,6 +57,8 @@ import {
   ST_RSR_ADDRESS,
 } from "./../common/constants";
 import { handleTransfer } from "./common";
+import { getGovernanceFramework } from "./governance";
+import { SPELL_3_4_0_TIMELOCK_GOVERNANCE } from "../common/spells";
 
 export function handleTokenTransfer(event: TransferEvent): void {
   handleTransfer(event);
@@ -150,6 +157,7 @@ export function handleTradeSettle(event: TradeSettled): void {
 export function handleRoleGranted(event: RoleGranted): void {
   let rTokenContract = RTokenContract.load(event.address.toHexString())!;
   let rToken = RToken.load(rTokenContract.rToken)!;
+  let owners = rToken.owners;
 
   let role = roleToProp(event.params.role.toString());
   let current = rToken.get(role)!.toStringArray();
@@ -165,13 +173,27 @@ export function handleRoleGranted(event: RoleGranted): void {
       let tx = contract.try_PROPOSER_ROLE();
       // Check if the address is a timelock, if it is start indexing
       if (!tx.reverted) {
+        let timelockAddress = event.params.account;
         let timelockContract = new RTokenContract(
-          event.params.account.toHexString()
+          timelockAddress.toHexString()
         );
         timelockContract.rToken = rToken.id;
         timelockContract.name = ContractName.TIMELOCK;
         timelockContract.save();
         TimelockTemplate.create(event.params.account);
+
+        // The timelock has been changed. Happened first time on the 3.4.0 upgrade
+        if (owners.length != 0) {
+          let network = dataSource.network();
+          let governanceAddress =
+            SPELL_3_4_0_TIMELOCK_GOVERNANCE[network][timelockAddress];
+
+          getGovernanceFramework(
+            governanceAddress.toHexString(),
+            event.block.number,
+            event.block.timestamp
+          );
+        }
       }
     }
   }
