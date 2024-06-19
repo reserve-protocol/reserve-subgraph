@@ -192,7 +192,9 @@ export function handleRoleGranted(event: RoleGranted): void {
         if (hasTimelock) {
           let network = dataSource.network();
           let governanceAddress =
-            SPELL_3_4_0_TIMELOCK_GOVERNANCE[network][timelockAddress];
+            SPELL_3_4_0_TIMELOCK_GOVERNANCE[network][
+              timelockAddress.toHexString()
+            ];
 
           getGovernanceFramework(
             governanceAddress.toHexString(),
