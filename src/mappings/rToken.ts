@@ -3,6 +3,7 @@ import {
   BigDecimal,
   Value,
   dataSource,
+  log,
 } from "@graphprotocol/graph-ts";
 import {
   Governance,
@@ -13,6 +14,7 @@ import {
   Trade,
 } from "../../generated/schema";
 import { Timelock as TimelockTemplate } from "../../generated/templates";
+import { Governance as GovernanceTemplate } from "../../generated/templates";
 import {
   BasketsNeededChanged,
   Transfer as TransferEvent,
@@ -190,17 +192,31 @@ export function handleRoleGranted(event: RoleGranted): void {
 
         // The timelock has been changed. Happened first time on the 3.4.0 upgrade
         if (hasTimelock) {
+          log.error("Timelock has been changed", []);
+
           let network = dataSource.network();
+
           let governanceAddress =
             SPELL_3_4_0_TIMELOCK_GOVERNANCE[network][
               timelockAddress.toHexString()
             ];
 
+          // Init governance
+          let governorContract = new RTokenContract(
+            governanceAddress.toHexString()
+          );
+          governorContract.rToken = rToken.id;
+          governorContract.name = ContractName.GOVERNOR;
+          governorContract.save();
+          GovernanceTemplate.create(governanceAddress);
+
+          // Init governance framework
           getGovernanceFramework(
             governanceAddress.toHexString(),
             event.block.number,
             event.block.timestamp
           );
+          log.error("Created new governanceFramework", []);
         }
       }
     }
