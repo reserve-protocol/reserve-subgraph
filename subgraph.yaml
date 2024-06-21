@@ -173,14 +173,16 @@ templates:
         - event: UnstakingStarted(indexed uint256,indexed uint256,indexed
             address,uint256,uint256,uint256)
           handler: handleUnstakeStarted
-        - event: UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
+        - event:
+            UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstake
         - event: ExchangeRateSet(indexed uint192,indexed uint192)
           handler: handleExchangeRate
         - event: ExchangeRateSet(uint192,uint192)
           handler: handleExchangeRate
-        - event: UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
+        - event:
+            UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstakeCancel
       file: ./src/mappings/stRSR.ts
@@ -222,6 +224,8 @@ templates:
       abis:
         - name: Main
           file: ./abis/Main.json
+        - name: Governor
+          file: ./abis/Governor.json
         - name: Timelock
           file: ./abis/Timelock.json
       eventHandlers:
