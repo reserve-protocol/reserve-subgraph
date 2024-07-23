@@ -48,8 +48,14 @@ type Protocol @entity {
   " RSR amount currently locked on the protocol "
   rsrStaked: BigInt!
 
+  " RSR amount currently locked on the protocol "
+  rsrLocked: BigInt!
+
   " USD equivalent RSR staked amount on the protocol "
   rsrStakedUSD: BigDecimal!
+
+  " USD equivalent RSR locked amount on the protocol "
+  rsrLockedUSD: BigDecimal!
 
   " Current TVL (Total Value Locked) of the entire protocol "
   totalValueLockedUSD: BigDecimal!
@@ -217,11 +223,17 @@ type FinancialsDailySnapshot @entity {
   " Protocol this snapshot is associated with "
   protocol: Protocol!
 
-  " Total RSR locked on all RTokens "
+  " Total RSR staked on all RTokens "
   rsrStaked: BigInt!
 
-  " Total USD equivalent RSR locked amount on the protocol "
+  " Total USD equivalent RSR staked amount on the protocol "
   rsrStakedUSD: BigDecimal!
+
+  " Total RSR locked on all RTokens "
+  rsrLocked: BigInt!
+
+  " Total USD equivalent RSR locked amount on the protocol "
+  rsrLockedUSD: BigDecimal!
 
   " Current TVL (Total Value Locked) of the entire protocol "
   totalValueLockedUSD: BigDecimal!
@@ -314,11 +326,17 @@ type RToken @entity {
   " Exchange rate on big int for internal calculations "
   rawRsrExchangeRate: BigInt!
 
-  " How much RSR is currently locked in this RToken (earning rewards) "
+  " How much RSR is currently locked in this RToken (overcollateralization) "
   rsrLocked: BigInt!
 
-  " How much RSR is currently pooled in this RToken (overcollateralization) "
+  " How much RSR is currently pooled in this RToken (earning rewards) "
   rsrStaked: BigInt!
+
+  " USD equivalent RSR locked amount on the staking contract "
+  rsrLockedUSD: BigDecimal!
+
+  " USD equivalent RSR staked amount on the staking contract "
+  rsrStakedUSD: BigDecimal!
 
   " Total RSR staked (cumulative) "
   totalRsrStaked: BigInt!

@@ -173,18 +173,18 @@ templates:
         - event: UnstakingStarted(indexed uint256,indexed uint256,indexed
             address,uint256,uint256,uint256)
           handler: handleUnstakeStarted
-        - event:
-            UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
+        - event: UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstake
         - event: ExchangeRateSet(indexed uint192,indexed uint192)
           handler: handleExchangeRate
         - event: ExchangeRateSet(uint192,uint192)
           handler: handleExchangeRate
-        - event:
-            UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
+        - event: UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstakeCancel
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleStRSRTransfer
       file: ./src/mappings/stRSR.ts
   - name: BasketHandler
     kind: ethereum/contract

@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { RToken } from "../../generated/schema";
 import {
   ExchangeRateSet,
@@ -6,10 +6,12 @@ import {
   UnstakingCancelled,
   UnstakingCompleted,
   UnstakingStarted,
+  Transfer as TransferStRSR,
 } from "../../generated/templates/stRSR/stRSR";
 import {
   getOrCreateAccount,
   getOrCreateEntry,
+  getOrCreateProtocol,
   getOrCreateRTokenAccount,
   getOrCreateRTokenDailySnapshot,
   getOrCreateRTokenHourlySnapshot,
@@ -21,7 +23,7 @@ import {
   updateRTokenAccountBalance,
   updateRTokenMetrics,
 } from "../common/metrics";
-import { bigIntToBigDecimal } from "../common/utils/numbers";
+import { bigIntToBigDecimal, getUsdValue } from "../common/utils/numbers";
 import {
   _handleDelegateChanged,
   _handleDelegateVotesChanged,
@@ -40,6 +42,7 @@ import {
   RSR_ADDRESS,
   ZERO_ADDRESS,
 } from "./../common/constants";
+import { ERC20 } from "../../generated/Deployer/ERC20";
 
 function _handleStake(
   accountAddress: Address,
@@ -144,11 +147,14 @@ export function handleStake(event: Staked): void {
     let entries = account.records.load();
     for (let i = 0; i < entries.length; i++) {
       let entry = entries[i];
-      if (entry.blockNumber == event.block.number && entry.type == EntryType.UNSTAKE_CANCELLED) {
+      if (
+        entry.blockNumber == event.block.number &&
+        entry.type == EntryType.UNSTAKE_CANCELLED
+      ) {
         return;
       }
     }
-  
+
     _handleStake(
       event.params.staker,
       rTokenAddress,
@@ -286,11 +292,21 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
 
   if (rTokenId) {
     let rToken = RToken.load(rTokenId)!;
+    const prevRSRLocked = rToken.rsrLocked;
+    const prevRSRLockedUSD = rToken.rsrLockedUSD;
+
     let daily = getOrCreateRTokenDailySnapshot(rToken.id, event);
     let hourly = getOrCreateRTokenHourlySnapshot(rToken.id, event);
+    const rsr = getTokenWithRefreshedPrice(RSR_ADDRESS, event.block.timestamp);
+
+    const stRSRContract = ERC20.bind(RSR_ADDRESS);
+    const rsrLocked = stRSRContract.balanceOf(event.address);
+    const rsrLockedUSD = getUsdValue(rsrLocked, rsr.lastPriceUSD);
 
     rToken.rsrExchangeRate = bigIntToBigDecimal(event.params.newVal);
     rToken.rawRsrExchangeRate = event.params.newVal;
+    rToken.rsrLocked = rsrLocked;
+    rToken.rsrLockedUSD = rsrLockedUSD;
     rToken.save();
 
     daily.rsrExchangeRate = rToken.rsrExchangeRate;
@@ -298,6 +314,16 @@ export function handleExchangeRate(event: ExchangeRateSet): void {
 
     daily.save();
     hourly.save();
+
+    // update Protocol
+    const protocol = getOrCreateProtocol();
+    protocol.rsrLocked = protocol.rsrLocked
+      .minus(prevRSRLocked)
+      .plus(rsrLocked);
+    protocol.rsrLockedUSD = protocol.rsrLockedUSD
+      .minus(prevRSRLockedUSD)
+      .plus(rsrLockedUSD);
+    protocol.save();
   }
 }
 
@@ -326,6 +352,9 @@ export function handleDelegateVotesChanged(event: DelegateVotesChanged): void {
 
 // // Transfer(indexed address,indexed address,uint256)
 export function handleTransfer(event: Transfer): void {
+  const isMint = event.params.from.toHexString() == ZERO_ADDRESS;
+  const isBurn = event.params.to.toHexString() == ZERO_ADDRESS;
+
   _handleTransfer(
     event.params.from.toHexString(),
     event.params.to.toHexString(),
@@ -334,10 +363,7 @@ export function handleTransfer(event: Transfer): void {
   );
 
   // Only track user transfers
-  if (
-    event.params.from.toHexString() != ZERO_ADDRESS &&
-    event.params.to.toHexString() != ZERO_ADDRESS
-  ) {
+  if (!isMint && !isBurn) {
     let rTokenId = getRTokenId(event.address);
 
     if (rTokenId) {
@@ -364,6 +390,53 @@ export function handleTransfer(event: Transfer): void {
         event,
         false
       );
+    }
+  }
+}
+
+export function handleStRSRTransfer(event: TransferStRSR): void {
+  const isMint = event.params.from.toHexString() == ZERO_ADDRESS;
+  const isBurn = event.params.to.toHexString() == ZERO_ADDRESS;
+
+  if (isMint || isBurn) {
+    let rTokenId = getRTokenId(event.address);
+
+    if (rTokenId) {
+      let rToken = RToken.load(rTokenId)!;
+      const prevRSRSupply = rToken.rsrStaked;
+      const prevRSRSupplyUSD = rToken.rsrStakedUSD;
+
+      const stRSRSupply = isMint
+        ? rToken.rewardTokenSupply.plus(event.params.value)
+        : rToken.rewardTokenSupply.minus(event.params.value);
+
+      const rsrSupply = BigInt.fromString(
+        bigIntToBigDecimal(stRSRSupply)
+          .times(rToken.rsrExchangeRate)
+          .times(BigDecimal.fromString("1e18"))
+          .truncate(0)
+          .toString()
+      );
+      const rsr = getTokenWithRefreshedPrice(
+        RSR_ADDRESS,
+        event.block.timestamp
+      );
+      const rsrSupplyUSD = getUsdValue(rsrSupply, rsr.lastPriceUSD);
+
+      rToken.rewardTokenSupply = stRSRSupply;
+      rToken.rsrStaked = rsrSupply;
+      rToken.rsrStakedUSD = rsrSupplyUSD;
+      rToken.save();
+
+      // update Protocol
+      const protocol = getOrCreateProtocol();
+      protocol.rsrStaked = protocol.rsrStaked
+        .minus(prevRSRSupply)
+        .plus(rsrSupply);
+      protocol.rsrStakedUSD = protocol.rsrStakedUSD
+        .minus(prevRSRSupplyUSD)
+        .plus(rsrSupplyUSD);
+      protocol.save();
     }
   }
 }

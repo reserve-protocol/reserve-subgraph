@@ -74,6 +74,8 @@ export function getOrCreateProtocol(): Protocol {
 
     protocol.rsrStaked = BIGINT_ZERO;
     protocol.rsrStakedUSD = BIGDECIMAL_ZERO;
+    protocol.rsrLocked = BIGINT_ZERO;
+    protocol.rsrLockedUSD = BIGDECIMAL_ZERO;
     protocol.totalRsrStaked = BIGINT_ZERO;
     protocol.totalRsrStakedUSD = BIGDECIMAL_ZERO;
     protocol.totalValueLockedUSD = BIGDECIMAL_ZERO;
@@ -196,6 +198,9 @@ export function getOrCreateFinancialsDailySnapshot(
 
     financialMetrics.rsrStaked = BIGINT_ZERO;
     financialMetrics.rsrStakedUSD = BIGDECIMAL_ZERO;
+
+    financialMetrics.rsrLocked = BIGINT_ZERO;
+    financialMetrics.rsrLockedUSD = BIGDECIMAL_ZERO;
 
     financialMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
     financialMetrics.dailyVolumeUSD = BIGDECIMAL_ZERO;

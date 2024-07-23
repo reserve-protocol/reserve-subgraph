@@ -200,9 +200,6 @@ export function updateRTokenMetrics(
   let amountUSD = getUsdValue(amount, rsr.lastPriceUSD);
 
   if (entryType === EntryType.STAKE) {
-    protocol.rsrStaked = protocol.rsrStaked.plus(amount);
-    protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsr.lastPriceUSD);
-
     protocol.totalRsrStaked = protocol.totalRsrStaked.plus(amount);
     protocol.totalRsrStakedUSD = getUsdValue(
       protocol.totalRsrStaked,
@@ -210,8 +207,6 @@ export function updateRTokenMetrics(
     );
 
     // rToken
-    rToken.rsrStaked = rToken.rsrStaked.plus(amount);
-    rToken.rsrLocked = rToken.rsrLocked.plus(amount);
     rToken.totalRsrStaked = rToken.totalRsrStaked.plus(amount);
   } else if (entryType === EntryType.UNSTAKE) {
     protocol.totalRsrUnstaked = protocol.totalRsrUnstaked.plus(amount);
@@ -221,17 +216,7 @@ export function updateRTokenMetrics(
     );
 
     // rToken
-    rToken.rsrLocked = rToken.rsrLocked.minus(amount);
     rToken.totalRsrUnstaked = rToken.totalRsrUnstaked.plus(amount);
-  } else if (
-    entryType === EntryType.WITHDRAW ||
-    entryType === EntryType.UNSTAKE_CANCELLED
-  ) {
-    // When an "unstake_cancelled" happens, is basically unstake -> stake so we consider it a withdraw
-    rToken.rsrStaked = rToken.rsrStaked.minus(amount);
-
-    protocol.rsrStaked = protocol.rsrStaked.minus(amount);
-    protocol.rsrStakedUSD = getUsdValue(protocol.rsrStaked, rsr.lastPriceUSD);
   }
 
   // Save rToken data
@@ -533,6 +518,8 @@ export function updateUsageAndFinancialMetrics(
   financialMetricsDaily.cumulativeVolumeUSD = protocol.cumulativeVolumeUSD;
   financialMetricsDaily.rsrStaked = protocol.rsrStaked;
   financialMetricsDaily.rsrStakedUSD = protocol.rsrStakedUSD;
+  financialMetricsDaily.rsrLocked = protocol.rsrLocked;
+  financialMetricsDaily.rsrLockedUSD = protocol.rsrLockedUSD;
 
   financialMetricsDaily.cumulativeTotalRevenueUSD =
     protocol.cumulativeRTokenRevenueUSD;

@@ -88,6 +88,8 @@ export function handleCreateToken(event: RTokenCreated): void {
   rToken.rsrExchangeRate = BIGDECIMAL_ONE;
   rToken.rsrStaked = BIGINT_ZERO;
   rToken.rsrLocked = BIGINT_ZERO;
+  rToken.rsrStakedUSD = BIGDECIMAL_ZERO;
+  rToken.rsrLockedUSD = BIGDECIMAL_ZERO;
   rToken.totalRsrStaked = BIGINT_ZERO;
   rToken.totalRsrUnstaked = BIGINT_ZERO;
   rToken.basketsNeeded = BIGINT_ZERO;
