@@ -1442,4 +1442,7 @@ type RTokenHistoricalBaskets @entity {
 
   " Number of shares in RToken "
   rTokenDist: Int!
+
+  " Number of shares in RSR "
+  rsrDist: Int!
 }

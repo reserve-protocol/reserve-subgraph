@@ -746,8 +746,10 @@ export function updateRTokenHistoricalBaskets(
 
   if (revenueDistribution) {
     rTokenHistoricalBaskets.rTokenDist = revenueDistribution.rTokenDist;
+    rTokenHistoricalBaskets.rsrDist = revenueDistribution.rsrDist;
   } else {
     rTokenHistoricalBaskets.rTokenDist = INT_ZERO;
+    rTokenHistoricalBaskets.rsrDist = INT_ZERO;
   }
 
   rTokenHistoricalBaskets.save();
