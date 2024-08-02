@@ -738,17 +738,26 @@ export function updateRTokenHistoricalBaskets(
   rTokenHistoricalBaskets.collateralDistribution =
     rToken.collateralDistribution;
 
-  let distributionId = "0x0000000000000000000000000000000000000001"
+  let rTokenDistId = "0x0000000000000000000000000000000000000001"
     .concat("-")
     .concat(rToken.id);
 
-  const revenueDistribution = RevenueDistribution.load(distributionId);
+  let rsrDistId = "0x0000000000000000000000000000000000000002"
+    .concat("-")
+    .concat(rToken.id);
 
-  if (revenueDistribution) {
-    rTokenHistoricalBaskets.rTokenDist = revenueDistribution.rTokenDist;
-    rTokenHistoricalBaskets.rsrDist = revenueDistribution.rsrDist;
+  const rTokenDistribution = RevenueDistribution.load(rTokenDistId);
+  const rsrDistribution = RevenueDistribution.load(rsrDistId);
+
+  if (rTokenDistribution) {
+    rTokenHistoricalBaskets.rTokenDist = rTokenDistribution.rTokenDist;
   } else {
     rTokenHistoricalBaskets.rTokenDist = INT_ZERO;
+  }
+
+  if (rsrDistribution) {
+    rTokenHistoricalBaskets.rsrDist = rsrDistribution.rsrDist;
+  } else {
     rTokenHistoricalBaskets.rsrDist = INT_ZERO;
   }
 
