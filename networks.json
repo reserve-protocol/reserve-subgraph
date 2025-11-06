@@ -9,8 +9,8 @@
       "startBlock": 16680990
     },
     "spell4_2_0": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 23741269
+      "address": "0x133c3eb12b06C647A887804b20F3B597096F6A24",
+      "startBlock": 23741585
     }
   },
   "base": {
@@ -23,8 +23,8 @@
       "startBlock": 4521504
     },
     "spell4_2_0": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 37828002
+      "address": "0x890FAa00C16EAD6AA76F18A1A7fe9C40838F9122",
+      "startBlock": 37829088
     }
   },
   "arbitrum-one": {
