@@ -1,19 +1,12 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
-import {
-  GovernanceFramework,
-  RToken,
-  RTokenContract,
-} from "../../generated/schema";
 import { NewGovernanceDeployed } from "../../generated/spell4_2_0/spell4_2_0";
+import { RToken, RTokenContract } from "../../generated/schema";
 import {
   Governance as GovernanceTemplate,
   Timelock as TimelockTemplate,
 } from "../../generated/templates";
-import { Governor } from "../../generated/templates/Governance/Governor";
-import { Timelock } from "../../generated/templates/Timelock/Timelock";
 import { ContractName } from "../common/constants";
 import { getGovernance } from "../governance/handlers";
-import { isTimepointGovernance } from "../governance/utils";
+import { getGovernanceFramework } from "./governance";
 
 export function handleNewGovernanceDeployed(
   event: NewGovernanceDeployed
@@ -43,46 +36,9 @@ export function handleNewGovernanceDeployed(
   let governance = getGovernance(rToken.id);
   governance.save();
 
-  initializeGovernanceFramework(
+  getGovernanceFramework(
     governorAddress.toHexString(),
-    timelockAddress.toHexString(),
-    rToken.id,
     event.block.number,
     event.block.timestamp
   );
-}
-
-function initializeGovernanceFramework(
-  governorAddress: string,
-  timelockAddress: string,
-  rTokenId: string,
-  blockNumber: BigInt,
-  blockTimestamp: BigInt
-): void {
-  let governanceFramework = GovernanceFramework.load(governorAddress);
-
-  if (!governanceFramework) {
-    governanceFramework = new GovernanceFramework(governorAddress);
-
-    let governorContract = Governor.bind(Address.fromString(governorAddress));
-    let timelockContract = Timelock.bind(Address.fromString(timelockAddress));
-
-    governanceFramework.name = governorContract.name();
-    governanceFramework.contractAddress = governorAddress;
-    governanceFramework.timelockAddress = timelockAddress;
-    governanceFramework.executionDelay = timelockContract.getMinDelay();
-
-    governanceFramework.votingDelay = governorContract.votingDelay();
-    governanceFramework.votingPeriod = governorContract.votingPeriod();
-    governanceFramework.proposalThreshold = governorContract.proposalThreshold();
-
-    let useTimestamp = isTimepointGovernance(governanceFramework.name);
-    governanceFramework.quorumNumerator = governorContract.quorumNumerator(
-      useTimestamp ? blockTimestamp : blockNumber
-    );
-    governanceFramework.quorumDenominator = governorContract.quorumDenominator();
-    governanceFramework.governance = rTokenId;
-
-    governanceFramework.save();
-  }
 }
