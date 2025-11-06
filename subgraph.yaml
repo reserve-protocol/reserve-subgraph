@@ -61,6 +61,34 @@ dataSources:
             address,string)
           handler: handleCreateToken
       file: ./src/mappings/deployer.ts
+  - name: spell4_2_0
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: spell4_2_0
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 23741269
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - RToken
+        - RTokenContract
+        - Governance
+        - GovernanceFramework
+      abis:
+        - name: spell4_2_0
+          file: ./abis/spell4_2_0.json
+        - name: Governor
+          file: ./abis/Governor.json
+        - name: Timelock
+          file: ./abis/Timelock.json
+      eventHandlers:
+        - event: NewGovernanceDeployed(indexed address,indexed address,indexed address)
+          handler: handleNewGovernanceDeployed
+      file: ./src/mappings/spell4_2_0.ts
+
 templates:
   - name: Deployer
     kind: ethereum/contract

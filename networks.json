@@ -7,6 +7,10 @@
     "DeployerRegistry": {
       "address": "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe",
       "startBlock": 16680990
+    },
+    "spell4_2_0": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 23741269
     }
   },
   "base": {
@@ -17,6 +21,10 @@
     "DeployerRegistry": {
       "address": "0x1265Ec05FD621d82F224814902c925a600307fb3",
       "startBlock": 4521504
+    },
+    "spell4_2_0": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 37828002
     }
   },
   "arbitrum-one": {

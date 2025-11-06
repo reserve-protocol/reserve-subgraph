@@ -182,7 +182,7 @@ export function handleRoleGranted(event: RoleGranted): void {
         timelockContract.rToken = rToken.id;
         timelockContract.name = ContractName.TIMELOCK;
         timelockContract.save();
-        TimelockTemplate.create(event.params.account);
+        TimelockTemplate.create(timelockAddress);
 
         let governance = Governance.load(rTokenContract.rToken);
         let hasTimelock = false;
@@ -200,6 +200,11 @@ export function handleRoleGranted(event: RoleGranted): void {
             SPELL_3_4_0_TIMELOCK_GOVERNANCE[network][
               timelockAddress.toHexString()
             ];
+
+          if (!governanceAddress) {
+            // 4.2.0 spell
+            return;
+          }
 
           // Init governance
           let governorContract = new RTokenContract(
