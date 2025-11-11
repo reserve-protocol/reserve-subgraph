@@ -9,7 +9,7 @@ enum RewardTokenType {
 #### Deployer Metadata ####
 ###########################
 
-type Deployer @entity {
+type Deployer @entity(immutable: false) {
   " Smart contract address of the Deployer "
   id: ID!
 
@@ -24,7 +24,7 @@ type Deployer @entity {
 ##### Protocol Metadata #####
 #############################
 
-type Protocol @entity {
+type Protocol @entity(immutable: false) {
   " Smart contract address of the protocol's main contract (Factory, Registry, etc) "
   id: ID!
 
@@ -122,7 +122,7 @@ type Protocol @entity {
 ##### Protocol Timeseries #####
 ###############################
 
-type UsageMetricsDailySnapshot @entity {
+type UsageMetricsDailySnapshot @entity(immutable: false) {
   " ID is # of days since Unix epoch time "
   id: ID!
 
@@ -169,7 +169,7 @@ type UsageMetricsDailySnapshot @entity {
   timestamp: BigInt!
 }
 
-type UsageMetricsHourlySnapshot @entity {
+type UsageMetricsHourlySnapshot @entity(immutable: false) {
   " { # of hours since Unix epoch time } "
   id: ID!
 
@@ -216,7 +216,7 @@ type UsageMetricsHourlySnapshot @entity {
   timestamp: BigInt!
 }
 
-type FinancialsDailySnapshot @entity {
+type FinancialsDailySnapshot @entity(immutable: false) {
   " ID is # of days since Unix epoch time "
   id: ID!
 
@@ -267,7 +267,7 @@ type FinancialsDailySnapshot @entity {
 #### RToken-Level Data ####
 ###########################
 
-type Collateral @entity {
+type Collateral @entity(immutable: false) {
   " Collateral erc20 address "
   id: ID!
 
@@ -275,7 +275,7 @@ type Collateral @entity {
   symbol: String!
 }
 
-type RToken @entity {
+type RToken @entity(immutable: false) {
   " RToken address "
   id: ID!
 
@@ -395,7 +395,7 @@ type RToken @entity {
   historicalBaskets: [RTokenHistoricalBaskets!]! @derivedFrom(field: "rToken")
 }
 
-type RTokenDailySnapshot @entity {
+type RTokenDailySnapshot @entity(immutable: false) {
   " { Smart contract address of the rToken }-{ # of days since Unix epoch time } "
   id: ID!
 
@@ -456,7 +456,7 @@ type RTokenDailySnapshot @entity {
   rsrPrice: BigDecimal!
 }
 
-type RTokenHourlySnapshot @entity {
+type RTokenHourlySnapshot @entity(immutable: false) {
   " { Smart contract address of the rToken }-{ # of hours since Unix epoch time } "
   id: ID!
 
@@ -514,7 +514,7 @@ type RTokenHourlySnapshot @entity {
   cumulativeRSRRevenueUSD: BigDecimal!
 }
 
-type Trade @entity {
+type Trade @entity(immutable: false) {
   " { Smart contract address of the auction } "
   id: ID!
 
@@ -574,7 +574,7 @@ type Trade @entity {
 ####### Token Metadata ######
 #############################
 
-type RewardToken @entity {
+type RewardToken @entity(immutable: false) {
   " { Reward token type }-{ Smart contract address of the reward token } "
   id: ID!
 
@@ -588,7 +588,7 @@ type RewardToken @entity {
   type: RewardTokenType!
 }
 
-type Token @entity {
+type Token @entity(immutable: false) {
   " Smart contract address of the token "
   id: ID!
 
@@ -658,7 +658,7 @@ type Token @entity {
   hourlyTokenSnapshot: [TokenHourlySnapshot!]! @derivedFrom(field: "token")
 }
 
-type RTokenContract @entity {
+type RTokenContract @entity(immutable: false) {
   " {Address of related contract} "
   id: ID!
 
@@ -669,7 +669,7 @@ type RTokenContract @entity {
   rToken: RToken!
 }
 
-type RevenueDistribution @entity {
+type RevenueDistribution @entity(immutable: false) {
   " { Address Of the Account }-{ Address of the RToken } "
   id: ID!
 
@@ -690,7 +690,7 @@ type RevenueDistribution @entity {
 ####### Token Timeseries ######
 ###############################
 
-type TokenDailySnapshot @entity {
+type TokenDailySnapshot @entity(immutable: false) {
   " { Token Address }-{ # of days since Unix epoch time } "
   id: ID!
 
@@ -740,7 +740,7 @@ type TokenDailySnapshot @entity {
   timestamp: BigInt!
 }
 
-type TokenHourlySnapshot @entity {
+type TokenHourlySnapshot @entity(immutable: false) {
   " { Token Address }-{ # of hours since Unix epoch time } "
   id: ID!
 
@@ -820,7 +820,7 @@ interface Event {
   timestamp: BigInt!
 }
 
-type Entry implements Event @entity {
+type Entry implements Event @entity(immutable: false) {
   " { Token ID }-{ Transaction hash }-{ Log index } "
   id: ID!
 
@@ -869,7 +869,7 @@ type Entry implements Event @entity {
 ##################################
 
 # An account is a unique Ethereum address
-type Account @entity {
+type Account @entity(immutable: false) {
   " Address of the account "
   id: ID!
 
@@ -890,7 +890,7 @@ type Account @entity {
     @derivedFrom(field: "account")
 }
 
-type AccountRToken @entity {
+type AccountRToken @entity(immutable: false) {
   " { Address Of the Account }-{ Address of the rToken } "
   id: ID!
 
@@ -933,7 +933,7 @@ type AccountRToken @entity {
   records: [AccountStakeRecord!]! @derivedFrom(field: "account")
 }
 
-type AccountStakeRecord @entity {
+type AccountStakeRecord @entity(immutable: false) {
   " { Address Of the Account }-{ Address of the rToken }-{ tx hash } "
   id: ID!
 
@@ -974,7 +974,7 @@ type AccountStakeRecord @entity {
   timestamp: BigInt!
 }
 
-type AccountBalance @entity {
+type AccountBalance @entity(immutable: false) {
   " { Address Of the Account }-{ Address of the Token }"
   id: ID!
 
@@ -998,7 +998,7 @@ type AccountBalance @entity {
 }
 
 # Helper entity for calculating daily/hourly active users
-type ActiveAccount @entity {
+type ActiveAccount @entity(immutable: false) {
   " { Address of the account }-{ [Optional] token address }-{ Days since Unix epoch }-{ [Optional] HH: hour of the day } "
   id: ID!
 }
@@ -1007,7 +1007,7 @@ type ActiveAccount @entity {
 ###### Account Timeseries #####
 ###############################
 
-type AccountBalanceDailySnapshot @entity {
+type AccountBalanceDailySnapshot @entity(immutable: false) {
   " { Address Of the Account }-{ Address of the Token }-{ # of hours since Unix epoch time } "
   id: ID!
 
@@ -1033,7 +1033,7 @@ type AccountBalanceDailySnapshot @entity {
   timestamp: BigInt!
 }
 
-type AccountRTokenDailySnapshot @entity {
+type AccountRTokenDailySnapshot @entity(immutable: false) {
   " { Address Of the Account }-{ Address of the RToken }-{ # of hours since Unix epoch time } "
   id: ID!
 
@@ -1115,7 +1115,7 @@ type DelegateVotingPowerChange @entity(immutable: true) {
 }
 
 # In theory this entity can be part of the RToken entity, but keeping it separate for now
-type Governance @entity {
+type Governance @entity(immutable: false) {
   " Address of the rToken "
   id: ID!
 
@@ -1165,7 +1165,7 @@ type Governance @entity {
   proposalList: [Proposal!]! @derivedFrom(field: "governance")
 }
 
-type GovernanceFramework @entity {
+type GovernanceFramework @entity(immutable: false) {
   "Governance contract addresss"
   id: ID!
   "Name of the governance framework"
@@ -1196,14 +1196,14 @@ type GovernanceFramework @entity {
 }
 
 " Match timelock id with proposal id "
-type TimelockProposal @entity {
+type TimelockProposal @entity(immutable: false) {
   " Timelock id "
   id: ID!
   " Proposal entity ID "
   proposalId: String!
 }
 
-type Proposal @entity {
+type Proposal @entity(immutable: false) {
   " Internal proposal ID (uint256) "
   id: ID!
   "Transaction hash of the proposal creation"
@@ -1331,7 +1331,7 @@ enum VoteChoice {
   ABSTAIN
 }
 
-type TokenHolder @entity {
+type TokenHolder @entity(immutable: false) {
   "A TokenHolder is any address that holds any amount of tokens, the id used is the blockchain address."
   id: ID!
   "Holder address"
@@ -1352,7 +1352,7 @@ type TokenHolder @entity {
   accountRToken: AccountRToken!
 }
 
-type Delegate @entity {
+type Delegate @entity(immutable: false) {
   "A Delegate is any address that has been delegated with voting tokens by a token holder, id is the blockchain address of said delegate"
   id: ID!
 
@@ -1382,7 +1382,7 @@ type Delegate @entity {
 }
 
 # Timeseries Data
-type stTokenDailySnapshot @entity {
+type stTokenDailySnapshot @entity(immutable: false) {
   "Number of days from Unix epoch time"
   id: ID!
   "Total Supply at snapshot"
@@ -1399,7 +1399,7 @@ type stTokenDailySnapshot @entity {
   governance: Governance!
 }
 
-type VoteDailySnapshot @entity {
+type VoteDailySnapshot @entity(immutable: false) {
   "Number of days from Unix epoch time"
   id: ID!
   "Proposal this snapshot is associated with"
@@ -1418,7 +1418,7 @@ type VoteDailySnapshot @entity {
   timestamp: BigInt!
 }
 
-type RTokenHistoricalBaskets @entity {
+type RTokenHistoricalBaskets @entity(immutable: false) {
   " RToken address "
   id: ID!
 
