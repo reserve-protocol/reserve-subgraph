@@ -1,8 +1,8 @@
 {
   "mainnet": {
     "Deployer": {
-      "address": "0xd01D00c99A750329412909c02CD9C9e45ffe34ee",
-      "startBlock": 23535999
+      "address": "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377",
+      "startBlock": 16680990
     },
     "DeployerRegistry": {
       "address": "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe",
@@ -15,8 +15,8 @@
   },
   "base": {
     "Deployer": {
-      "address": "0x1142Ad5E5A082077A7d79d211726c1bd39b0D5FA",
-      "startBlock": 36586835
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 2000063551
     },
     "DeployerRegistry": {
       "address": "0x1265Ec05FD621d82F224814902c925a600307fb3",
