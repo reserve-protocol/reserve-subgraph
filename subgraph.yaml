@@ -27,8 +27,8 @@ dataSources:
     network: mainnet
     source:
       abi: Deployer
-      address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
-      startBlock: 16680990
+      address: "0xd01D00c99A750329412909c02CD9C9e45ffe34ee"
+      startBlock: 23535999
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -51,7 +51,7 @@ dataSources:
         - name: Facade
           file: ./abis/Facade.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -66,8 +66,8 @@ dataSources:
     network: mainnet
     source:
       abi: spell4_2_0
-      address: "0x0000000000000000000000000000000000000000"
-      startBlock: 23741269
+      address: "0x133c3eb12b06C647A887804b20F3B597096F6A24"
+      startBlock: 23741585
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -88,7 +88,6 @@ dataSources:
         - event: NewGovernanceDeployed(indexed address,indexed address,indexed address)
           handler: handleNewGovernanceDeployed
       file: ./src/mappings/spell4_2_0.ts
-
 templates:
   - name: Deployer
     kind: ethereum/contract
@@ -117,7 +116,7 @@ templates:
         - name: Facade
           file: ./abis/Facade.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -151,7 +150,7 @@ templates:
         - name: ERC20
           file: ./abis/ERC20.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -186,7 +185,7 @@ templates:
         - name: Facade
           file: ./abis/Facade.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -305,7 +304,7 @@ templates:
         - name: Distributor
           file: ./abis/distributor.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: Facade
           file: ./abis/Facade.json
         - name: ChainLinkContract
@@ -453,7 +452,7 @@ templates:
         - name: Facade
           file: ./abis/Facade.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
