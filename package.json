@@ -1,14 +1,18 @@
 {
   "name": "reserve",
   "license": "UNLICENSED",
+  "version": "4.2.0",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --studio reserve",
     "create-local": "graph create --node http://127.0.0.1:8020/ lcamargof/reserve",
     "remove-local": "graph remove --node http://127.0.0.1:8020/ lcamargof/reserve",
     "deploy-local": "graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 lcamargof/reserve",
-    "deploy-testnet": "graph deploy --product hosted-service lcamargof/reserve-test"
+    "deploy:mainnet": "node scripts/deploy.js --network mainnet",
+    "deploy:base": "node scripts/deploy.js --network base",
+    "deploy:arbitrum": "node scripts/deploy.js --network arbitrum-one",
+    "deploy:all": "node scripts/deploy-all.js",
+    "deploy": "node scripts/deploy-interactive.js"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "0.56.0",
