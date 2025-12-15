@@ -61,13 +61,52 @@ dataSources:
             address,string)
           handler: handleCreateToken
       file: ./src/mappings/deployer.ts
+  - name: TestDeployer
+    kind: ethereum/contract
+    network: base
+    source:
+      abi: Deployer
+      address: "0x5705F85A05c8b57818663C7AB6a11f88323a1A57"
+      startBlock: 39353460
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Protocol
+        - RToken
+        - Token
+        - RewardToken
+        - Collateral
+      abis:
+        - name: RToken
+          file: ./abis/RToken.json
+        - name: Deployer
+          file: ./abis/Deployer.json
+        - name: Main
+          file: ./abis/Main.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
+        - name: PriceOracleERC20
+          file: ./abis/Prices/PriceOracle.json
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        - name: ChainLinkAggregator
+          file: ./abis/Prices/ChainlinkAggregator.json
+      eventHandlers:
+        - event: RTokenCreated(indexed address,indexed address,address,indexed
+            address,string)
+          handler: handleCreateToken
+      file: ./src/mappings/deployer.ts
   - name: spell4_2_0
     kind: ethereum/contract
     network: base
     source:
       abi: spell4_2_0
-      address: "0xCAE063f8a94cC7A3447753892b383a92C9235a75"
-      startBlock: 39310916
+      address: "0x908Cd3B4B4B6c60d5EB7d1Ca7ECda0e7ceCd6dB1"
+      startBlock: 39354176
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -200,14 +239,16 @@ templates:
         - event: UnstakingStarted(indexed uint256,indexed uint256,indexed
             address,uint256,uint256,uint256)
           handler: handleUnstakeStarted
-        - event: UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
+        - event:
+            UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstake
         - event: ExchangeRateSet(indexed uint192,indexed uint192)
           handler: handleExchangeRate
         - event: ExchangeRateSet(uint192,uint192)
           handler: handleExchangeRate
-        - event: UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
+        - event:
+            UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstakeCancel
         - event: Transfer(indexed address,indexed address,uint256)
