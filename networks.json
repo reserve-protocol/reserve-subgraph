@@ -4,16 +4,12 @@
       "address": "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377",
       "startBlock": 16680990
     },
-    "DeployerTemporal": {
-      "address": "0xd5fcf4795877Ad0084FFc554b71D61bb660255AC",
-      "startBlock": 23535999
-    },
     "DeployerRegistry": {
       "address": "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe",
       "startBlock": 16680990
     },
     "spell4_2_0": {
-      "address": "0x133c3eb12b06C647A887804b20F3B597096F6A24",
+      "address": "0xc76EBB342Aa08E82C12486A90b06ad8489FF753D",
       "startBlock": 23741585
     }
   },
@@ -27,8 +23,8 @@
       "startBlock": 4521504
     },
     "spell4_2_0": {
-      "address": "0x890FAa00C16EAD6AA76F18A1A7fe9C40838F9122",
-      "startBlock": 37829088
+      "address": "0xCAE063f8a94cC7A3447753892b383a92C9235a75",
+      "startBlock": 39310916
     }
   },
   "arbitrum-one": {
