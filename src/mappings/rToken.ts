@@ -195,14 +195,29 @@ export function handleRoleGranted(event: RoleGranted): void {
           log.error("Timelock has been changed", []);
 
           let network = dataSource.network();
+          let timelockAddressHex = timelockAddress.toHexString();
 
-          let governanceAddress =
-            SPELL_3_4_0_TIMELOCK_GOVERNANCE[network][
-              timelockAddress.toHexString()
-            ];
+          // Check if network exists in the spell map
+          if (!SPELL_3_4_0_TIMELOCK_GOVERNANCE.has(network)) {
+            // 4.2.0 spell or newer
+            return;
+          }
+
+          let networkMap = SPELL_3_4_0_TIMELOCK_GOVERNANCE.get(network);
+
+          if (!networkMap) {
+            return;
+          }
+
+          // Check if timelock address exists in the network map
+          if (!networkMap.has(timelockAddressHex)) {
+            // 4.2.0 spell or newer
+            return;
+          }
+
+          let governanceAddress = networkMap.get(timelockAddressHex);
 
           if (!governanceAddress) {
-            // 4.2.0 spell
             return;
           }
 
