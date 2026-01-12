@@ -4,9 +4,17 @@
       "address": "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377",
       "startBlock": 16680990
     },
+    "TestDeployer": {
+      "address": "0x8fcbd0baaeb442f1f3f374fcb63933e6d4cb8710",
+      "startBlock": 23992760
+    },
     "DeployerRegistry": {
       "address": "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe",
       "startBlock": 16680990
+    },
+    "spell4_2_0": {
+      "address": "0xbFf761D367291281f3c4DB4Bda2C591d6DDE3601",
+      "startBlock": 23992880
     }
   },
   "base": {
@@ -14,9 +22,17 @@
       "address": "0x0000000000000000000000000000000000000000",
       "startBlock": 2000063551
     },
+    "TestDeployer": {
+      "address": "0x5705F85A05c8b57818663C7AB6a11f88323a1A57",
+      "startBlock": 39353460
+    },
     "DeployerRegistry": {
       "address": "0x1265Ec05FD621d82F224814902c925a600307fb3",
       "startBlock": 4521504
+    },
+    "spell4_2_0": {
+      "address": "0xB57DB893c95e50f67A62B8dcE411D8e06FF224E1",
+      "startBlock": 39354176
     }
   },
   "arbitrum-one": {
@@ -27,6 +43,10 @@
     "DeployerRegistry": {
       "address": "0x19927e8bF2dB907Bad30cc974dde2b13aC2FB65E",
       "startBlock": 205179115
+    },
+    "spell4_2_0": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 2000063551
     }
   }
 }

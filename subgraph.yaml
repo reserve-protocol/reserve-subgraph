@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: DeployerRegistry
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: DeployerRegistry
-      address: "0xD85Fac03804a3e44D29c494f3761D11A2262cBBe"
-      startBlock: 16680990
+      address: "0x1265Ec05FD621d82F224814902c925a600307fb3"
+      startBlock: 4521504
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -24,11 +24,11 @@ dataSources:
       file: ./src/mappings/deployerRegistry.ts
   - name: Deployer
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Deployer
-      address: "0xFd6CC4F251eaE6d02f9F7B41D1e80464D3d2F377"
-      startBlock: 16680990
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 2000063551
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -51,7 +51,7 @@ dataSources:
         - name: Facade
           file: ./abis/Facade.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -61,10 +61,76 @@ dataSources:
             address,string)
           handler: handleCreateToken
       file: ./src/mappings/deployer.ts
+  - name: TestDeployer
+    kind: ethereum/contract
+    network: base
+    source:
+      abi: Deployer
+      address: "0x5705F85A05c8b57818663C7AB6a11f88323a1A57"
+      startBlock: 39353460
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Protocol
+        - RToken
+        - Token
+        - RewardToken
+        - Collateral
+      abis:
+        - name: RToken
+          file: ./abis/RToken.json
+        - name: Deployer
+          file: ./abis/Deployer.json
+        - name: Main
+          file: ./abis/Main.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: Facade
+          file: ./abis/Facade.json
+        - name: PriceOracleERC20
+          file: ./abis/Prices/PriceOracle.json
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        - name: ChainLinkAggregator
+          file: ./abis/Prices/ChainlinkAggregator.json
+      eventHandlers:
+        - event: RTokenCreated(indexed address,indexed address,address,indexed
+            address,string)
+          handler: handleCreateToken
+      file: ./src/mappings/deployer.ts
+  - name: spell4_2_0
+    kind: ethereum/contract
+    network: base
+    source:
+      abi: spell4_2_0
+      address: "0x908Cd3B4B4B6c60d5EB7d1Ca7ECda0e7ceCd6dB1"
+      startBlock: 39354176
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - RToken
+        - RTokenContract
+        - Governance
+        - GovernanceFramework
+      abis:
+        - name: spell4_2_0
+          file: ./abis/spell4_2_0.json
+        - name: Governor
+          file: ./abis/Governor.json
+        - name: Timelock
+          file: ./abis/Timelock.json
+      eventHandlers:
+        - event: NewGovernanceDeployed(indexed address,indexed address,indexed address)
+          handler: handleNewGovernanceDeployed
+      file: ./src/mappings/spell4_2_0.ts
 templates:
   - name: Deployer
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Deployer
     mapping:
@@ -89,7 +155,7 @@ templates:
         - name: Facade
           file: ./abis/Facade.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -101,7 +167,7 @@ templates:
       file: ./src/mappings/deployer.ts
   - name: RToken
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: RToken
     mapping:
@@ -123,7 +189,7 @@ templates:
         - name: ERC20
           file: ./abis/ERC20.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -136,7 +202,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: stRSR
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: stRSR
     mapping:
@@ -158,7 +224,7 @@ templates:
         - name: Facade
           file: ./abis/Facade.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
@@ -173,14 +239,16 @@ templates:
         - event: UnstakingStarted(indexed uint256,indexed uint256,indexed
             address,uint256,uint256,uint256)
           handler: handleUnstakeStarted
-        - event: UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
+        - event:
+            UnstakingCompleted(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstake
         - event: ExchangeRateSet(indexed uint192,indexed uint192)
           handler: handleExchangeRate
         - event: ExchangeRateSet(uint192,uint192)
           handler: handleExchangeRate
-        - event: UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
+        - event:
+            UnstakingCancelled(indexed uint256,indexed uint256,uint256,indexed
             address,uint256)
           handler: handleUnstakeCancel
         - event: Transfer(indexed address,indexed address,uint256)
@@ -188,7 +256,7 @@ templates:
       file: ./src/mappings/stRSR.ts
   - name: BasketHandler
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: BasketHandler
     mapping:
@@ -211,7 +279,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Main
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Main
     mapping:
@@ -236,7 +304,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Timelock
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Timelock
     mapping:
@@ -261,7 +329,7 @@ templates:
       file: ./src/mappings/governance.ts
   - name: Distributor
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Distributor
     mapping:
@@ -275,7 +343,7 @@ templates:
         - name: Distributor
           file: ./abis/distributor.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: Facade
           file: ./abis/Facade.json
         - name: ChainLinkContract
@@ -294,7 +362,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: RevenueTrader
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: RevenueTrader
     mapping:
@@ -323,7 +391,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: BackingManager
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: BackingManager
     mapping:
@@ -352,7 +420,7 @@ templates:
       file: ./src/mappings/rToken.ts
   - name: Governance
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: Governor
     mapping:
@@ -397,7 +465,7 @@ templates:
       file: ./src/mappings/governance.ts
   - name: stRSRVotes
     kind: ethereum/contract
-    network: mainnet
+    network: base
     source:
       abi: stRSRVotes
     mapping:
@@ -423,7 +491,7 @@ templates:
         - name: Facade
           file: ./abis/Facade.json
         - name: PriceOracleERC20
-          file: ./abis/Prices/ERC20.json
+          file: ./abis/Prices/PriceOracle.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
         - name: ChainLinkAggregator
